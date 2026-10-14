@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* Tailwind utilities point at the token custom properties, so light/dark
+   switching happens in CSS (see styles/tokens.css) and utilities stay theme-agnostic. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-input-line: var(--input-line);
+  --color-neutral-line: var(--neutral-line);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-text: var(--primary-text);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-tint: var(--primary-tint);
+  --color-improve: var(--improve);
+  --color-improve-text: var(--improve-text);
+  --color-improve-soft: var(--improve-soft);
+  --color-ai-text: var(--ai-text);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-neutral-text: var(--neutral-text);
+  --color-row-hover: var(--row-hover);
+  --color-scrim-panel: var(--scrim-panel);
+  --color-scrim-modal: var(--scrim-modal);
+  --color-toast: var(--toast-bg);
+  --color-toast-text: var(--toast-text);
+  --color-toast-icon: var(--toast-icon);
+
+  --color-band-ready: var(--band-ready);
+  --color-band-ready-tint: var(--band-ready-tint);
+  --color-band-ready-on: var(--band-ready-on);
+  --color-band-nearly: var(--band-nearly);
+  --color-band-nearly-tint: var(--band-nearly-tint);
+  --color-band-nearly-on: var(--band-nearly-on);
+  --color-band-developing: var(--band-developing);
+  --color-band-developing-tint: var(--band-developing-tint);
+  --color-band-developing-on: var(--band-developing-on);
+  --color-band-not-ready: var(--band-not-ready);
+  --color-band-not-ready-tint: var(--band-not-ready-tint);
+  --color-band-not-ready-on: var(--band-not-ready-on);
+
+  /* --font-sans, --shadow-panel and --shadow-menu already exist in tokens.css;
+     use font-[family-name:var(--font-sans)] / shadow-[var(--shadow-panel)] if needed. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-card: 12px;
+  --radius-chip: 999px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: var(--text-body);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Visible focus everywhere; rows and list items use an inset ring via .focus-inset */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+.focus-inset:focus-visible {
+  outline-offset: -2px;
+}
+
+.sr-only-visible-on-focus:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PrepPilot admin tokens</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0F766E}a:hover{color:#115E59}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1560px; box-sizing: border-box; padding: 48px; background: #FAFAF7; color: #1F2937; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 32px">
+
+<header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding-bottom: 24px; border-bottom: 1px solid #E5E7EB">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; line-height: 16px; color: #6B7280; font-weight: 500">PrepPilot · Admin console</div>
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Design tokens</h1>
+<p style="margin: 0; color: #6B7280; max-width: 760px">Shared with the candidate app, tuned denser for admin work. Values marked “proposed” are my additions where the brief was open. Confirm or correct before screen design starts.</p>
+</div>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid #B45309; color: #B45309; font-size: 12px; font-weight: 500; white-space: nowrap">v0.1 · For review</span>
+</header>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start">
+
+<!-- LEFT COLUMN -->
+<div style="display: flex; flex-direction: column; gap: 24px">
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Color</h2>
+<div style="display: flex; flex-direction: column; font-size: 13px; line-height: 20px">
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 32px; font-size: 12px; font-weight: 600; color: #6B7280">
+<span>Token</span><span>Light</span><span>Dark (proposed)</span><span>Role</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">bg</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #FAFAF7; border: 1px solid #D1D5DB"></span>#FAFAF7</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #141615"></span>#141615</span>
+<span style="color: #6B7280">Page background</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">surface</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #FFFFFF; border: 1px solid #D1D5DB"></span>#FFFFFF</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #1B1D1C"></span>#1B1D1C</span>
+<span style="color: #6B7280">Tables, panels, inputs, sidebar</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">ink</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #1F2937"></span>#1F2937</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #E7E5E0; border: 1px solid #D1D5DB"></span>#E7E5E0</span>
+<span style="color: #6B7280">Primary text · 14.7:1 on surface</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">ink-muted</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #6B7280"></span>#6B7280</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #9CA3AF"></span>#9CA3AF</span>
+<span style="color: #6B7280">Descriptions, metadata · 4.6:1 on bg</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">line</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #E5E7EB"></span>#E5E7EB</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #2E3230"></span>#2E3230</span>
+<span style="color: #6B7280">1px borders, row dividers</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">primary</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #0F766E"></span>#0F766E</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #2DD4BF"></span>#2DD4BF</span>
+<span style="color: #6B7280">Primary actions, selected nav, positive change</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">primary-soft</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #CCFBF1"></span>#CCFBF1</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #134E4A"></span>#134E4A</span>
+<span style="color: #6B7280">Selected nav bg, Approved / Active chips</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">improve</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #B45309"></span>#B45309</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #F59E0B"></span>#F59E0B</span>
+<span style="color: #6B7280">Needs attention, drafts, negative change</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">improve-soft</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #FEF3C7"></span>#FEF3C7</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #451A03"></span>#451A03</span>
+<span style="color: #6B7280">Attention tints, AI-draft surfaces</span>
+</div>
+<div style="display: grid; grid-template-columns: 120px 116px 140px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">error</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #B91C1C"></span>#B91C1C</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #F87171"></span>#F87171</span>
+<span style="color: #6B7280">Destructive actions, system errors only</span>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Readiness bands</h2>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Same four colors in every chip and chart. Chips carry ink text plus a colored dot, so text never sits on a light band color.</p>
+</div>
+<div style="display: flex; flex-direction: column; font-size: 13px; line-height: 20px">
+<div style="display: grid; grid-template-columns: 80px 172px 116px 1fr; align-items: center; height: 32px; font-size: 12px; font-weight: 600; color: #6B7280">
+<span>Score</span><span>Chip</span><span>Light</span><span>Dark (proposed)</span>
+</div>
+<div style="display: grid; grid-template-columns: 80px 172px 116px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">85–100</span>
+<span><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: #E0F0EE; font-size: 12px; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 999px; background: #0F766E"></span>Interview ready</span></span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #0F766E"></span>#0F766E</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #5EEAD4"></span>#5EEAD4</span>
+</div>
+<div style="display: grid; grid-template-columns: 80px 172px 116px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">70–84</span>
+<span><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: #E3F1F1; font-size: 12px; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 999px; background: #5EAAA8"></span>Nearly ready</span></span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #5EAAA8"></span>#5EAAA8</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #5EAAA8"></span>#5EAAA8</span>
+</div>
+<div style="display: grid; grid-template-columns: 80px 172px 116px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">50–69</span>
+<span><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: #F8EEDF; font-size: 12px; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 999px; background: #D9A35B"></span>Developing</span></span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #D9A35B"></span>#D9A35B</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #D9A35B"></span>#D9A35B</span>
+</div>
+<div style="display: grid; grid-template-columns: 80px 172px 116px 1fr; align-items: center; height: 40px; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">0–49</span>
+<span><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: #FEF3C7; font-size: 12px; font-weight: 500"><span style="width: 8px; height: 8px; border-radius: 999px; background: #B45309"></span>Not ready yet</span></span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #B45309"></span>#B45309</span>
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 20px; height: 20px; border-radius: 4px; background: #FBBF24"></span>#FBBF24</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px">
+<div style="font-size: 12px; line-height: 16px; color: #6B7280">Distribution bar: 2px surface gaps between segments, labels beside the bar, never color alone</div>
+<div style="display: flex; gap: 2px; height: 16px; border-radius: 4px; overflow: hidden" role="img" aria-label="Example band distribution bar showing the four readiness bands in order">
+<span style="flex: 2; background: #0F766E"></span>
+<span style="flex: 3; background: #5EAAA8"></span>
+<span style="flex: 3; background: #D9A35B"></span>
+<span style="flex: 2; background: #B45309"></span>
+</div>
+<div style="display: flex; gap: 2px; font-size: 12px; line-height: 16px">
+<span style="flex: 2">Interview ready</span>
+<span style="flex: 3">Nearly ready</span>
+<span style="flex: 3">Developing</span>
+<span style="flex: 2">Not ready yet</span>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #B45309; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Please confirm</h2>
+<ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px">
+<li><strong style="font-weight: 600">Light band colors fail with white.</strong> Nearly ready #5EAAA8 is 2.7:1 and Developing #D9A35B is 2.3:1 against white, as text and as chart fills. Proposed: ink text + dot on chips; gaps and direct labels in charts.</li>
+<li><strong style="font-weight: 600">Dark mode is my proposal.</strong> Lighter variants, same roles. Band extremes are the brightest so the order still reads by lightness.</li>
+<li><strong style="font-weight: 600">Three chips were open:</strong> AI draft, Revoked, Deactivated. Proposed treatments are on the right.</li>
+<li><strong style="font-weight: 600">Sample data not received yet.</strong> Screens will use it once you send it.</li>
+</ol>
+</section>
+
+</div>
+
+<!-- RIGHT COLUMN -->
+<div style="display: flex; flex-direction: column; gap: 24px">
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Type</h2>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Plus Jakarta Sans → Inter → system-ui · tabular figures on all numbers · sentence case, no all-caps</p>
+</div>
+<div style="display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 168px 1fr; align-items: baseline; padding: 10px 0; border-top: 1px solid #E5E7EB">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Page title · 20/28 · 600</span>
+<span style="font-size: 20px; line-height: 28px; font-weight: 600">Candidates</span>
+</div>
+<div style="display: grid; grid-template-columns: 168px 1fr; align-items: baseline; padding: 10px 0; border-top: 1px solid #E5E7EB">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Section title · 16/24 · 600</span>
+<span style="font-size: 16px; line-height: 24px; font-weight: 600">Hardest questions</span>
+</div>
+<div style="display: grid; grid-template-columns: 168px 1fr; align-items: baseline; padding: 10px 0; border-top: 1px solid #E5E7EB">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Body · 14/22 · 400</span>
+<span style="font-size: 14px; line-height: 22px">Approve a role so assigned candidates can see it.</span>
+</div>
+<div style="display: grid; grid-template-columns: 168px 1fr; align-items: baseline; padding: 10px 0; border-top: 1px solid #E5E7EB">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Table cell · 14/20 · 400</span>
+<span style="font-size: 14px; line-height: 20px; font-variant-numeric: tabular-nums">0123456789 · 100 · 85 · 70 · 50</span>
+</div>
+<div style="display: grid; grid-template-columns: 168px 1fr; align-items: baseline; padding: 10px 0; border-top: 1px solid #E5E7EB">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Table header · 12/16 · 600</span>
+<span style="font-size: 12px; line-height: 16px; font-weight: 600; color: #6B7280">Last session · Preparedness</span>
+</div>
+<div style="display: grid; grid-template-columns: 168px 1fr; align-items: baseline; padding: 10px 0; border-top: 1px solid #E5E7EB">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Metadata · 12/16 · 400</span>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Invited by [admin name] · [date]</span>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Layout, spacing, shape</h2>
+<div style="display: flex; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 4px; height: 4px; background: #0F766E"></span><span style="font-size: 12px; line-height: 16px; color: #6B7280">4</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 8px; height: 8px; background: #0F766E"></span><span style="font-size: 12px; line-height: 16px; color: #6B7280">8</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 12px; height: 12px; background: #0F766E"></span><span style="font-size: 12px; line-height: 16px; color: #6B7280">12</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 16px; height: 16px; background: #0F766E"></span><span style="font-size: 12px; line-height: 16px; color: #6B7280">16</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 24px; height: 24px; background: #0F766E"></span><span style="font-size: 12px; line-height: 16px; color: #6B7280">24</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 32px; height: 32px; background: #0F766E"></span><span style="font-size: 12px; line-height: 16px; color: #6B7280">32</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 48px; height: 48px; background: #0F766E"></span><span style="font-size: 12px; line-height: 16px; color: #6B7280">48</span></div>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280; padding-bottom: 20px">8px grid; 4 only for icon-to-label gaps</span>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; font-size: 13px; line-height: 20px">
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Sidebar</span><span>240 · 64 collapsed</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Side panel</span><span>560, overlays list</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Table row</span><span>44</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Content padding</span><span>32 · 24 at 1024</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Radius</span><span>8 panels, inputs, buttons</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Radius, chips</span><span>999</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Border</span><span>1px line</span></div>
+<div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB"><span style="color: #6B7280">Controls</span><span>36 tall · 44 hit area</span></div>
+</div>
+<div style="display: flex; gap: 24px; align-items: center">
+<div style="width: 120px; height: 72px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; box-shadow: 0 12px 32px rgba(31, 41, 55, 0.16)"></div>
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #6B7280">Only shadow in the system: side panel and modal, 0 12 32 ink at 16%. Side panel has no scrim so the list stays readable; modals get an ink scrim at 40%.</p>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Status chips</h2>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">24 tall · 12/500 · padding 0 10 · outline = not yet live, fill = live, gray = inactive</p>
+</div>
+<div style="display: grid; grid-template-columns: 96px 1fr; row-gap: 12px; align-items: center">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Content</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid #B45309; color: #B45309; font-size: 12px; font-weight: 500">Draft</span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px dashed #B45309; background: #FEF3C7; color: #92400E; font-size: 12px; font-weight: 500">AI draft</span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #CCFBF1; color: #0F766E; font-size: 12px; font-weight: 500">Approved</span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #F3F4F6; color: #4B5563; font-size: 12px; font-weight: 500">Archived</span>
+</div>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Candidates</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid #B45309; color: #B45309; font-size: 12px; font-weight: 500">Invite pending</span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #CCFBF1; color: #0F766E; font-size: 12px; font-weight: 500">Active</span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid #D1D5DB; color: #4B5563; font-size: 12px; font-weight: 500">Revoked</span>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: #F3F4F6; color: #4B5563; font-size: 12px; font-weight: 500">Deactivated</span>
+</div>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">AI draft: dashed amber outline on amber-soft, kept until an admin approves. Revoked (invite withdrawn) is gray outline; Deactivated (account turned off) is gray fill. Red is never used for status.</p>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Buttons and focus</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Invite candidates</button>
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; cursor: pointer">Cancel</button>
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #B91C1C; background: #B91C1C; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Revoke invite</button>
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; outline: 2px solid #0F766E; outline-offset: 2px; cursor: pointer">Focused</button>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Primary: one per page header. Secondary: surface + line. Destructive red only inside the confirm dialog. Focus: 2px primary ring, 2px offset, on every interactive element and the focused table row.</p>
+</section>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1560}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Component sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 2900px; box-sizing: border-box; padding: 40px; background: {{ t.bg }}; color: {{ t.ink }}; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid {{ t.line }}">
+<div><div style="font-size: 12px; line-height: 16px; color: {{ t.muted }}; font-weight: 500">PrepPilot · Admin console</div><h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Shared components · {{ t.name }}</h1><p style="margin: 0; color: {{ t.muted }}">Every screen A1–A10 is built from these parts. Candidate-app pieces at the bottom.</p></div>
+</header>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start">
+
+<!-- Sidebar -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Sidebar · expanded, collapsed, active</h2>
+<div style="display: flex; gap: 16px; align-items: stretch">
+<div style="width: 240px; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 4px; background: {{ t.surface }}">
+<div style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; font-weight: 700"><span style="width: 20px; height: 20px; border-radius: 6px; background: {{ t.primary }}"></span>PrepPilot</div>
+<span style="display: flex; align-items: center; height: 36px; padding: 0 10px; border-radius: 8px; background: {{ t.primarySoft }}; color: {{ t.primaryText }}; font-weight: 600">Candidates</span>
+<span style="display: flex; align-items: center; height: 36px; padding: 0 10px; border-radius: 8px; background: {{ t.hover }}; font-weight: 500">Job roles <span style="margin-left: auto; font-size: 12px; color: {{ t.muted }}">hover</span></span>
+<span style="display: flex; align-items: center; height: 36px; padding: 0 10px; border-radius: 8px; font-weight: 500">Reports</span>
+<span style="display: flex; align-items: center; height: 36px; padding: 0 10px; border-radius: 8px; font-weight: 500; outline: 2px solid {{ t.primary }}; outline-offset: -2px">Settings <span style="margin-left: auto; font-size: 12px; color: {{ t.muted }}">focus</span></span>
+</div>
+<div style="width: 64px; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 12px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; background: {{ t.surface }}">
+<span style="width: 20px; height: 20px; border-radius: 6px; background: {{ t.primary }}; margin: 6px 0"></span>
+<span title="Candidates" style="width: 40px; height: 36px; border-radius: 8px; background: {{ t.primarySoft }}; display: inline-flex; align-items: center; justify-content: center; color: {{ t.primaryText }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path></svg></span>
+<span style="width: 40px; height: 36px; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M9 7V5h6v2"></path></svg></span>
+<span style="width: 40px; height: 36px; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path></svg></span>
+</div>
+<p style="margin: 0; flex: 1; font-size: 12px; line-height: 16px; color: {{ t.muted }}">240 px expanded, 64 px collapsed with tooltips. Active: primary-soft fill and primary text. Icons are 1.8 px stroke, drawn for this product.</p>
+</div>
+</section>
+
+<!-- Page header + filter bar -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Page header and filter bar</h2>
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px; border: 1px dashed {{ t.line }}; border-radius: 8px">
+<div><div style="font-size: 20px; line-height: 28px; font-weight: 600">Candidates</div><div style="color: {{ t.muted }}">Invite people and track how prepared they are.</div></div>
+<span style="height: 36px; padding: 0 16px; border-radius: 8px; background: {{ t.primary }}; color: {{ t.onPrimary }}; font-weight: 600; display: inline-flex; align-items: center">Invite candidates</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="height: 36px; width: 200px; box-sizing: border-box; padding: 0 12px; border: 1px solid {{ t.inputLine }}; border-radius: 8px; color: {{ t.muted }}; display: inline-flex; align-items: center; background: {{ t.surface }}">Search name or email</span>
+<span style="height: 36px; padding: 0 12px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center; font-weight: 500">Role ▾</span>
+<span style="height: 36px; padding: 0 12px; border: 1px solid {{ t.primary }}; border-radius: 8px; display: inline-flex; align-items: center; font-weight: 500; background: {{ t.primaryTint }}; color: {{ t.primaryText }}">Band: Interview ready ×</span>
+<span style="height: 36px; padding: 0 8px; display: inline-flex; align-items: center; font-weight: 600; color: {{ t.primaryText }}">Clear filters</span>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">One primary action per page header. Active filters become removable pills.</p>
+</section>
+
+<!-- Table states -->
+<section style="grid-column: 1 / 3; background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Table · default, hover, selected, focus, sort, loading, empty, bulk bar</h2>
+<div style="border: 1px solid {{ t.line }}; border-radius: 8px; overflow: hidden">
+<div style="height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: {{ t.primaryTint }}; border-bottom: 1px solid {{ t.line }}"><span style="font-weight: 600; color: {{ t.primaryText }}">2 selected</span><span style="color: {{ t.primaryText }}; text-decoration: underline; font-size: 13px">Clear</span><span style="margin-left: 12px; height: 30px; padding: 0 12px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center; font-size: 13px; background: {{ t.surface }}">Assign roles</span><span style="height: 30px; padding: 0 12px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center; font-size: 13px; background: {{ t.surface }}">Export CSV</span><span style="margin-left: auto; height: 30px; padding: 0 12px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center; font-size: 13px; color: {{ t.error }}; background: {{ t.surface }}">Deactivate</span></div>
+<div style="display: grid; grid-template-columns: 44px 1.6fr 1fr 96px 200px 120px 120px; align-items: center; height: 40px; padding-right: 16px; border-bottom: 1px solid {{ t.line }}; font-size: 12px; font-weight: 600; color: {{ t.muted }}"><span></span><span>Name</span><span>Status</span><span style="text-align: right; padding-right: 16px">Sessions</span><span>Latest score</span><span style="text-align: right">Since baseline</span><span style="color: {{ t.ink }}; padding-left: 16px">Last active ↓</span></div>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 44px 1.6fr 1fr 96px 200px 120px 120px; align-items: center; height: 44px; padding-right: 16px; border-bottom: 1px solid {{ t.line }}; background: {{ r.bg }}; outline: {{ r.outline }}; outline-offset: -2px">
+<span style="display: flex; justify-content: center"><span style="width: 16px; height: 16px; border-radius: 4px; box-sizing: border-box; background: {{ r.boxBg }}; border: 1.5px solid {{ r.boxBorder }}"></span></span>
+<span style="display: flex; flex-direction: column"><span style="font-weight: 600; line-height: 18px">{{ r.name }}</span><span style="font-size: 12px; line-height: 16px; color: {{ t.muted }}">{{ r.state }}</span></span>
+<span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: {{ t.approvedBg }}; color: {{ t.approvedFg }}">Active</span></span>
+<span style="text-align: right; padding-right: 16px">{{ r.sessions }}</span>
+<span style="display: inline-flex; align-items: center; gap: 8px"><span style="font-weight: 600; min-width: 22px; text-align: right">{{ r.score }}</span><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: {{ r.bandBg }}; color: {{ t.ink }}"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{ r.bandDot }}"></span>{{ r.band }}</span></span>
+<span style="text-align: right; font-weight: 600; color: {{ r.changeColor }}">{{ r.change }}</span>
+<span style="padding-left: 16px">{{ r.last }}</span>
+</div>
+</sc-for>
+<div style="display: grid; grid-template-columns: 44px 1.6fr 1fr 96px 200px 120px 120px; align-items: center; height: 44px; padding-right: 16px; border-bottom: 1px solid {{ t.line }}" aria-label="Loading row">
+<span></span><span style="width: 60%; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span><span style="width: 56px; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span><span style="justify-self: end; margin-right: 16px; width: 16px; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span><span style="width: 110px; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span><span style="justify-self: end; width: 28px; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span><span style="margin-left: 16px; width: 64px; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span>
+</div>
+<div style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="font-weight: 600">No candidates match these filters.</span><span style="height: 32px; padding: 0 14px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 500">Clear filters</span></div>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">Rows 44 px. Numbers tabular and right-aligned; score sits right-aligned before its band chip. ↑ ↓ move, Enter opens the side panel, Esc closes and returns focus to the row.</p>
+</section>
+
+<!-- Chips -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Status chips and band chips</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ statusChips }}" as="c" hint-placeholder-count="8"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: {{ c.bg }}; color: {{ c.fg }}; border: 1px {{ c.style }} {{ c.border }}">{{ c.label }}</span></sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ bandChips }}" as="b" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: {{ b.bg }}; color: {{ t.ink }}"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{ b.dot }}"></span>{{ b.label }}</span></sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; font-size: 14px">
+<span style="display: inline-flex; align-items: center; gap: 8px"><span style="font-weight: 600">78</span><span style="font-weight: 600; color: {{ t.primaryText }}">+24</span></span>
+<span style="display: inline-flex; align-items: center; gap: 8px"><span style="font-weight: 600">64</span><span style="font-weight: 600; color: {{ t.improveText }}">−5</span></span>
+<span style="display: inline-flex; align-items: center; gap: 8px"><span style="font-weight: 600">46</span><span style="color: {{ t.muted }}">–</span></span>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">Outline = not live yet, fill = live, gray = inactive, dashed = AI draft. Bands: ink text plus a dot, never text on the band color. Change: teal up, amber down, dash for one session. No red for scores.</p>
+</section>
+
+<!-- Tabs, rich text, bullets, tags -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Tabs, rich text, bullet editor, tag input</h2>
+<div style="display: flex; gap: 24px; border-bottom: 1px solid {{ t.line }}"><span style="height: 36px; display: inline-flex; align-items: center; color: {{ t.primaryText }}; font-weight: 600; border-bottom: 2px solid {{ t.primary }}; margin-bottom: -1px">Details</span><span style="height: 36px; display: inline-flex; align-items: center; gap: 6px; color: {{ t.muted }}; font-weight: 500">Flash cards 8 <span style="height: 20px; padding: 0 8px; border-radius: 999px; border: 1px dashed {{ t.improve }}; background: {{ t.improveSoft }}; color: {{ t.aiFg }}; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center">5 to review</span></span><span style="height: 36px; display: inline-flex; align-items: center; color: {{ t.muted }}; font-weight: 500">Settings</span></div>
+<div style="border: 1px solid {{ t.inputLine }}; border-radius: 8px"><div style="display: flex; gap: 4px; padding: 4px; border-bottom: 1px solid {{ t.line }}; font-size: 13px"><span style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700">B</span><span style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-style: italic">I</span><span style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: {{ t.hover }}">•</span></div><div style="padding: 8px 12px; font-size: 13px; line-height: 20px">Research accounts and <span style="font-weight: 700">qualify</span> interest.</div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><sc-for list="{{ bullets }}" as="b" hint-placeholder-count="2"><div style="display: flex; align-items: center; gap: 6px"><span style="width: 6px; height: 6px; border-radius: 999px; background: {{ t.primary }}; margin: 0 4px"></span><span style="flex: 1; height: 32px; box-sizing: border-box; padding: 0 10px; border: 1px solid {{ t.inputLine }}; border-radius: 8px; display: inline-flex; align-items: center; font-size: 13px">{{ b }}</span><span style="color: {{ t.muted }}">×</span></div></sc-for><span style="color: {{ t.primaryText }}; font-size: 13px; font-weight: 600">+ Add point</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid {{ t.inputLine }}; border-radius: 8px"><span style="height: 26px; padding: 0 10px; border-radius: 999px; background: {{ t.hover }}; font-size: 13px; display: inline-flex; align-items: center">Prospecting ×</span><span style="height: 26px; padding: 0 10px; border-radius: 999px; background: {{ t.hover }}; font-size: 13px; display: inline-flex; align-items: center">Cold calling ×</span><span style="color: {{ t.muted }}; font-size: 13px">Add a skill</span></div>
+</section>
+
+<!-- Side panel + modal + confirmations -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Side panel, modal, confirmations</h2>
+<div style="position: relative; height: 200px; border: 1px solid {{ t.line }}; border-radius: 8px; overflow: hidden; background: {{ t.bg }}">
+<div style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><span style="width: 60%; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span><span style="width: 50%; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span><span style="width: 55%; height: 10px; border-radius: 4px; background: {{ t.skeleton }}"></span></div>
+<div style="position: absolute; inset: 0; background: {{ t.scrimLight }}"></div>
+<div style="position: absolute; top: 0; right: 0; bottom: 0; width: 55%; background: {{ t.surface }}; border-left: 1px solid {{ t.line }}; box-shadow: {{ t.shadow }}; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Priya Sharma</span><span style="font-size: 12px; color: {{ t.muted }}">560 px · list stays visible, dimmed 24% · Esc closes</span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="border: 1px solid {{ t.line }}; border-radius: 8px; padding: 14px; box-shadow: {{ t.shadow }}; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 20px"><span style="font-weight: 600; font-size: 14px">Approve Sales Development Rep?</span><span style="color: {{ t.muted }}">12 assigned candidates will see it on their dashboard and get an email.</span><span style="display: flex; justify-content: flex-end; gap: 6px"><span style="height: 30px; padding: 0 10px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center">Cancel</span><span style="height: 30px; padding: 0 10px; border-radius: 8px; background: {{ t.primary }}; color: {{ t.onPrimary }}; font-weight: 600; display: inline-flex; align-items: center">Approve and notify</span></span></div>
+<div style="border: 1px solid {{ t.line }}; border-radius: 8px; padding: 14px; box-shadow: {{ t.shadow }}; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 20px"><span style="font-weight: 600; font-size: 14px">Deactivate Priya Sharma?</span><span style="color: {{ t.muted }}">Priya can’t log in or start sessions. Her 3 sessions and scores are kept; you can reactivate later.</span><span style="display: flex; justify-content: flex-end; gap: 6px"><span style="height: 30px; padding: 0 10px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center">Cancel</span><span style="height: 30px; padding: 0 10px; border-radius: 8px; background: {{ t.error }}; color: {{ t.onError }}; font-weight: 600; display: inline-flex; align-items: center">Deactivate</span></span></div>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">Confirmations name the person or role, the exact effect, what is kept and whether it can be undone. Red only on the destructive button.</p>
+</section>
+
+<!-- Weight bar, waveform, highlights -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Weight bar, audio waveform, evidence highlights</h2>
+<div style="display: flex; gap: 2px; height: 28px; border-radius: 6px; overflow: hidden; font-size: 12px; font-weight: 600"><span style="flex: 20; display: flex; align-items: center; padding: 0 8px; background: {{ t.w1 }}; color: {{ t.w1fg }}">First try 20%</span><span style="flex: 55; display: flex; align-items: center; padding: 0 8px; background: {{ t.w2 }}; color: {{ t.w2fg }}">Second try 55%</span><span style="flex: 25; display: flex; align-items: center; padding: 0 8px; background: {{ t.w3 }}; color: {{ t.w3fg }}">Learning 25%</span></div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid {{ t.line }}; background: {{ t.bg }}"><span style="width: 30px; height: 30px; border-radius: 999px; background: {{ t.primary }}; color: {{ t.onPrimary }}; display: inline-flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></span><span aria-hidden="true" style="flex: 1; display: flex; align-items: center; gap: 2px; height: 26px; overflow: hidden"><sc-for list="{{ wave }}" as="w" hint-placeholder-count="60"><span style="width: 3px; flex: none; border-radius: 2px; height: {{ w.h }}; background: {{ w.c }}"></span></sc-for></span><span style="font-size: 12px; color: {{ t.muted }}">0:34 / 1:38</span></div>
+<p style="margin: 0; font-size: 13px; line-height: 22px">“<mark style="background: {{ t.matchBg }}; color: {{ t.matchFg }}; border-bottom: 2px solid {{ t.primary }}; padding: 0 2px">I listened without interrupting and said I’d own it.</mark> I checked the tracking. <mark style="background: {{ t.issueBg }}; color: {{ t.issueFg }}; border-bottom: 2px dashed {{ t.improve }}; padding: 0 2px">And that was it.</mark>”</p>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">Matched evidence: teal fill, solid underline. Issue: amber fill, dashed underline, so they differ without colour.</p>
+</section>
+
+<!-- Charts -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start"><h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Stacked band bar, line chart with thresholds</h2><span style="height: 30px; padding: 0 10px; border: 1px solid {{ t.line }}; border-radius: 8px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 500">Show as table</span></div>
+<div role="img" aria-label="Latest bands: Interview ready 6, Nearly ready 9, Developing 7, Not ready yet 2" style="display: flex; gap: 2px; height: 28px; border-radius: 6px; overflow: hidden; font-size: 13px; font-weight: 700">
+<sc-for list="{{ bandSegs }}" as="g" hint-placeholder-count="4"><span style="flex: {{ g.n }}; display: flex; align-items: center; justify-content: center; background: {{ g.bg }}; color: {{ g.fg }}">{{ g.n }}</span></sc-for>
+</div>
+<div role="img" aria-label="Session scores 54, 66, 78 with thresholds at 50, 70 and 85" style="position: relative; height: 150px">
+<svg width="560" height="150" viewBox="0 0 560 150" aria-hidden="true" style="position: absolute; left: 0; top: 0">
+<line x1="0" y1="32" x2="440" y2="32" stroke="{{ t.band1 }}" stroke-dasharray="4 4"></line>
+<line x1="0" y1="60" x2="440" y2="60" stroke="{{ t.band2 }}" stroke-dasharray="4 4"></line>
+<line x1="0" y1="97" x2="440" y2="97" stroke="{{ t.band4 }}" stroke-dasharray="4 4"></line>
+<line x1="0" y1="134" x2="440" y2="134" stroke="{{ t.line }}"></line>
+<polyline points="40,90 220,68 400,46" fill="none" stroke="{{ t.primary }}" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<circle cx="40" cy="90" r="4.5" fill="{{ t.surface }}" stroke="{{ t.primary }}" stroke-width="2.5"></circle><circle cx="220" cy="68" r="4.5" fill="{{ t.surface }}" stroke="{{ t.primary }}" stroke-width="2.5"></circle><circle cx="400" cy="46" r="4.5" fill="{{ t.surface }}" stroke="{{ t.primary }}" stroke-width="2.5"></circle>
+</svg>
+<span style="position: absolute; left: 448px; top: 24px; font-size: 12px; color: {{ t.ink }}">85 Interview ready</span>
+<span style="position: absolute; left: 448px; top: 52px; font-size: 12px; color: {{ t.ink }}">70 Nearly ready</span>
+<span style="position: absolute; left: 448px; top: 89px; font-size: 12px; color: {{ t.ink }}">50 Developing</span>
+<span style="position: absolute; left: 28px; top: 96px; font-size: 12px; font-weight: 600">54</span><span style="position: absolute; left: 208px; top: 74px; font-size: 12px; font-weight: 600">66</span><span style="position: absolute; left: 388px; top: 52px; font-size: 12px; font-weight: 600">78</span>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">Segments carry their count; 2 px gaps; legend or direct labels; every chart has a “Show as table” toggle.</p>
+</section>
+
+<!-- Toast + empty state -->
+<section style="background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Toast and empty state</h2>
+<div style="align-self: flex-start; display: flex; gap: 10px; padding: 12px 16px; border-radius: 8px; background: {{ t.toastBg }}; color: {{ t.toastFg }}; box-shadow: {{ t.shadow }}"><span style="color: {{ t.toastIcon }}; font-weight: 700">✓</span><span style="display: flex; flex-direction: column"><span style="font-weight: 600">42 invites sent</span><span style="font-size: 12px; opacity: 0.85">3 rows were skipped.</span></span></div>
+<div style="border: 1px solid {{ t.line }}; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center"><span style="width: 44px; height: 44px; border-radius: 999px; background: {{ t.primarySoft }}"></span><span style="font-weight: 600">Invite your first candidates</span><span style="font-size: 13px; color: {{ t.muted }}">They’ll get an email with a login link.</span><span style="height: 32px; padding: 0 14px; border-radius: 8px; background: {{ t.primary }}; color: {{ t.onPrimary }}; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center">Invite candidates</span></div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">In empty states the header button hides, so the empty state holds the only primary action.</p>
+</section>
+
+<!-- Candidate-app pieces -->
+<section style="grid-column: 1 / 3; background: {{ t.surface }}; border: 1px solid {{ t.line }}; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Shared with the candidate app · flash card, sub-score bar, band chip, score ring</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<div style="width: 280px; border: 1px solid {{ t.line }}; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; background: {{ t.surface }}"><span style="align-self: flex-start; height: 22px; padding: 0 8px; border-radius: 999px; background: {{ t.primarySoft }}; color: {{ t.primaryText }}; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center">Situational</span><span style="font-size: 17px; line-height: 24px; font-weight: 600">A prospect says “Just send me an email.” What do you do next?</span><span style="font-size: 12px; color: {{ t.muted }}">Tap to flip · Card 4 of 8</span></div>
+<div style="width: 300px; display: flex; flex-direction: column; gap: 8px; font-size: 13px"><sc-for list="{{ subs }}" as="d" hint-placeholder-count="4"><div style="display: grid; grid-template-columns: 76px minmax(0, 1fr) 28px; align-items: center; gap: 8px"><span>{{ d.label }}</span><span style="display: block; height: 8px; border-radius: 999px; background: {{ t.track }}; overflow: hidden"><span style="display: block; height: 100%; border-radius: 999px; width: {{ d.w }}; background: {{ t.primary }}"></span></span><span style="text-align: right; font-weight: 600">{{ d.v }}</span></div></sc-for></div>
+<div style="display: flex; align-items: center; gap: 14px"><div role="img" aria-label="Score 78, Nearly ready" style="position: relative; width: 72px; height: 72px"><svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" fill="none" stroke="{{ t.track }}" stroke-width="7"></circle><circle cx="36" cy="36" r="30" fill="none" stroke="{{ t.band2 }}" stroke-width="7" stroke-linecap="round" stroke-dasharray="147 188.5" transform="rotate(-90 36 36)"></circle></svg><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700">78</span></div><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: {{ t.nrBg }}"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{ t.band2 }}"></span>Nearly ready</span></div>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: {{ t.muted }}">No candidate-app design system is attached to this canvas, so these are drawn here to the shared tokens. Swap in the candidate app’s own components when they’re available.</p>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":2900}}'>
+class Component extends DCLogic {
+renderVals() {
+var dark = this.props.theme === 'dark';
+var L = { name: 'light', bg: '#FAFAF7', surface: '#FFFFFF', ink: '#1F2937', muted: '#6B7280', line: '#E5E7EB', inputLine: '#D1D5DB', primary: '#0F766E', primaryText: '#0F766E', onPrimary: '#FFFFFF', primarySoft: '#CCFBF1', primaryTint: '#F0FDFA', improve: '#B45309', improveText: '#B45309', improveSoft: '#FEF3C7', aiFg: '#92400E', error: '#B91C1C', onError: '#FFFFFF', hover: '#F3F4F6', skeleton: '#E5E7EB', track: '#F3F4F6', scrimLight: 'rgba(31, 41, 55, 0.24)', shadow: '0 12px 32px rgba(31, 41, 55, 0.16)', approvedBg: '#CCFBF1', approvedFg: '#0F766E', grayBg: '#F3F4F6', grayFg: '#4B5563', grayLine: '#D1D5DB', matchBg: '#CCFBF1', matchFg: '#134E4A', issueBg: '#FEF3C7', issueFg: '#78350F', toastBg: '#1F2937', toastFg: '#FFFFFF', toastIcon: '#5EEAD4', band1: '#0F766E', band2: '#5EAAA8', band3: '#D9A35B', band4: '#B45309', b1Bg: '#E0F0EE', nrBg: '#E3F1F1', b3Bg: '#F8EEDF', b4Bg: '#FEF3C7', selRow: '#F0FDFA', hoverRow: '#F9FAFB', w1: '#134E4A', w1fg: '#FFFFFF', w2: '#0F766E', w2fg: '#FFFFFF', w3: '#5EAAA8', w3fg: '#1F2937', segFg: ['#FFFFFF', '#1F2937', '#1F2937', '#FFFFFF'] };
+var D = { name: 'dark', bg: '#141615', surface: '#1B1D1C', ink: '#E7E5E0', muted: '#9CA3AF', line: '#2E3230', inputLine: '#3F4441', primary: '#2DD4BF', primaryText: '#5EEAD4', onPrimary: '#0B1F1D', primarySoft: '#134E4A', primaryTint: '#16302D', improve: '#F59E0B', improveText: '#FBBF24', improveSoft: '#451A03', aiFg: '#FCD34D', error: '#F87171', onError: '#1B1D1C', hover: '#242725', skeleton: '#2E3230', track: '#2E3230', scrimLight: 'rgba(0, 0, 0, 0.4)', shadow: '0 12px 32px rgba(0, 0, 0, 0.5)', approvedBg: '#134E4A', approvedFg: '#5EEAD4', grayBg: '#2E3230', grayFg: '#D1D5DB', grayLine: '#4B5563', matchBg: '#134E4A', matchFg: '#CCFBF1', issueBg: '#451A03', issueFg: '#FDE68A', toastBg: '#E7E5E0', toastFg: '#141615', toastIcon: '#0F766E', band1: '#5EEAD4', band2: '#5EAAA8', band3: '#D9A35B', band4: '#FBBF24', b1Bg: '#183B37', nrBg: '#1F3533', b3Bg: '#3A2F1E', b4Bg: '#3D2E0A', selRow: '#16302D', hoverRow: '#222524', w1: '#5EEAD4', w1fg: '#0B1F1D', w2: '#2DD4BF', w2fg: '#0B1F1D', w3: '#134E4A', w3fg: '#E7E5E0', segFg: ['#141615', '#141615', '#141615', '#141615'] };
+var t = dark ? D : L;
+var bands = [['Interview ready', t.band1, t.b1Bg], ['Nearly ready', t.band2, t.nrBg], ['Developing', t.band3, t.b3Bg], ['Not ready yet', t.band4, t.b4Bg]];
+var rows = [
+{ name: 'Priya Sharma', state: 'Default', sessions: 3, score: 78, b: 1, change: '+24', changeColor: t.primaryText, last: 'Today', bg: t.surface, outline: 'none', sel: false },
+{ name: 'Ananya Iyer', state: 'Hover', sessions: 2, score: 88, b: 0, change: '+19', changeColor: t.primaryText, last: 'Yesterday', bg: t.hoverRow, outline: 'none', sel: false },
+{ name: 'Rahul Verma', state: 'Selected', sessions: 1, score: 46, b: 3, change: '–', changeColor: t.muted, last: '2 days ago', bg: t.selRow, outline: 'none', sel: true },
+{ name: 'Sample candidate', state: 'Keyboard focus', sessions: 4, score: 64, b: 2, change: '−5', changeColor: t.improveText, last: '5 days ago', bg: t.surface, outline: '2px solid ' + t.primary, sel: true }
+].map(function (r) { var b = bands[r.b]; return Object.assign(r, { band: b[0], bandDot: b[1], bandBg: b[2], boxBg: r.sel ? t.primary : 'transparent', boxBorder: r.sel ? t.primary : t.muted }); });
+var statusChips = [
+['Draft', 'transparent', t.improveText, t.improve, 'solid'], ['AI draft', t.improveSoft, t.aiFg, t.improve, 'dashed'], ['Approved', t.approvedBg, t.approvedFg, t.approvedBg, 'solid'], ['Archived', t.grayBg, t.grayFg, t.grayBg, 'solid'],
+['Invite pending', 'transparent', t.improveText, t.improve, 'solid'], ['Active', t.approvedBg, t.approvedFg, t.approvedBg, 'solid'], ['Revoked', 'transparent', t.grayFg, t.grayLine, 'solid'], ['Deactivated', t.grayBg, t.grayFg, t.grayBg, 'solid']
+].map(function (c) { return { label: c[0], bg: c[1], fg: c[2], border: c[3], style: c[4] }; });
+var wave = []; for (var i = 0; i < 60; i++) { var v = Math.abs(Math.sin(i * 0.7 + 1) * Math.cos(i * 0.23 + 2)); wave.push({ h: Math.round(4 + v * 20) + 'px', c: i < 21 ? t.primary : t.muted }); }
+return {
+t: t, rows: rows, statusChips: statusChips,
+bandChips: bands.map(function (b) { return { label: b[0], dot: b[1], bg: b[2] }; }),
+bandSegs: [6, 9, 7, 2].map(function (n, i) { return { n: n, bg: bands[i][1], fg: t.segFg[i] }; }),
+bullets: ['Acknowledge the request', 'Ask one short question'],
+wave: wave,
+subs: [['Content', 76], ['Structure', 68], ['Delivery', 72], ['Relevance', 80]].map(function (d) { return { label: d[0], v: d[1], w: d[1] + '%' }; })
+};
+}
+}
+</script>
+</body>
+</html>

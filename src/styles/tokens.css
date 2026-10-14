@@ -1,0 +1,206 @@
+/* PrepPilot admin console — design tokens (v0.1, 15 Oct 2026)
+   Light is the default. Dark applies with prefers-color-scheme unless the
+   app forces a theme via [data-theme="light"|"dark"] on <html>. */
+
+
+:root {
+  /* Colour */
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --ink: #1F2937;
+  --ink-muted: #6B7280;
+  --line: #E5E7EB;
+  --input-line: #D1D5DB;
+  --primary: #0F766E;
+  --on-primary: #FFFFFF;
+  --primary-text: #0F766E;
+  --primary-soft: #CCFBF1;
+  --primary-tint: #F0FDFA;
+  --improve: #B45309;
+  --improve-text: #B45309;
+  --improve-soft: #FEF3C7;
+  --ai-text: #92400E;
+  --error: #B91C1C;
+  --on-error: #FFFFFF;
+  --neutral-soft: #F3F4F6;
+  --neutral-text: #4B5563;
+  --neutral-line: #D1D5DB;
+  --row-hover: #F9FAFB;
+  --scrim-panel: rgba(31, 41, 55, 0.24);
+  --scrim-modal: rgba(31, 41, 55, 0.40);
+  --toast-bg: #1F2937;
+  --toast-text: #FFFFFF;
+  --toast-icon: #5EEAD4;
+
+  /* Readiness bands */
+  --band-ready: #0F766E;          /* Interview ready 85–100 */
+  --band-nearly: #5EAAA8;         /* Nearly ready 70–84 */
+  --band-developing: #D9A35B;     /* Developing 50–69 */
+  --band-not-ready: #B45309;      /* Not ready yet 0–49 */
+  --band-ready-tint: #E0F0EE;
+  --band-nearly-tint: #E3F1F1;
+  --band-developing-tint: #F8EEDF;
+  --band-not-ready-tint: #FEF3C7;
+  --band-ready-on: #FFFFFF;       /* text inside chart segments */
+  --band-nearly-on: #1F2937;
+  --band-developing-on: #1F2937;
+  --band-not-ready-on: #FFFFFF;
+
+  /* Weight bar (role settings) */
+  --weight-1: #134E4A; --weight-1-on: #FFFFFF;
+  --weight-2: #0F766E; --weight-2-on: #FFFFFF;
+  --weight-3: #5EAAA8; --weight-3-on: #1F2937;
+  --weight-4: #CCFBF1; --weight-4-on: #1F2937;
+
+  /* Type */
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+  --text-title: 600 20px/28px var(--font-sans);
+  --text-section: 600 16px/24px var(--font-sans);
+  --text-body: 400 14px/22px var(--font-sans);
+  --text-cell: 400 14px/20px var(--font-sans);
+  --text-small: 400 13px/20px var(--font-sans);
+  --text-header: 600 12px/16px var(--font-sans);
+  --text-meta: 400 12px/16px var(--font-sans);
+
+  /* Space (8px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Layout */
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+  --panel-width: 560px;
+  --modal-width: 640px;
+  --dialog-width: 460px;
+  --row-height: 44px;
+  --row-height-2line: 52px;
+  --header-row-height: 40px;
+  --control-height: 36px;
+  --control-height-sm: 32px;
+  --chip-height: 24px;
+  --hit-min: 44px;
+
+  /* Shape */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-chip: 999px;
+  --radius-card: 12px;
+  --border: 1px solid var(--line);
+
+  /* Elevation: panels, modals, menus, toasts only */
+  --shadow-panel: 0 12px 32px rgba(31, 41, 55, 0.16);
+  --shadow-menu: 0 8px 24px rgba(31, 41, 55, 0.12);
+
+  /* Focus */
+  --focus-ring: 2px solid var(--primary);
+  --focus-offset: 2px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141615;
+    --surface: #1B1D1C;
+    --ink: #E7E5E0;
+    --ink-muted: #9CA3AF;
+    --line: #2E3230;
+    --input-line: #3F4441;
+    --primary: #2DD4BF;
+    --on-primary: #0B1F1D;
+    --primary-text: #5EEAD4;
+    --primary-soft: #134E4A;
+    --primary-tint: #16302D;
+    --improve: #F59E0B;
+    --improve-text: #FBBF24;
+    --improve-soft: #451A03;
+    --ai-text: #FCD34D;
+    --error: #F87171;
+    --on-error: #1B1D1C;
+    --neutral-soft: #2E3230;
+    --neutral-text: #D1D5DB;
+    --neutral-line: #4B5563;
+    --row-hover: #222524;
+    --scrim-panel: rgba(0, 0, 0, 0.40);
+    --scrim-modal: rgba(0, 0, 0, 0.55);
+    --toast-bg: #E7E5E0;
+    --toast-text: #141615;
+    --toast-icon: #0F766E;
+    --band-ready: #5EEAD4;
+    --band-nearly: #5EAAA8;
+    --band-developing: #D9A35B;
+    --band-not-ready: #FBBF24;
+    --band-ready-tint: #183B37;
+    --band-nearly-tint: #1F3533;
+    --band-developing-tint: #3A2F1E;
+    --band-not-ready-tint: #3D2E0A;
+    --band-ready-on: #141615;
+    --band-nearly-on: #141615;
+    --band-developing-on: #141615;
+    --band-not-ready-on: #141615;
+    --weight-1: #5EEAD4; --weight-1-on: #0B1F1D;
+    --weight-2: #2DD4BF; --weight-2-on: #0B1F1D;
+    --weight-3: #134E4A; --weight-3-on: #E7E5E0;
+    --weight-4: #2E3230; --weight-4-on: #E7E5E0;
+    --shadow-panel: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #141615;
+  --surface: #1B1D1C;
+  --ink: #E7E5E0;
+  --ink-muted: #9CA3AF;
+  --line: #2E3230;
+  --input-line: #3F4441;
+  --primary: #2DD4BF;
+  --on-primary: #0B1F1D;
+  --primary-text: #5EEAD4;
+  --primary-soft: #134E4A;
+  --primary-tint: #16302D;
+  --improve: #F59E0B;
+  --improve-text: #FBBF24;
+  --improve-soft: #451A03;
+  --ai-text: #FCD34D;
+  --error: #F87171;
+  --on-error: #1B1D1C;
+  --neutral-soft: #2E3230;
+  --neutral-text: #D1D5DB;
+  --neutral-line: #4B5563;
+  --row-hover: #222524;
+  --scrim-panel: rgba(0, 0, 0, 0.40);
+  --scrim-modal: rgba(0, 0, 0, 0.55);
+  --toast-bg: #E7E5E0;
+  --toast-text: #141615;
+  --toast-icon: #0F766E;
+  --band-ready: #5EEAD4;
+  --band-nearly: #5EAAA8;
+  --band-developing: #D9A35B;
+  --band-not-ready: #FBBF24;
+  --band-ready-tint: #183B37;
+  --band-nearly-tint: #1F3533;
+  --band-developing-tint: #3A2F1E;
+  --band-not-ready-tint: #3D2E0A;
+  --band-ready-on: #141615;
+  --band-nearly-on: #141615;
+  --band-developing-on: #141615;
+  --band-not-ready-on: #141615;
+  --weight-1: #5EEAD4; --weight-1-on: #0B1F1D;
+  --weight-2: #2DD4BF; --weight-2-on: #0B1F1D;
+  --weight-3: #134E4A; --weight-3-on: #E7E5E0;
+  --weight-4: #2E3230; --weight-4-on: #E7E5E0;
+  --shadow-panel: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+/* Base */
+html { background: var(--bg); color: var(--ink); font: var(--text-body); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }

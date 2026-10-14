@@ -1,0 +1,88 @@
+"use client";
+
+import { useId, useRef, useState } from "react";
+import { Icon } from "@/components/ui/icon";
+
+export function TagInput({
+  tags,
+  onChange,
+  label,
+  placeholder,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  label: string;
+  placeholder?: string;
+}) {
+  const [draft, setDraft] = useState("");
+  const [announce, setAnnounce] = useState("");
+  const ref = useRef<HTMLInputElement>(null);
+  const uid = useId();
+
+  const add = () => {
+    const t = draft.trim();
+    if (!t) return;
+    if (!tags.some((x) => x.toLowerCase() === t.toLowerCase())) {
+      onChange([...tags, t]);
+      setAnnounce(`${t} added`);
+    }
+    setDraft("");
+  };
+  const remove = (t: string) => {
+    onChange(tags.filter((x) => x !== t));
+    setAnnounce(`${t} removed`);
+    ref.current?.focus();
+  };
+
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      onClick={() => ref.current?.focus()}
+      className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border border-input-line bg-surface px-2 py-1.5"
+    >
+      {tags.map((t) => (
+        <span
+          key={t}
+          className="inline-flex h-[26px] items-center gap-1 rounded-full bg-neutral-soft pr-1 pl-2.5 text-[13px] text-ink"
+        >
+          {t}
+          <button
+            type="button"
+            aria-label={`Remove ${t}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              remove(t);
+            }}
+            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-full text-ink-muted"
+          >
+            <Icon name="close" size={14} />
+          </button>
+        </span>
+      ))}
+      <input
+        ref={ref}
+        id={uid}
+        aria-label={label}
+        value={draft}
+        placeholder={placeholder}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={add}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            add();
+          } else if (e.key === "Backspace" && draft === "" && tags.length) {
+            const last = tags[tags.length - 1];
+            onChange(tags.slice(0, -1));
+            setAnnounce(`${last} removed`);
+          }
+        }}
+        className="min-w-[120px] flex-1 border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-muted focus-visible:outline-none"
+      />
+      <span role="status" aria-live="polite" className="sr-only">
+        {announce}
+      </span>
+    </div>
+  );
+}

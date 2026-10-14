@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Role editor, Sales Development Rep</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1100px; display: flex; flex-wrap: wrap; background: #FAFAF7; color: #1F2937; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">
+<dc-import name="Sidebar" active="roles" hint-size="240px,1100px"></dc-import>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 20px 32px 40px; display: flex; flex-direction: column; gap: 16px">
+
+<!-- Page header -->
+<nav aria-label="Breadcrumb" style="font-size: 12px; line-height: 16px; color: #6B7280"><a href="JobRoles.dc.html" style="color: #6B7280">Job roles</a> <span aria-hidden="true">/</span> <span aria-current="page" style="color: #1F2937">Sales Development Rep</span></nav>
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Sales Development Rep</h1>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid #B45309; color: #B45309; font-size: 12px; font-weight: 500">Draft</span>
+</div>
+<p style="margin: 0; color: #6B7280">Entry level · 12 candidates assigned · edited today, 09:15 by Arjun Mehta</p>
+</div>
+<div style="display: flex; align-items: flex-start; gap: 8px">
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>Preview as candidate</button>
+<div style="position: relative; display: flex; flex-direction: column; align-items: flex-end">
+<sc-if value="{{ canApprove }}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{ openApprove }}" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Approve role</button>
+</sc-if>
+<sc-if value="{{ cannotApprove }}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-disabled="true" aria-describedby="approve-tip" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #F3F4F6; color: #6B7280; font: inherit; font-weight: 600; cursor: not-allowed">Approve role</button>
+<span id="approve-tip" role="tooltip" style="position: absolute; top: 44px; right: 0; z-index: 4; white-space: nowrap; padding: 6px 10px; border-radius: 6px; background: #1F2937; color: #FFFFFF; font-size: 12px; line-height: 16px">Add at least 5 questions with rubrics</span>
+</sc-if>
+</div>
+</div>
+</header>
+
+<!-- Tabs -->
+<div role="tablist" aria-label="Role editor sections" style="display: flex; gap: 24px; border-bottom: 1px solid #E5E7EB; margin-top: 8px">
+<button type="button" role="tab" aria-selected="{{ detailsSel }}" onClick="{{ showDetails }}" style="height: 40px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; margin-bottom: -1px; color: {{ t1.color }}; font-weight: {{ t1.weight }}; border-bottom: 2px solid {{ t1.line }}">Details</button>
+<a href="RoleCards.dc.html" role="tab" aria-selected="false" style="height: 40px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; color: #6B7280; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent">Flash cards <span style="font-size: 12px; color: #6B7280">8</span><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; border: 1px dashed #B45309; background: #FEF3C7; color: #92400E; font-size: 12px; font-weight: 600">5 to review</span></a>
+<a href="RoleQuestions.dc.html" role="tab" aria-selected="false" style="height: 40px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; color: #6B7280; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent">Questions <span style="font-size: 12px; color: #6B7280">10</span></a>
+<button type="button" role="tab" aria-selected="{{ settingsSel }}" onClick="{{ showSettings }}" style="height: 40px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; margin-bottom: -1px; color: {{ t2.color }}; font-weight: {{ t2.weight }}; border-bottom: 2px solid {{ t2.line }}">Settings</button>
+<a href="#" role="tab" aria-selected="false" style="height: 40px; display: inline-flex; align-items: center; margin-bottom: -1px; color: #6B7280; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent">Preview</a>
+</div>
+
+<!-- DETAILS -->
+<sc-if value="{{ isDetails }}" hint-placeholder-val="{{ true }}">
+<div role="tabpanel" aria-label="Details" style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; padding-top: 8px">
+<section style="flex: 999 1 520px; min-width: 0; max-width: 760px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Role title</span><input type="text" value="Sales Development Rep" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937"></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Seniority</span>
+<select style="height: 36px; box-sizing: border-box; padding: 0 8px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; background: #FFFFFF"><option>Entry level</option><option>Junior</option><option>Mid level</option><option>Senior</option></select></label>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span id="desc-label" style="font-weight: 600">Description</span>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">What the job involves. AI uses this to draft flash cards and questions.</span>
+<div style="margin-top: 4px; border: 1px solid #D1D5DB; border-radius: 8px">
+<div role="toolbar" aria-label="Formatting" style="display: flex; gap: 2px; padding: 4px; border-bottom: 1px solid #E5E7EB">
+<button type="button" aria-label="Bold" aria-pressed="false" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; color: #374151; font: inherit; font-weight: 700; cursor: pointer">B</button>
+<button type="button" aria-label="Italic" aria-pressed="false" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; color: #374151; font: inherit; font-style: italic; font-weight: 600; cursor: pointer">I</button>
+<span style="width: 1px; background: #E5E7EB; margin: 6px 4px"></span>
+<button type="button" aria-label="Bulleted list" aria-pressed="true" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: #F3F4F6; color: #1F2937; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><circle cx="4.5" cy="6" r="1" fill="currentColor"></circle><circle cx="4.5" cy="12" r="1" fill="currentColor"></circle><circle cx="4.5" cy="18" r="1" fill="currentColor"></circle></svg></button>
+<button type="button" aria-label="Numbered list" aria-pressed="false" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; color: #374151; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 6h10"></path><path d="M10 12h10"></path><path d="M10 18h10"></path><path d="M4 5h1v4"></path><path d="M4 15h2l-2 3h2"></path></svg></button>
+<button type="button" aria-label="Link" aria-pressed="false" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; color: #374151; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg></button>
+</div>
+<div role="textbox" aria-multiline="true" aria-labelledby="desc-label" contenteditable="true" style="min-height: 168px; padding: 12px 16px; outline-offset: -2px">
+<p style="margin: 0 0 8px">Sales Development Reps start conversations with potential customers. They research accounts, reach out by phone and email, qualify interest and hand warm leads to account executives.</p>
+<ul style="margin: 0; padding-left: 20px">
+<li>Research target accounts and the right contacts</li>
+<li>Run first calls and handle early objections</li>
+<li>Qualify interest and book meetings for account executives</li>
+<li>Keep every activity up to date in the CRM</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="skill-input" style="font-weight: 600">Key skills</label>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; box-sizing: border-box; padding: 6px 8px; border: 1px solid #D1D5DB; border-radius: 8px">
+<sc-for list="{{ skills }}" as="k" hint-placeholder-count="5">
+<span style="display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 4px 0 10px; border-radius: 999px; background: #F3F4F6; color: #1F2937; font-size: 13px; font-weight: 500">{{ k.label }}<button type="button" aria-label="{{ k.removeLabel }}" onClick="{{ k.remove }}" style="width: 22px; height: 22px; border: 0; border-radius: 999px; background: transparent; color: #6B7280; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button></span>
+</sc-for>
+<input id="skill-input" type="text" placeholder="Add a skill and press Enter" onKeyDown="{{ addSkill }}" style="flex: 1; min-width: 160px; height: 28px; border: 0; outline-offset: 2px; font: inherit; color: #1F2937; background: transparent">
+</div>
+</div>
+</section>
+
+<aside style="flex: 1 1 300px; max-width: 380px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; border: 1px dashed #B45309; background: #FEF3C7; color: #92400E; font-size: 12px; font-weight: 600">AI</span>
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Draft content with AI</h2>
+</div>
+<p style="margin: 0; color: #374151">AI will draft flash cards and questions from this description. Nothing is shown to candidates until you approve it.</p>
+<button type="button" style="align-self: flex-start; height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #FFFFFF; color: #0F766E; font: inherit; font-weight: 600; cursor: pointer">Draft with AI</button>
+<div style="border-top: 1px solid #E5E7EB; padding-top: 12px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 20px">
+<span style="color: #6B7280">Last draft, today 09:10</span>
+<a href="RoleCards.dc.html" style="color: #0F766E; font-weight: 600">5 flash cards waiting for review</a>
+</div>
+</aside>
+</div>
+</sc-if>
+
+<!-- SETTINGS -->
+<sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+<div role="tabpanel" aria-label="Settings" style="display: flex; flex-direction: column; gap: 24px; padding-top: 8px; max-width: 800px">
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 600">Mock interview</h2>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<label for="qps" style="display: flex; flex-direction: column"><span style="font-weight: 600">Questions per session</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">Drawn from the approved questions</span></label>
+<input id="qps" type="number" min="1" value="5" style="width: 96px; height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; text-align: right">
+</div>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<span id="order-label" style="font-weight: 600">Question order</span>
+<div role="radiogroup" aria-labelledby="order-label" style="display: inline-flex; justify-self: start; padding: 2px; border: 1px solid #E5E7EB; border-radius: 8px; background: #FAFAF7">
+<button type="button" role="radio" aria-checked="{{ fixedSel }}" onClick="{{ setFixed }}" style="height: 32px; padding: 0 16px; border-radius: 6px; font: inherit; font-weight: 500; cursor: pointer; background: {{ oF.bg }}; color: {{ oF.color }}; border: 1px solid {{ oF.border }}">Fixed</button>
+<button type="button" role="radio" aria-checked="{{ randomSel }}" onClick="{{ setRandom }}" style="height: 32px; padding: 0 16px; border-radius: 6px; font: inherit; font-weight: 500; cursor: pointer; background: {{ oR.bg }}; color: {{ oR.color }}; border: 1px solid {{ oR.border }}">Random</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<label for="guide" style="display: flex; flex-direction: column"><span style="font-weight: 600">Answer guide</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">Suggested length shown while answering</span></label>
+<span style="display: inline-flex; align-items: center; gap: 8px"><input id="guide" type="text" value="2:00" style="width: 96px; height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; text-align: right"><span style="color: #6B7280">min:sec</span></span>
+</div>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<span id="req-label" style="display: flex; flex-direction: column"><span style="font-weight: 600">Require all flash cards first</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">Candidates study every card before the interview</span></span>
+<button type="button" role="switch" aria-checked="{{ reqStr }}" aria-labelledby="req-label" onClick="{{ toggleReq }}" style="justify-self: start; width: 44px; height: 24px; padding: 2px; border-radius: 999px; border: 0; cursor: pointer; display: inline-flex; background: {{ reqBg }}; justify-content: {{ reqJustify }}"><span style="width: 20px; height: 20px; border-radius: 999px; background: #FFFFFF"></span></button>
+</div>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<label for="maxs" style="display: flex; flex-direction: column"><span style="font-weight: 600">Max sessions per candidate</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">Leave blank for no limit</span></label>
+<input id="maxs" type="number" min="1" value="5" style="width: 96px; height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; text-align: right">
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; gap: 24px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Scoring</h2>
+<sc-for list="{{ weightGroups }}" as="g" hint-placeholder-count="2">
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 12px">
+<legend style="padding: 0; margin-bottom: 4px; display: flex; flex-direction: column"><span style="font-weight: 600">{{ g.title }}</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ g.hint }}</span></legend>
+<div role="img" aria-label="{{ g.alt }}" style="display: flex; gap: 2px; height: 28px; border-radius: 6px; overflow: hidden">
+<sc-for list="{{ g.parts }}" as="p" hint-placeholder-count="3">
+<span style="flex: {{ p.flex }}; display: flex; align-items: center; padding: 0 8px; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; font-weight: 600; background: {{ p.bg }}; color: {{ p.fg }}">{{ p.short }}</span>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+<sc-for list="{{ g.parts }}" as="p" hint-placeholder-count="3">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 20px">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500"><span style="width: 10px; height: 10px; border-radius: 2px; background: {{ p.bg }}"></span>{{ p.label }}</span>
+<span style="display: inline-flex; align-items: center; gap: 4px"><input type="number" min="0" max="100" value="{{ p.v }}" onChange="{{ p.set }}" style="width: 72px; height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; text-align: right"><span style="color: #6B7280">%</span></span>
+</label>
+</sc-for>
+<span role="status" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 36px; font-weight: 600; color: {{ g.totalColor }}">{{ g.totalText }}</span>
+</div>
+</fieldset>
+</sc-for>
+</section>
+</div>
+</sc-if>
+
+</main>
+
+<!-- Approve dialog -->
+<sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(31, 41, 55, 0.4); display: flex; align-items: flex-start; justify-content: center; padding: 160px 16px 16px; box-sizing: border-box">
+<div role="alertdialog" aria-modal="true" aria-labelledby="ap-title" aria-describedby="ap-body" onKeyDown="{{ dialogKey }}" style="width: 480px; max-width: 100%; box-sizing: border-box; background: #FFFFFF; border-radius: 8px; box-shadow: 0 12px 32px rgba(31, 41, 55, 0.16); padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="ap-title" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Approve Sales Development Rep?</h2>
+<p id="ap-body" style="margin: 0; color: #374151">12 assigned candidates will see it on their dashboard and get an email.</p>
+<ul style="margin: 0; padding-left: 20px; color: #374151; font-size: 13px; line-height: 20px">
+<li>8 approved flash cards and 10 questions go live.</li>
+<li>Content still marked AI draft stays hidden until you approve it.</li>
+<li>You can archive the role later; scores are kept.</li>
+</ul>
+<div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px">
+<button type="button" onClick="{{ closeApprove }}" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; cursor: pointer">Cancel</button>
+<button type="button" onClick="{{ closeApprove }}" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Approve and notify</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["details","settings","approve"],"default":"details"},"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+var v = (props && props.view) || 'details';
+this.state = {
+tab: v === 'settings' ? 'settings' : 'details',
+dialog: v === 'approve',
+order: 'fixed', req: true,
+skills: ['Prospecting', 'Cold calling', 'Objection handling', 'Active listening', 'CRM hygiene'],
+w1: { first: 20, second: 55, learning: 25 },
+w2: { content: 45, structure: 20, delivery: 20, relevance: 15 }
+};
+}
+renderVals() {
+var self = this;
+var s = this.state;
+var view = this.props.view || 'details';
+function tab(on) { return { color: on ? '#0F766E' : '#6B7280', weight: on ? '600' : '500', line: on ? '#0F766E' : 'transparent' }; }
+function seg(on) { return { bg: on ? '#FFFFFF' : 'transparent', color: on ? '#1F2937' : '#6B7280', border: on ? '#E5E7EB' : 'transparent' }; }
+var COLORS = [['#134E4A', '#FFFFFF'], ['#0F766E', '#FFFFFF'], ['#5EAAA8', '#1F2937'], ['#CCFBF1', '#1F2937']];
+function group(key, title, hint, defs) {
+var w = s[key];
+var total = 0;
+var parts = defs.map(function (d, i) {
+var v = Number(w[d[0]]) || 0; total += v;
+return { label: d[1], short: d[1] + ' ' + v + '%', v: v, flex: Math.max(v, 0.001), bg: COLORS[i][0], fg: COLORS[i][1],
+set: function (e) { var nw = Object.assign({}, self.state[key]); nw[d[0]] = Math.max(0, Math.min(100, Number(e.target.value) || 0)); var o = {}; o[key] = nw; self.setState(o); } };
+});
+var ok = total === 100;
+return { title: title, hint: hint, parts: parts,
+alt: title + ': ' + parts.map(function (p) { return p.label + ' ' + p.v + '%'; }).join(', ') + '. Total ' + total + '%.',
+totalText: ok ? 'Total 100%' : 'Total ' + total + '%. Must add up to 100%.',
+totalColor: ok ? '#0F766E' : '#B45309' };
+}
+var skills = s.skills.map(function (k, i) {
+return { label: k, removeLabel: 'Remove ' + k, remove: function () { var a = self.state.skills.slice(); a.splice(i, 1); self.setState({ skills: a }); } };
+});
+return {
+isDetails: s.tab === 'details', isSettings: s.tab === 'settings',
+detailsSel: s.tab === 'details' ? 'true' : 'false', settingsSel: s.tab === 'settings' ? 'true' : 'false',
+t1: tab(s.tab === 'details'), t2: tab(s.tab === 'settings'),
+showDetails: function () { self.setState({ tab: 'details' }); },
+showSettings: function () { self.setState({ tab: 'settings' }); },
+canApprove: view === 'approve', cannotApprove: view !== 'approve',
+dialogOpen: s.dialog,
+openApprove: function () { self.setState({ dialog: true }); },
+closeApprove: function () { self.setState({ dialog: false }); },
+dialogKey: function (e) { if (e.key === 'Escape') self.setState({ dialog: false }); },
+skills: skills,
+addSkill: function (e) { if (e.key === 'Enter' && e.target.value.trim()) { var a = self.state.skills.concat([e.target.value.trim()]); e.target.value = ''; self.setState({ skills: a }); } },
+fixedSel: s.order === 'fixed' ? 'true' : 'false', randomSel: s.order === 'random' ? 'true' : 'false',
+oF: seg(s.order === 'fixed'), oR: seg(s.order === 'random'),
+setFixed: function () { self.setState({ order: 'fixed' }); }, setRandom: function () { self.setState({ order: 'random' }); },
+reqStr: s.req ? 'true' : 'false', reqBg: s.req ? '#0F766E' : '#9CA3AF', reqJustify: s.req ? 'flex-end' : 'flex-start',
+toggleReq: function () { self.setState({ req: !self.state.req }); },
+weightGroups: [
+group('w1', 'Session score', 'How first try, second try and learning combine into the 0–100 preparedness score', [['first', 'First try'], ['second', 'Second try'], ['learning', 'Learning']]),
+group('w2', 'Answer dimensions', 'How each answer is scored', [['content', 'Content'], ['structure', 'Structure'], ['delivery', 'Delivery'], ['relevance', 'Relevance']])
+]
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Job roles</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 900px; display: flex; flex-wrap: wrap; background: #FAFAF7; color: #1F2937; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">
+<dc-import name="Sidebar" active="roles" hint-size="240px,900px"></dc-import>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px">
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Job roles</h1>
+<p style="margin: 0; color: #6B7280">Candidates only see roles you approve and assign to them.</p>
+</div>
+<sc-if value="{{ hasData }}" hint-placeholder-val="{{ true }}">
+<a href="RoleEditor.dc.html" style="height: 36px; padding: 0 16px; box-sizing: border-box; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>New job role</a>
+</sc-if>
+</header>
+
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; min-height: 520px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 48px 24px; text-align: center">
+<span style="width: 56px; height: 56px; border-radius: 999px; background: #CCFBF1; color: #0F766E; display: inline-flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path><path d="M3 13h18"></path></svg></span>
+<div style="display: flex; flex-direction: column; gap: 4px; max-width: 460px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Create your first job role</h2>
+<p style="margin: 0; color: #6B7280">You can write the content yourself or have AI draft it for you to review.</p>
+</div>
+<a href="RoleEditor.dc.html" style="height: 36px; padding: 0 16px; box-sizing: border-box; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font-weight: 600; display: inline-flex; align-items: center; text-decoration: none">New job role</a>
+</section>
+</sc-if>
+
+<sc-if value="{{ hasData }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; border-bottom: 1px solid #E5E7EB">
+<div role="tablist" aria-label="Role status" style="display: flex; gap: 24px">
+<button type="button" role="tab" aria-selected="{{ activeSel }}" onClick="{{ showActive }}" style="height: 40px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; margin-bottom: -1px; color: {{ tA.color }}; font-weight: {{ tA.weight }}; border-bottom: 2px solid {{ tA.line }}">Active <span style="color: #6B7280; font-weight: 500">3</span></button>
+<button type="button" role="tab" aria-selected="{{ archSel }}" onClick="{{ showArch }}" style="height: 40px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; margin-bottom: -1px; color: {{ tB.color }}; font-weight: {{ tB.weight }}; border-bottom: 2px solid {{ tB.line }}">Archived <span style="color: #6B7280; font-weight: 500">1</span></button>
+</div>
+<div style="position: relative; width: 260px; margin-bottom: 8px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 10px; top: 10px"><circle cx="11" cy="11" r="6.5"></circle><path d="M20 20l-4-4"></path></svg>
+<input type="search" aria-label="Search roles" placeholder="Search roles" style="width: 100%; box-sizing: border-box; height: 36px; padding: 0 12px 0 34px; border: 1px solid #D1D5DB; border-radius: 8px; background: #FFFFFF; font: inherit; color: #1F2937">
+</div>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; overflow-x: auto">
+<div role="grid" aria-label="Job roles" style="min-width: 1100px">
+<div role="row" style="display: grid; grid-template-columns: minmax(240px, 2fr) 120px 104px 104px 136px 112px 188px 172px; align-items: center; height: 40px; padding-left: 16px; border-bottom: 1px solid #E5E7EB; font-size: 12px; line-height: 16px; font-weight: 600; color: #6B7280">
+<div role="columnheader" aria-sort="ascending"><button type="button" style="border: 0; background: transparent; padding: 0; font: inherit; color: #1F2937; cursor: pointer; display: inline-flex; align-items: center; gap: 4px">Role<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5"></path><path d="M6 11l6-6 6 6"></path></svg></button></div>
+<div role="columnheader">Status</div>
+<div role="columnheader" style="text-align: right; padding-right: 16px">Flash cards</div>
+<div role="columnheader" style="text-align: right; padding-right: 16px">Questions</div>
+<div role="columnheader">AI drafts</div>
+<div role="columnheader" style="text-align: right; padding-right: 16px">Candidates</div>
+<div role="columnheader">Avg latest score</div>
+<div role="columnheader">Last edited</div>
+</div>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+<div role="row" tabindex="0" data-row="{{ r.id }}" onKeyDown="{{ gridKey }}" style="display: grid; grid-template-columns: minmax(240px, 2fr) 120px 104px 104px 136px 112px 188px 172px; align-items: center; height: 52px; padding-left: 16px; border-bottom: 1px solid #E5E7EB; outline-offset: -2px">
+<div role="gridcell" style="display: flex; flex-direction: column; min-width: 0; padding-right: 12px">
+<a href="{{ r.href }}" tabindex="-1" style="font-weight: 600; color: #1F2937; text-decoration: none; line-height: 20px">{{ r.title }}</a>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ r.seniority }}</span>
+</div>
+<div role="gridcell"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: {{ r.stBg }}; color: {{ r.stColor }}; border: 1px solid {{ r.stBorder }}">{{ r.status }}</span></div>
+<div role="gridcell" style="text-align: right; padding-right: 16px">{{ r.cards }}</div>
+<div role="gridcell" style="text-align: right; padding-right: 16px">{{ r.questions }}</div>
+<div role="gridcell">
+<sc-if value="{{ r.hasDrafts }}" hint-placeholder-val="{{ false }}"><a href="RoleCards.dc.html" tabindex="-1" style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; background: #FEF3C7; color: #92400E; font-size: 12px; font-weight: 600; text-decoration: none; border: 1px dashed #B45309">{{ r.drafts }}</a></sc-if>
+<sc-if value="{{ r.noDrafts }}" hint-placeholder-val="{{ true }}"><span style="color: #6B7280">–</span></sc-if>
+</div>
+<div role="gridcell" style="text-align: right; padding-right: 16px">{{ r.candidates }}</div>
+<div role="gridcell" style="display: flex; align-items: center; gap: 8px">
+<sc-if value="{{ r.hasScore }}" hint-placeholder-val="{{ true }}">
+<span style="font-weight: 600; min-width: 22px; text-align: right">{{ r.score }}</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; background: {{ r.bandBg }}"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{ r.bandDot }}"></span>{{ r.band }}</span>
+</sc-if>
+<sc-if value="{{ r.noScore }}" hint-placeholder-val="{{ false }}"><span style="color: #6B7280; min-width: 22px; text-align: right">–</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ r.noScoreNote }}</span></sc-if>
+</div>
+<div role="gridcell" style="display: flex; flex-direction: column; min-width: 0">
+<span style="line-height: 20px">{{ r.edited }}</span>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ r.editor }}</span>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Use ↑ ↓ to move between roles and Enter to open one.</p>
+</div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["active","archived","empty"],"default":"active"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+var v = (props && props.view) || 'active';
+this.state = { tab: v === 'archived' ? 'archived' : 'active' };
+}
+renderVals() {
+var self = this;
+var view = this.props.view || 'active';
+var isEmpty = view === 'empty';
+var BAND = { 'Interview ready': ['#0F766E', '#E0F0EE'], 'Nearly ready': ['#5EAAA8', '#E3F1F1'], 'Developing': ['#D9A35B', '#F8EEDF'], 'Not ready yet': ['#B45309', '#FEF3C7'] };
+var ST = { Approved: ['#CCFBF1', '#0F766E', '#CCFBF1'], Draft: ['#FFFFFF', '#B45309', '#B45309'], Archived: ['#F3F4F6', '#4B5563', '#F3F4F6'] };
+var ROLES = [
+{ id: 'csa', title: 'Customer Support Associate', seniority: 'Entry level', status: 'Approved', cards: 12, questions: 15, drafts: 0, candidates: 38, score: 71, band: 'Nearly ready', edited: '3 Oct 2026', editor: 'Arjun Mehta', tab: 'active', href: '#' },
+{ id: 'jda', title: 'Junior Data Analyst', seniority: 'Junior', status: 'Approved', cards: 12, questions: 18, drafts: 0, candidates: 21, score: 63, band: 'Developing', edited: '28 Sep 2026', editor: 'Arjun Mehta', tab: 'active', href: '#' },
+{ id: 'sdr', title: 'Sales Development Rep', seniority: 'Entry level', status: 'Draft', cards: 8, questions: 10, drafts: 5, candidates: 12, score: null, noScoreNote: 'Not live yet', edited: 'Today, 09:15', editor: 'Arjun Mehta', tab: 'active', href: 'RoleEditor.dc.html' },
+{ id: 'ft', title: 'Field Technician', seniority: 'Mid level', status: 'Archived', cards: 10, questions: 12, drafts: 0, candidates: 0, score: null, noScoreNote: 'Archived', edited: '12 Aug 2026', editor: 'Arjun Mehta', tab: 'archived', href: '#' }
+];
+var tab = this.state.tab;
+var rows = ROLES.filter(function (r) { return r.tab === tab; }).map(function (r) {
+var st = ST[r.status]; var b = r.band ? BAND[r.band] : ['', ''];
+return {
+id: r.id, title: r.title, seniority: r.seniority, href: r.href, status: r.status, stBg: st[0], stColor: st[1], stBorder: st[2],
+cards: r.cards, questions: r.questions, hasDrafts: r.drafts > 0, noDrafts: r.drafts === 0, drafts: r.drafts + ' to review',
+candidates: r.candidates, hasScore: r.score !== null, noScore: r.score === null, noScoreNote: r.noScoreNote || '',
+score: r.score, band: r.band, bandDot: b[0], bandBg: b[1], edited: r.edited, editor: r.editor
+};
+});
+function t(on) { return { color: on ? '#0F766E' : '#6B7280', weight: on ? '600' : '500', line: on ? '#0F766E' : 'transparent' }; }
+return {
+isEmpty: isEmpty, hasData: !isEmpty, rows: rows,
+tA: t(tab === 'active'), tB: t(tab === 'archived'),
+activeSel: tab === 'active' ? 'true' : 'false', archSel: tab === 'archived' ? 'true' : 'false',
+showActive: function () { self.setState({ tab: 'active' }); },
+showArch: function () { self.setState({ tab: 'archived' }); },
+gridKey: function (e) {
+var k = e.key; if (e.target !== e.currentTarget) return;
+if (k === 'Enter') { e.preventDefault(); var a = e.currentTarget.querySelector('a'); if (a) a.click(); return; }
+if (k === 'ArrowDown' || k === 'ArrowUp' || k === 'Home' || k === 'End') {
+e.preventDefault();
+var list = Array.prototype.slice.call(e.currentTarget.closest('[role="grid"]').querySelectorAll('[data-row]'));
+var i = list.indexOf(e.currentTarget);
+var j = k === 'ArrowDown' ? i + 1 : k === 'ArrowUp' ? i - 1 : k === 'Home' ? 0 : list.length - 1;
+if (list[j]) list[j].focus();
+}
+}
+};
+}
+}
+</script>
+</body>
+</html>

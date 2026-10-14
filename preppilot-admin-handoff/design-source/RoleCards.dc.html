@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flash cards, Sales Development Rep</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1000px; display: flex; flex-wrap: wrap; background: #FAFAF7; color: #1F2937; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">
+<dc-import name="Sidebar" active="roles" hint-size="240px,1000px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 20px 32px 32px; display: flex; flex-direction: column; gap: 16px">
+
+<nav aria-label="Breadcrumb" style="font-size: 12px; line-height: 16px; color: #6B7280"><a href="JobRoles.dc.html" style="color: #6B7280">Job roles</a> <span aria-hidden="true">/</span> <span aria-current="page" style="color: #1F2937">Sales Development Rep</span></nav>
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; gap: 10px">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Sales Development Rep</h1>
+<span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid #B45309; color: #B45309; font-size: 12px; font-weight: 500">Draft</span>
+</div>
+<p style="margin: 0; color: #6B7280">Entry level · 12 candidates assigned · edited today, 09:15 by Arjun Mehta</p>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; cursor: pointer">Preview as candidate</button>
+<button type="button" aria-disabled="true" title="Add at least 5 questions with rubrics" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #F3F4F6; color: #6B7280; font: inherit; font-weight: 600; cursor: not-allowed">Approve role</button>
+</div>
+</header>
+
+<div role="tablist" aria-label="Role editor sections" style="display: flex; gap: 24px; border-bottom: 1px solid #E5E7EB; margin-top: 8px">
+<a href="RoleEditor.dc.html" role="tab" aria-selected="false" style="height: 40px; display: inline-flex; align-items: center; margin-bottom: -1px; color: #6B7280; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent">Details</a>
+<a href="RoleCards.dc.html" role="tab" aria-selected="true" style="height: 40px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; color: #0F766E; font-weight: 600; text-decoration: none; border-bottom: 2px solid #0F766E">Flash cards <span style="font-size: 12px">8</span><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; border: 1px dashed #B45309; background: #FEF3C7; color: #92400E; font-size: 12px; font-weight: 600">{{ draftCount }} to review</span></a>
+<a href="RoleQuestions.dc.html" role="tab" aria-selected="false" style="height: 40px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; color: #6B7280; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent">Questions <span style="font-size: 12px">10</span></a>
+<a href="RoleEditorSettings.dc.html" role="tab" aria-selected="false" style="height: 40px; display: inline-flex; align-items: center; margin-bottom: -1px; color: #6B7280; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent">Settings</a>
+<a href="#" role="tab" aria-selected="false" style="height: 40px; display: inline-flex; align-items: center; margin-bottom: -1px; color: #6B7280; font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent">Preview</a>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; padding-top: 4px">
+
+<!-- Card list -->
+<section aria-labelledby="cards-h" style="flex: 0 0 320px; max-width: 100%; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 12px 16px; border-bottom: 1px solid #E5E7EB">
+<h2 id="cards-h" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 600">8 cards</h2>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Shown to candidates in this order</span>
+</div>
+<ol aria-label="Flash cards" style="margin: 0; padding: 0; list-style: none">
+<sc-for list="{{ cards }}" as="c" hint-placeholder-count="8">
+<li style="display: flex; align-items: center; gap: 4px; min-height: 52px; padding: 6px 12px 6px 4px; border-top: 1px solid {{ c.line }}; background: {{ c.bg }}; box-shadow: inset 3px 0 0 {{ c.mark }}">
+<button type="button" aria-label="{{ c.dragLabel }}" onKeyDown="{{ c.move }}" style="width: 28px; height: 36px; flex: none; border: 0; border-radius: 6px; background: transparent; color: #6B7280; cursor: grab; display: inline-flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></button>
+<button type="button" aria-current="{{ c.current }}" onClick="{{ c.pick }}" style="flex: 1; min-width: 0; border: 0; background: transparent; padding: 4px; text-align: left; font: inherit; color: #1F2937; cursor: pointer; display: flex; flex-direction: column; gap: 4px">
+<span style="display: flex; align-items: baseline; gap: 6px; min-width: 0"><span style="font-size: 12px; color: #6B7280; flex: none">{{ c.n }}</span><span style="font-size: 13px; line-height: 18px; font-weight: {{ c.weight }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ c.q }}</span></span>
+<span style="display: flex; align-items: center; gap: 6px; padding-left: 14px">
+<span style="display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: {{ c.chipBg }}; color: {{ c.chipColor }}; border: 1px {{ c.chipBorderStyle }} {{ c.chipBorder }}">{{ c.status }}</span>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ c.cat }}</span>
+</span>
+</button>
+</li>
+</sc-for>
+</ol>
+<div style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid #E5E7EB">
+<button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">+ Add card</button>
+<button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #0F766E; background: #FFFFFF; color: #0F766E; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Draft more with AI</button>
+</div>
+</section>
+
+<!-- Editor -->
+<section aria-labelledby="ed-h" style="flex: 1 1 400px; min-width: 0; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #E5E7EB">
+<h2 id="ed-h" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 600">{{ sel.title }}</h2>
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{ sel.chipBg }}; color: {{ sel.chipColor }}; border: 1px {{ sel.chipBorderStyle }} {{ sel.chipBorder }}">{{ sel.status }}</span>
+</div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 16px">
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px">
+<legend style="padding: 0; margin-bottom: 6px; font-weight: 600">Category</legend>
+<div role="radiogroup" aria-label="Category" style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{ cats }}" as="k" hint-placeholder-count="4">
+<button type="button" role="radio" aria-checked="{{ k.on }}" onClick="{{ k.pick }}" style="height: 30px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; background: {{ k.bg }}; color: {{ k.color }}; border: 1px solid {{ k.border }}">{{ k.label }}</button>
+</sc-for>
+</div>
+</fieldset>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Question</span>
+<textarea rows="2" value="{{ sel.q }}" onChange="{{ setQ }}" style="box-sizing: border-box; padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; resize: vertical"></textarea></label>
+
+<sc-for list="{{ lists }}" as="L" hint-placeholder-count="2">
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px">
+<legend style="padding: 0; margin-bottom: 6px; font-weight: 600">{{ L.title }}</legend>
+<sc-for list="{{ L.items }}" as="b" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 6px">
+<span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{ L.dot }}; flex: none; margin: 0 4px"></span>
+<input type="text" aria-label="{{ b.label }}" value="{{ b.text }}" onChange="{{ b.set }}" style="flex: 1; min-width: 0; height: 34px; box-sizing: border-box; padding: 0 10px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; font-size: 13px; color: #1F2937">
+<button type="button" aria-label="{{ b.removeLabel }}" onClick="{{ b.remove }}" style="width: 30px; height: 30px; flex: none; border: 0; border-radius: 6px; background: transparent; color: #6B7280; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button>
+</div>
+</sc-for>
+<button type="button" onClick="{{ L.add }}" style="align-self: flex-start; height: 28px; padding: 0 6px; border: 0; background: transparent; color: #0F766E; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">+ Add point</button>
+</fieldset>
+</sc-for>
+
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Tip <span style="font-weight: 400; color: #6B7280">(one line)</span></span>
+<input type="text" value="{{ sel.tip }}" onChange="{{ setTip }}" maxlength="90" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937"></label>
+</div>
+
+<sc-if value="{{ sel.isDraft }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #E5E7EB; background: #FFFBEB; border-radius: 0 0 8px 8px">
+<span style="font-size: 12px; line-height: 16px; color: #78350F; margin-right: auto; max-width: 260px">AI draft from the role description. Candidates won’t see it until you approve it.</span>
+<button type="button" onClick="{{ askDiscard }}" style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #B91C1C; font: inherit; font-weight: 500; cursor: pointer">Discard</button>
+<button type="button" onClick="{{ approve }}" style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Approve card</button>
+</div>
+</sc-if>
+<sc-if value="{{ sel.isApproved }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top: auto; padding: 12px 16px; border-top: 1px solid #E5E7EB; font-size: 12px; line-height: 16px; color: #6B7280">Approved. Changes save automatically and show to candidates once the role is approved.</div>
+</sc-if>
+</section>
+
+<!-- Live preview -->
+<section aria-labelledby="pv-h" style="flex: 0 0 300px; max-width: 100%; display: flex; flex-direction: column; gap: 12px">
+<h2 id="pv-h" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 600">Candidate preview</h2>
+<div style="font-size: 12px; line-height: 16px; color: #6B7280">Front</div>
+<div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; padding: 20px; min-height: 180px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+<span style="align-self: flex-start; display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; background: #CCFBF1; color: #0F766E; font-size: 12px; font-weight: 600">{{ sel.cat }}</span>
+<p style="margin: 0; font-size: 18px; line-height: 26px; font-weight: 600">{{ sel.q }}</p>
+<span style="margin-top: auto; font-size: 12px; line-height: 16px; color: #6B7280">Tap to flip · {{ sel.pos }}</span>
+</div>
+<div style="font-size: 12px; line-height: 16px; color: #6B7280">Back</div>
+<div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600; color: #0F766E">A strong answer</span>
+<ul style="margin: 0; padding-left: 18px"><sc-for list="{{ sel.strong }}" as="t" hint-placeholder-count="3"><li>{{ t }}</li></sc-for></ul></div>
+<div style="padding: 8px 10px; border-radius: 8px; background: #F0FDFA; color: #134E4A"><span style="font-weight: 600">Tip:</span> {{ sel.tip }}</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600; color: #B45309">Common mistakes</span>
+<ul style="margin: 0; padding-left: 18px"><sc-for list="{{ sel.mistakes }}" as="t" hint-placeholder-count="3"><li>{{ t }}</li></sc-for></ul></div>
+</div>
+</section>
+</div>
+</main>
+
+<sc-if value="{{ discardOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(31, 41, 55, 0.4); display: flex; align-items: flex-start; justify-content: center; padding: 200px 16px 16px; box-sizing: border-box">
+<div role="alertdialog" aria-modal="true" aria-labelledby="dc-title" aria-describedby="dc-body" style="width: 440px; max-width: 100%; box-sizing: border-box; background: #FFFFFF; border-radius: 8px; box-shadow: 0 12px 32px rgba(31, 41, 55, 0.16); padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="dc-title" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Discard this AI draft?</h2>
+<p id="dc-body" style="margin: 0; color: #374151">The card is deleted and never shown to candidates. This can’t be undone, but you can draft more with AI later.</p>
+<div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px">
+<button type="button" onClick="{{ cancelDiscard }}" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; cursor: pointer">Cancel</button>
+<button type="button" onClick="{{ doDiscard }}" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #B91C1C; background: #B91C1C; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Discard card</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = {
+selected: 'c4', discard: false,
+cards: [
+{ id: 'c1', status: 'Approved', cat: 'Role knowledge', q: 'What does a Sales Development Rep do day to day?', strong: ['Names prospecting, outreach and qualifying', 'Links the work to booking meetings for account executives'], tip: 'Describe a real day, not a job ad.', mistakes: ['Describing closing deals as the main job'] },
+{ id: 'c2', status: 'Approved', cat: 'Motivation', q: 'Why do you want to work in sales?', strong: ['A specific reason grounded in experience', 'Shows comfort with targets and feedback'], tip: 'Be specific about what draws you in.', mistakes: ['Talking only about money'] },
+{ id: 'c3', status: 'Approved', cat: 'Behavioural', q: 'Tell me about a time you kept going after hearing no.', strong: ['Clear situation and goal', 'What you changed after each no', 'The result and what you learned'], tip: 'Use STAR: situation, task, action, result.', mistakes: ['No concrete outcome'] },
+{ id: 'c4', status: 'AI draft', cat: 'Situational', q: 'A prospect says “Just send me an email.” What do you do next?', strong: ['Acknowledge the request without arguing', 'Ask one short question about what matters to them', 'Offer a short, specific email and a time to reconnect', 'Log the call and next step in the CRM'], tip: 'One question, one clear next step.', mistakes: ['Sending a generic email and moving on', 'Pushing for a meeting after a clear no', 'Listing features instead of their needs'] },
+{ id: 'c5', status: 'AI draft', cat: 'Role knowledge', q: 'How would you research an account before a first call?', strong: ['Company news and priorities', 'The contact’s role and likely goals'], tip: 'Ten focused minutes beats an hour of browsing.', mistakes: ['Reading the website and nothing else'] },
+{ id: 'c6', status: 'AI draft', cat: 'Behavioural', q: 'Describe a goal you reached by being organised and consistent.', strong: ['A measurable goal', 'The routine you kept', 'The outcome'], tip: 'Show the system, not just the effort.', mistakes: ['Vague timelines'] },
+{ id: 'c7', status: 'AI draft', cat: 'Situational', q: 'A prospect asks a technical question you can’t answer. How do you respond?', strong: ['Be honest that you’ll check', 'Offer a specialist or a follow-up time'], tip: 'Honesty builds trust faster than guessing.', mistakes: ['Guessing an answer'] },
+{ id: 'c8', status: 'AI draft', cat: 'Role knowledge', q: 'What makes a lead qualified?', strong: ['Need, authority, timing and budget', 'Signals you would listen for'], tip: 'Name the signals, not just the acronym.', mistakes: ['Treating any interest as qualified'] }
+]
+};
+}
+renderVals() {
+var self = this;
+var s = this.state;
+function upd(id, fn) { var cs = self.state.cards.map(function (c) { if (c.id !== id) return c; var n = Object.assign({}, c); fn(n); return n; }); self.setState({ cards: cs }); }
+function chip(st) { var d = st === 'AI draft'; return { chipBg: d ? '#FEF3C7' : '#CCFBF1', chipColor: d ? '#92400E' : '#0F766E', chipBorder: d ? '#B45309' : '#CCFBF1', chipBorderStyle: d ? 'dashed' : 'solid' }; }
+var total = s.cards.length;
+var cards = s.cards.map(function (c, i) {
+var on = c.id === s.selected; var ch = chip(c.status);
+return Object.assign({
+n: i + 1, q: c.q, cat: c.cat, status: c.status, current: on ? 'true' : 'false',
+bg: on ? '#F0FDFA' : '#FFFFFF', mark: on ? '#0F766E' : 'transparent', weight: on ? '600' : '500',
+line: i === 0 ? 'transparent' : '#E5E7EB',
+dragLabel: 'Reorder card ' + (i + 1) + '. Use arrow keys to move.',
+pick: function () { self.setState({ selected: c.id }); },
+move: function (e) {
+var d = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0; if (!d) return;
+e.preventDefault(); var j = i + d; if (j < 0 || j >= total) return;
+var a = self.state.cards.slice(); var t = a[i]; a[i] = a[j]; a[j] = t;
+var ol = e.currentTarget.closest('ol'); self.setState({ cards: a }, function () { var h = ol.querySelectorAll('li > button:first-child'); if (h[j]) h[j].focus(); });
+}
+}, ch);
+});
+var idx = 0; s.cards.forEach(function (c, i) { if (c.id === s.selected) idx = i; });
+var c = s.cards[idx];
+var CATS = ['Behavioural', 'Situational', 'Role knowledge', 'Motivation'];
+var cats = CATS.map(function (k) { var on = c.cat === k; return { label: k, on: on ? 'true' : 'false', bg: on ? '#CCFBF1' : '#FFFFFF', color: on ? '#0F766E' : '#374151', border: on ? '#0F766E' : '#E5E7EB', pick: function () { upd(c.id, function (n) { n.cat = k; }); } }; });
+function listOf(key, title, dot) {
+return { title: title, dot: dot,
+add: function () { upd(c.id, function (n) { n[key] = n[key].concat(['']); }); },
+items: c[key].map(function (t, j) { return { text: t, label: title + ', point ' + (j + 1), removeLabel: 'Remove point ' + (j + 1),
+set: function (e) { var v = e.target.value; upd(c.id, function (n) { var a = n[key].slice(); a[j] = v; n[key] = a; }); },
+remove: function () { upd(c.id, function (n) { var a = n[key].slice(); a.splice(j, 1); n[key] = a; }); } }; }) };
+}
+var sel = Object.assign({ title: 'Card ' + (idx + 1), q: c.q, cat: c.cat, tip: c.tip, strong: c.strong.filter(Boolean), mistakes: c.mistakes.filter(Boolean),
+status: c.status, isDraft: c.status === 'AI draft', isApproved: c.status !== 'AI draft', pos: 'Card ' + (idx + 1) + ' of ' + total }, chip(c.status));
+return {
+cards: cards, sel: sel, cats: cats,
+lists: [listOf('strong', 'What a strong answer includes', '#0F766E'), listOf('mistakes', 'Common mistakes', '#B45309')],
+draftCount: s.cards.filter(function (x) { return x.status === 'AI draft'; }).length,
+setQ: function (e) { var v = e.target.value; upd(c.id, function (n) { n.q = v; }); },
+setTip: function (e) { var v = e.target.value; upd(c.id, function (n) { n.tip = v; }); },
+approve: function () { upd(c.id, function (n) { n.status = 'Approved'; }); },
+askDiscard: function () { self.setState({ discard: true }); },
+cancelDiscard: function () { self.setState({ discard: false }); },
+doDiscard: function () { var a = self.state.cards.filter(function (x) { return x.id !== c.id; }); self.setState({ cards: a, discard: false, selected: a[Math.max(0, idx - 1)].id }); },
+discardOpen: s.discard
+};
+}
+}
+</script>
+</body>
+</html>

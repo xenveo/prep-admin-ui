@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invite candidates</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 900px; color: #1F2937; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">
+<dc-import name="Candidates" view="plain" hint-size="100%,900px"></dc-import>
+
+<div style="position: absolute; inset: 0; background: rgba(31, 41, 55, 0.4); display: flex; align-items: flex-start; justify-content: center; padding: 56px 16px; box-sizing: border-box">
+<div role="dialog" aria-modal="true" aria-labelledby="invite-title" style="width: 640px; max-width: 100%; max-height: 788px; background: #FFFFFF; border-radius: 8px; box-shadow: 0 12px 32px rgba(31, 41, 55, 0.16); display: flex; flex-direction: column; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif">
+
+<!-- Header -->
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px 24px">
+<h2 id="invite-title" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Invite candidates</h2>
+<a href="Candidates.dc.html" aria-label="Close" style="width: 36px; height: 36px; border-radius: 8px; color: #6B7280; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></a>
+</div>
+
+<!-- Tabs -->
+<div role="tablist" aria-label="Invite method" style="display: flex; gap: 24px; padding: 0 24px; border-bottom: 1px solid #E5E7EB">
+<button type="button" role="tab" aria-selected="{{ oneSelected }}" onClick="{{ showOne }}" style="height: 40px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; margin-bottom: -1px; color: {{ oneColor }}; font-weight: {{ oneWeight }}; border-bottom: 2px solid {{ oneLine }}">One by one</button>
+<button type="button" role="tab" aria-selected="{{ csvSelected }}" onClick="{{ showCsv }}" style="height: 40px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; margin-bottom: -1px; color: {{ csvColor }}; font-weight: {{ csvWeight }}; border-bottom: 2px solid {{ csvLine }}">Upload CSV</button>
+</div>
+
+<!-- ONE BY ONE -->
+<sc-if value="{{ isOne }}" hint-placeholder-val="{{ true }}">
+<div role="tabpanel" aria-label="One by one" style="flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 20px">
+
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px">
+<legend style="padding: 0; margin-bottom: 8px; font-weight: 600">People</legend>
+<div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 36px; gap: 8px; font-size: 12px; line-height: 16px; color: #6B7280; font-weight: 600">
+<span>Email</span><span>Name</span><span></span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 36px; gap: 8px; align-items: center">
+<input type="email" aria-label="Email, row 1" value="neha.kapoor@example.com" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; min-width: 0">
+<input type="text" aria-label="Name, row 1" value="Neha Kapoor" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; min-width: 0">
+<button type="button" aria-label="Remove row 1" style="width: 36px; height: 36px; border: 0; background: transparent; border-radius: 8px; color: #6B7280; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 36px; gap: 4px 8px; align-items: center">
+<input type="email" aria-label="Email, row 2" aria-invalid="true" aria-describedby="row2-msg" value="priya.sharma@example.com" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #B45309; border-radius: 8px; font: inherit; color: #1F2937; min-width: 0">
+<input type="text" aria-label="Name, row 2" value="Priya Sharma" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; min-width: 0">
+<button type="button" aria-label="Remove row 2" style="width: 36px; height: 36px; border: 0; background: transparent; border-radius: 8px; color: #6B7280; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button>
+<span id="row2-msg" style="grid-column: 1 / 4; display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: #B45309"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>Already invited. Priya is active, so this row will be skipped.</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 36px; gap: 8px; align-items: center">
+<input type="email" aria-label="Email, row 3" placeholder="name@company.com" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; min-width: 0">
+<input type="text" aria-label="Name, row 3" placeholder="Full name" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; min-width: 0">
+<span></span>
+</div>
+<button type="button" style="align-self: flex-start; height: 32px; padding: 0 8px; margin-left: -8px; border: 0; border-radius: 8px; background: transparent; color: #0F766E; font: inherit; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Add another</button>
+</fieldset>
+
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 4px">
+<legend style="padding: 0; font-weight: 600">Assign roles</legend>
+<p style="margin: 0 0 8px; font-size: 12px; line-height: 16px; color: #6B7280">Candidates see only approved roles. Pick one or more.</p>
+<div style="border: 1px solid #D1D5DB; border-radius: 8px">
+<sc-for list="{{ roles }}" as="r" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border-top: 1px solid {{ r.topLine }}; background: {{ r.bg }}">
+<button type="button" role="checkbox" aria-checked="{{ r.checkedStr }}" aria-disabled="{{ r.disabledStr }}" aria-label="{{ r.name }}" onClick="{{ r.toggle }}" style="width: 18px; height: 18px; padding: 0; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; flex: none; cursor: {{ r.cursor }}; background: {{ r.boxBg }}; border: 1.5px solid {{ r.boxBorder }}">
+<sc-if value="{{ r.checked }}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if>
+</button>
+<span style="font-weight: 500; color: {{ r.nameColor }}">{{ r.name }}</span>
+<sc-if value="{{ r.isDraft }}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; border: 1px solid #B45309; color: #B45309; font-size: 12px; font-weight: 500">Draft</span>
+</sc-if>
+<span style="margin-left: auto; font-size: 12px; line-height: 16px; color: #6B7280">{{ r.meta }}</span>
+<sc-if value="{{ r.isDraft }}" hint-placeholder-val="{{ false }}">
+<a href="#" style="margin-left: auto; font-size: 12px; line-height: 16px; font-weight: 600; color: #0F766E">Approve this role first</a>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</fieldset>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-weight: 600">Access until <span style="font-weight: 400; color: #6B7280">(optional)</span></span>
+<span style="position: relative; display: block">
+<input type="text" placeholder="No end date" style="width: 100%; height: 36px; box-sizing: border-box; padding: 0 36px 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; right: 12px; top: 10px"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+</span>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">They can't log in after this date.</span>
+</label>
+<label style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-weight: 600">Max sessions per role <span style="font-weight: 400; color: #6B7280">(optional)</span></span>
+<input type="number" min="1" placeholder="No limit" style="width: 100%; height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Mock interviews each person can take per role.</span>
+</label>
+</div>
+</div>
+</sc-if>
+
+<!-- CSV: before upload -->
+<sc-if value="{{ csvEmpty }}" hint-placeholder-val="{{ false }}">
+<div role="tabpanel" aria-label="Upload CSV" style="flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="border: 1.5px dashed #9CA3AF; border-radius: 8px; background: #FAFAF7; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+<span style="width: 48px; height: 48px; border-radius: 999px; background: #CCFBF1; color: #0F766E; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"></path><path d="M7 9l5-5 5 5"></path><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path></svg></span>
+<p style="margin: 0; font-weight: 600">Drop a CSV or <button type="button" onClick="{{ upload }}" style="padding: 0; border: 0; background: transparent; font: inherit; font-weight: 600; color: #0F766E; text-decoration: underline; cursor: pointer">browse</button></p>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">One person per row. Separate multiple roles with a semicolon.</p>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<a href="#" style="display: inline-flex; align-items: center; gap: 6px; color: #0F766E; font-weight: 600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7 10l5 5 5-5"></path><path d="M4 20h16"></path></svg>Download template</a>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">Columns: email, name, roles</span>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Role names must match an approved job role: Customer Support Associate, Junior Data Analyst.</p>
+</div>
+</sc-if>
+
+<!-- CSV: validated -->
+<sc-if value="{{ csvDone }}" hint-placeholder-val="{{ false }}">
+<div role="tabpanel" aria-label="Upload CSV" style="flex: 1; min-height: 0; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 8px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6"></path></svg>
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-weight: 600">october-cohort.csv</span>
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">45 rows · checked just now</span>
+</div>
+<button type="button" onClick="{{ reset }}" style="margin-left: auto; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">Replace file</button>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<p role="status" style="margin: 0; display: flex; align-items: center; gap: 16px; font-weight: 600">
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #0F766E"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>42 ready</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #B45309"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>3 need fixing</span>
+</p>
+<div role="group" aria-label="Show rows" style="display: inline-flex; padding: 2px; border: 1px solid #E5E7EB; border-radius: 8px; background: #FAFAF7">
+<button type="button" aria-pressed="{{ fAllPressed }}" onClick="{{ showAll }}" style="height: 28px; padding: 0 12px; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; background: {{ fAllBg }}; color: {{ fAllColor }}; border: 1px solid {{ fAllBorder }}">All 45</button>
+<button type="button" aria-pressed="{{ fFixPressed }}" onClick="{{ showFix }}" style="height: 28px; padding: 0 12px; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; background: {{ fFixBg }}; color: {{ fFixColor }}; border: 1px solid {{ fFixBorder }}">Need fixing 3</button>
+</div>
+</div>
+
+<div style="border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden">
+<div role="table" aria-label="CSV preview" style="font-size: 13px; line-height: 20px">
+<div role="row" style="display: grid; grid-template-columns: 44px minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.3fr) 128px; align-items: center; height: 36px; padding-right: 12px; background: #FAFAF7; border-bottom: 1px solid #E5E7EB; font-size: 12px; line-height: 16px; font-weight: 600; color: #6B7280">
+<span role="columnheader" style="text-align: right; padding-right: 12px">Row</span>
+<span role="columnheader">Email</span>
+<span role="columnheader">Name</span>
+<span role="columnheader">Roles</span>
+<span role="columnheader">Check</span>
+</div>
+<sc-for list="{{ csvRows }}" as="c" hint-placeholder-count="8">
+<div role="row" style="display: grid; grid-template-columns: 44px minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.3fr) 128px; align-items: center; height: 40px; padding-right: 12px; border-top: 1px solid {{ c.line }}; background: {{ c.bg }}">
+<span role="cell" style="text-align: right; padding-right: 12px; color: #6B7280">{{ c.n }}</span>
+<span role="cell" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; color: {{ c.emailColor }}; font-weight: {{ c.emailWeight }}">{{ c.email }}</span>
+<span role="cell" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px">{{ c.name }}</span>
+<span role="cell" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; color: {{ c.roleColor }}; font-weight: {{ c.roleWeight }}">{{ c.roles }}</span>
+<span role="cell" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; white-space: nowrap; color: {{ c.checkColor }}">
+<sc-if value="{{ c.ok }}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if>
+<sc-if value="{{ c.bad }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg></sc-if>
+{{ c.check }}</span>
+</div>
+</sc-for>
+<sc-if value="{{ showMore }}" hint-placeholder-val="{{ true }}">
+<div role="row" style="height: 36px; display: flex; align-items: center; padding: 0 12px 0 44px; border-top: 1px solid #E5E7EB; font-size: 12px; line-height: 16px; color: #6B7280"><span role="cell">37 more ready rows</span></div>
+</sc-if>
+</div>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Rows that need fixing are skipped. Fix them in the file and upload it again, or send now and add them later.</p>
+</div>
+</sc-if>
+
+<!-- Footer -->
+<div style="display: flex; align-items: center; gap: 8px; padding: 16px 24px; border-top: 1px solid #E5E7EB">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280; margin-right: auto">{{ footNote }}</span>
+<a href="Candidates.dc.html" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; box-sizing: border-box">Cancel</a>
+<sc-if value="{{ sendLinked }}" hint-placeholder-val="{{ false }}">
+<a href="InviteSuccess.dc.html" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; box-sizing: border-box">Send 42 invites</a>
+</sc-if>
+<sc-if value="{{ sendOne }}" hint-placeholder-val="{{ true }}">
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Send 1 invite</button>
+</sc-if>
+<sc-if value="{{ sendDisabled }}" hint-placeholder-val="{{ false }}">
+<button type="button" disabled="{{ true }}" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #F3F4F6; color: #6B7280; font: inherit; font-weight: 600">Send invites</button>
+</sc-if>
+</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["one","csv","validate"],"default":"one"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+var v = (props && props.view) || 'one';
+this.state = { tab: v === 'one' ? 'one' : 'csv', uploaded: v === 'validate', filter: 'all', picked: { csa: true, jda: false } };
+}
+renderVals() {
+var self = this;
+var s = this.state;
+var isOne = s.tab === 'one';
+var ROLES = [
+{ id: 'csa', name: 'Customer Support Associate', meta: '12 cards · 15 questions', draft: false },
+{ id: 'jda', name: 'Junior Data Analyst', meta: '12 cards · 18 questions', draft: false },
+{ id: 'sdr', name: 'Sales Development Rep', meta: '', draft: true }
+];
+var roles = ROLES.map(function (r, i) {
+var checked = !r.draft && !!s.picked[r.id];
+return {
+name: r.name, meta: r.meta, isDraft: r.draft, checked: checked,
+checkedStr: checked ? 'true' : 'false', disabledStr: r.draft ? 'true' : 'false',
+topLine: i === 0 ? 'transparent' : '#E5E7EB',
+bg: r.draft ? '#FAFAF7' : '#FFFFFF',
+nameColor: r.draft ? '#6B7280' : '#1F2937',
+cursor: r.draft ? 'not-allowed' : 'pointer',
+boxBg: r.draft ? '#F3F4F6' : (checked ? '#0F766E' : '#FFFFFF'),
+boxBorder: r.draft ? '#D1D5DB' : (checked ? '#0F766E' : '#6B7280'),
+toggle: function () { if (r.draft) return; var p = Object.assign({}, self.state.picked); p[r.id] = !p[r.id]; self.setState({ picked: p }); }
+};
+});
+var CSV = [
+{ n: 3, email: 'priya.sharma@example.com', name: 'Priya Sharma', roles: 'Customer Support Associate', issue: 'Already invited', field: 'email' },
+{ n: 17, email: 'rohit.gupta@example', name: 'Rohit Gupta', roles: 'Junior Data Analyst', issue: 'Invalid email', field: 'email' },
+{ n: 29, email: 'sana.khan@example.com', name: 'Sana Khan', roles: 'Customer Success Lead', issue: 'Unknown role', field: 'role' },
+{ n: 1, email: 'neha.kapoor@example.com', name: 'Neha Kapoor', roles: 'Customer Support Associate' },
+{ n: 2, email: 'vikram.rao@example.com', name: 'Vikram Rao', roles: 'Customer Support Associate' },
+{ n: 4, email: 'meera.nair@example.com', name: 'Meera Nair', roles: 'Junior Data Analyst' },
+{ n: 5, email: 'deepak.joshi@example.com', name: 'Deepak Joshi', roles: 'Customer Support Associate; Junior Data Analyst' },
+{ n: 6, email: 'fatima.sheikh@example.com', name: 'Fatima Sheikh', roles: 'Junior Data Analyst' }
+];
+var fixOnly = s.filter === 'fix';
+var csvRows = CSV.filter(function (c) { return !fixOnly || c.issue; }).map(function (c, i) {
+var bad = !!c.issue;
+return {
+n: c.n, email: c.email, name: c.name, roles: c.roles,
+ok: !bad, bad: bad, check: bad ? c.issue : 'Ready',
+checkColor: bad ? '#B45309' : '#0F766E',
+bg: bad ? '#FFFBEB' : '#FFFFFF',
+line: i === 0 ? 'transparent' : '#E5E7EB',
+emailColor: bad && c.field === 'email' ? '#B45309' : '#1F2937',
+emailWeight: bad && c.field === 'email' ? '600' : '400',
+roleColor: bad && c.field === 'role' ? '#B45309' : '#1F2937',
+roleWeight: bad && c.field === 'role' ? '600' : '400'
+};
+});
+var csvEmpty = !isOne && !s.uploaded;
+var csvDone = !isOne && s.uploaded;
+function tab(on) { return { color: on ? '#0F766E' : '#6B7280', weight: on ? '600' : '500', line: on ? '#0F766E' : 'transparent' }; }
+var t1 = tab(isOne), t2 = tab(!isOne);
+function seg(on) { return { bg: on ? '#FFFFFF' : 'transparent', color: on ? '#1F2937' : '#6B7280', border: on ? '#E5E7EB' : 'transparent', pressed: on ? 'true' : 'false' }; }
+var sa = seg(!fixOnly), sf = seg(fixOnly);
+return {
+isOne: isOne, csvEmpty: csvEmpty, csvDone: csvDone,
+oneSelected: isOne ? 'true' : 'false', csvSelected: isOne ? 'false' : 'true',
+oneColor: t1.color, oneWeight: t1.weight, oneLine: t1.line,
+csvColor: t2.color, csvWeight: t2.weight, csvLine: t2.line,
+showOne: function () { self.setState({ tab: 'one' }); },
+showCsv: function () { self.setState({ tab: 'csv' }); },
+upload: function () { self.setState({ uploaded: true }); },
+reset: function () { self.setState({ uploaded: false, filter: 'all' }); },
+roles: roles,
+csvRows: csvRows, showMore: !fixOnly,
+fAllBg: sa.bg, fAllColor: sa.color, fAllBorder: sa.border, fAllPressed: sa.pressed,
+fFixBg: sf.bg, fFixColor: sf.color, fFixBorder: sf.border, fFixPressed: sf.pressed,
+showAll: function () { self.setState({ filter: 'all' }); },
+showFix: function () { self.setState({ filter: 'fix' }); },
+footNote: isOne ? '1 already invited, will be skipped' : (csvDone ? '3 rows will be skipped' : 'Nothing is sent until you confirm'),
+sendLinked: csvDone, sendOne: isOne, sendDisabled: csvEmpty
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reports</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1500px; display: flex; flex-wrap: wrap; background: #FAFAF7; color: #1F2937; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">
+<dc-import name="Sidebar" active="reports" hint-size="240px,1500px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px">
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Reports</h1>
+<p style="margin: 0; color: #6B7280">How prepared candidates are, and where they get stuck.</p>
+</div>
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7 10l5 5 5-5"></path><path d="M4 20h16"></path></svg>Export CSV</button>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+<label style="display: inline-flex; align-items: center; gap: 8px"><span style="color: #6B7280">Role</span>
+<select style="height: 36px; padding: 0 8px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; font-weight: 600; color: #1F2937; background: #FFFFFF"><option>Customer Support Associate</option><option>Junior Data Analyst</option></select></label>
+<button type="button" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>Last 30 days · 15 Sep – 15 Oct 2026</button>
+</div>
+
+<!-- Plain stats -->
+<section aria-label="Summary" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px">
+<sc-for list="{{ stats }}" as="st" hint-placeholder-count="6">
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid {{ st.line }}">
+<span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ st.label }}</span>
+<span style="font-size: 20px; line-height: 28px; font-weight: 600; color: {{ st.color }}">{{ st.v }}</span>
+</div>
+</sc-for>
+</section>
+
+<!-- Bands -->
+<section aria-labelledby="bands-h" style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px">
+<div><h2 id="bands-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Preparedness bands</h2><p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">24 candidates with at least one session. Baseline is their first session; latest is their most recent.</p></div>
+<button type="button" aria-pressed="{{ t1Str }}" onClick="{{ toggle1 }}" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; flex: none">{{ t1Label }}</button>
+</div>
+<sc-if value="{{ chart1 }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{ bars }}" as="b" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 12px">
+<span style="font-weight: 600">{{ b.label }}</span>
+<div role="img" aria-label="{{ b.alt }}" style="display: flex; gap: 2px; height: 32px; border-radius: 6px; overflow: hidden">
+<sc-for list="{{ b.segs }}" as="g" hint-placeholder-count="4">
+<span style="flex: {{ g.n }}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: {{ g.bg }}; color: {{ g.fg }}">{{ g.n }}</span>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; padding-left: 84px; font-size: 12px; line-height: 16px">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #0F766E"></span>Interview ready</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #5EAAA8"></span>Nearly ready</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #D9A35B"></span>Developing</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #B45309"></span>Not ready yet</span>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ table1 }}" hint-placeholder-val="{{ false }}">
+<table style="width: 100%; max-width: 640px; border-collapse: collapse">
+<caption style="text-align: left; font-size: 12px; line-height: 16px; color: #6B7280; padding-bottom: 8px">Candidates per band, baseline and latest</caption>
+<thead><tr style="height: 36px; border-bottom: 1px solid #E5E7EB; font-size: 12px; color: #6B7280"><th scope="col" style="text-align: left; font-weight: 600">Band</th><th scope="col" style="text-align: right; font-weight: 600; padding-right: 16px">Baseline</th><th scope="col" style="text-align: right; font-weight: 600; padding-right: 16px">Latest</th><th scope="col" style="text-align: right; font-weight: 600">Change</th></tr></thead>
+<tbody><sc-for list="{{ bandRows }}" as="r" hint-placeholder-count="4"><tr style="height: 40px; border-bottom: 1px solid #E5E7EB"><th scope="row" style="text-align: left; font-weight: 500">{{ r.band }}</th><td style="text-align: right; padding-right: 16px">{{ r.base }}</td><td style="text-align: right; padding-right: 16px">{{ r.latest }}</td><td style="text-align: right; font-weight: 600">{{ r.delta }}</td></tr></sc-for></tbody>
+</table>
+</sc-if>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<!-- Hardest questions -->
+<section aria-labelledby="hq-h" style="flex: 999 1 600px; min-width: 0; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px">
+<div style="padding: 16px 24px 12px"><h2 id="hq-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Hardest questions</h2><p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Lowest average first-try score</p></div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 640px; border-collapse: collapse">
+<thead><tr style="height: 40px; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; font-size: 12px; line-height: 16px; color: #6B7280"><th scope="col" style="text-align: left; font-weight: 600; padding-left: 24px">Question</th><th scope="col" style="text-align: right; font-weight: 600; padding-right: 16px">Times asked</th><th scope="col" style="text-align: right; font-weight: 600; padding-right: 16px">Avg first</th><th scope="col" style="text-align: right; font-weight: 600; padding-right: 16px">Avg second</th><th scope="col" style="text-align: right; font-weight: 600; padding-right: 16px">Learning</th><th scope="col" style="text-align: left; font-weight: 600; padding-right: 24px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Action</span></th></tr></thead>
+<tbody>
+<sc-for list="{{ hard }}" as="h" hint-placeholder-count="3">
+<tr style="height: 52px; border-bottom: 1px solid #E5E7EB">
+<td style="padding-left: 24px; padding-right: 16px">{{ h.q }}</td>
+<td style="text-align: right; padding-right: 16px">{{ h.asked }}</td>
+<td style="text-align: right; padding-right: 16px; font-weight: 600">{{ h.first }}</td>
+<td style="text-align: right; padding-right: 16px">{{ h.second }}</td>
+<td style="text-align: right; padding-right: 16px">{{ h.learning }}</td>
+<td style="padding-right: 24px; white-space: nowrap"><a href="RoleCards.dc.html" style="color: #0F766E; font-weight: 600; font-size: 13px">Improve flash card</a></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- Dimensions -->
+<section aria-labelledby="dim-h" style="flex: 1 1 340px; min-width: 0; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px 24px 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+<div><h2 id="dim-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Answer dimensions</h2><p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Average latest score, 0–100</p></div>
+<button type="button" aria-pressed="{{ t2Str }}" onClick="{{ toggle2 }}" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; flex: none">{{ t2Label }}</button>
+</div>
+<sc-if value="{{ chart2 }}" hint-placeholder-val="{{ true }}">
+<div role="img" aria-label="{{ dimAlt }}" style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ dims }}" as="d" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 84px minmax(0, 1fr) 32px; align-items: center; gap: 10px">
+<span style="font-size: 13px; font-weight: {{ d.weight }}; color: {{ d.labelColor }}">{{ d.label }}</span>
+<span style="display: block; height: 12px; border-radius: 999px; background: #F3F4F6; overflow: hidden"><span style="display: block; height: 100%; border-radius: 999px; width: {{ d.w }}; background: {{ d.color }}"></span></span>
+<span style="text-align: right; font-weight: 600; color: {{ d.labelColor }}">{{ d.v }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ table2 }}" hint-placeholder-val="{{ false }}">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<caption style="text-align: left; font-size: 12px; color: #6B7280; padding-bottom: 6px">Average latest score by dimension</caption>
+<thead><tr style="height: 32px; border-bottom: 1px solid #E5E7EB; font-size: 12px; color: #6B7280"><th scope="col" style="text-align: left; font-weight: 600">Dimension</th><th scope="col" style="text-align: right; font-weight: 600">Average</th></tr></thead>
+<tbody><sc-for list="{{ dims }}" as="d" hint-placeholder-count="4"><tr style="height: 36px; border-bottom: 1px solid #E5E7EB"><th scope="row" style="text-align: left; font-weight: 500">{{ d.label }}</th><td style="text-align: right; font-weight: 600">{{ d.v }}</td></tr></sc-for></tbody>
+</table>
+</sc-if>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: #FEF3C7; color: #78350F; font-size: 13px; line-height: 20px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+<span>Structure is the weakest area. Consider a flash card on STAR. <a href="RoleCards.dc.html" style="color: #78350F; font-weight: 600">Add a flash card</a></span>
+</div>
+</section>
+</div>
+
+<!-- Needs attention -->
+<section aria-labelledby="att-h" style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px">
+<div style="padding: 16px 24px 12px"><h2 id="att-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Candidates needing attention</h2><p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Latest score under 50, or no activity for 14 days</p></div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 760px; border-collapse: collapse">
+<thead><tr style="height: 40px; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; font-size: 12px; line-height: 16px; color: #6B7280"><th scope="col" style="text-align: left; font-weight: 600; padding-left: 24px">Name</th><th scope="col" style="text-align: left; font-weight: 600">Why</th><th scope="col" style="text-align: right; font-weight: 600; padding-right: 16px">Sessions</th><th scope="col" style="text-align: left; font-weight: 600">Latest score</th><th scope="col" style="text-align: left; font-weight: 600">Last active</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Action</span></th></tr></thead>
+<tbody>
+<sc-for list="{{ attention }}" as="a" hint-placeholder-count="3">
+<tr style="height: 52px; border-bottom: 1px solid #E5E7EB">
+<td style="padding-left: 24px"><span style="display: flex; flex-direction: column"><span style="font-weight: 600; line-height: 18px">{{ a.name }}</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ a.email }}</span></span></td>
+<td style="color: #374151">{{ a.why }}</td>
+<td style="text-align: right; padding-right: 16px">{{ a.sessions }}</td>
+<td><span style="display: inline-flex; align-items: center; gap: 8px"><span style="font-weight: 600; min-width: 22px; text-align: right">{{ a.score }}</span><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; background: {{ a.bandBg }}"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{ a.bandDot }}"></span>{{ a.band }}</span></span></td>
+<td>{{ a.last }}</td>
+<td style="padding-right: 24px; text-align: right"><a href="CandidatesPanelPriya.dc.html" aria-label="{{ a.openLabel }}" style="color: #0F766E; font-weight: 600; font-size: 13px">Open</a></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { t1: false, t2: false };
+}
+renderVals() {
+var self = this;
+var s = this.state;
+var BANDS = [['Interview ready', '#0F766E', '#FFFFFF', '#E0F0EE'], ['Nearly ready', '#5EAAA8', '#1F2937', '#E3F1F1'], ['Developing', '#D9A35B', '#1F2937', '#F8EEDF'], ['Not ready yet', '#B45309', '#FFFFFF', '#FEF3C7']];
+var latest = [6, 9, 7, 2], base = [0, 3, 12, 9];
+function bar(label, arr) {
+return { label: label,
+alt: label + ': ' + BANDS.map(function (b, i) { return b[0] + ' ' + arr[i]; }).join(', '),
+segs: arr.map(function (n, i) { return { n: n, bg: BANDS[i][1], fg: BANDS[i][2] }; }).filter(function (g) { return g.n > 0; }) };
+}
+var stats = [['Invited', 38], ['Active', 31], ['Completed a session', 24], ['Average baseline', 52], ['Average latest', 71], ['Change', '+19']].map(function (x, i) {
+return { label: x[0], v: x[1], line: i === 0 ? 'transparent' : '#E5E7EB', color: x[0] === 'Change' ? '#0F766E' : '#1F2937' };
+});
+var dimsRaw = [['Content', 74], ['Structure', 58], ['Delivery', 70], ['Relevance', 77]];
+var min = Math.min.apply(null, dimsRaw.map(function (d) { return d[1]; }));
+var dims = dimsRaw.map(function (d) { var weak = d[1] === min; return { label: d[0], v: d[1], w: d[1] + '%', color: weak ? '#B45309' : '#0F766E', labelColor: weak ? '#B45309' : '#1F2937', weight: weak ? '600' : '400' }; });
+var BAND = {}; BANDS.forEach(function (b) { BAND[b[0]] = b; });
+var attention = [
+{ name: 'Sneha Reddy', email: 'sneha.reddy@example.com', why: 'Not ready yet, no change over 2 sessions', sessions: 2, score: 44, band: 'Not ready yet', last: '3 days ago' },
+{ name: 'Aditya Rao', email: 'aditya.rao@example.com', why: 'Not ready yet', sessions: 1, score: 47, band: 'Not ready yet', last: '6 days ago' },
+{ name: 'Farhan Ali', email: 'farhan.ali@example.com', why: 'No activity for 16 days', sessions: 1, score: 61, band: 'Developing', last: '29 Sep 2026' }
+].map(function (a) { var b = BAND[a.band]; return Object.assign(a, { bandDot: b[1], bandBg: b[3], openLabel: 'Open ' + a.name + ' in the side panel' }); });
+return {
+stats: stats,
+bars: [bar('Latest', latest), bar('Baseline', base)],
+bandRows: BANDS.map(function (b, i) { var d = latest[i] - base[i]; return { band: b[0], base: base[i], latest: latest[i], delta: (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d) }; }),
+chart1: !s.t1, table1: s.t1, t1Str: s.t1 ? 'true' : 'false', t1Label: s.t1 ? 'Show as chart' : 'Show as table',
+toggle1: function () { self.setState({ t1: !self.state.t1 }); },
+chart2: !s.t2, table2: s.t2, t2Str: s.t2 ? 'true' : 'false', t2Label: s.t2 ? 'Show as chart' : 'Show as table',
+toggle2: function () { self.setState({ t2: !self.state.t2 }); },
+dims: dims, dimAlt: 'Average latest score by dimension: ' + dimsRaw.map(function (d) { return d[0] + ' ' + d[1]; }).join(', ') + '. Structure is lowest.',
+hard: [
+{ q: 'Tell me about a time you handled an upset customer.', asked: 52, first: 48, second: 69, learning: 74 },
+{ q: 'A customer has been passed between three teams. What do you do?', asked: 38, first: 51, second: 70, learning: 71 },
+{ q: 'How do you explain a policy the customer doesn’t like?', asked: 47, first: 55, second: 72, learning: 76 }
+],
+attention: attention
+};
+}
+}
+</script>
+</body>
+</html>

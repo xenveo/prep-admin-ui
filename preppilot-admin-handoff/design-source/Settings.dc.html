@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1000px; display: flex; flex-wrap: wrap; background: #FAFAF7; color: #1F2937; font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; font-size: 14px; line-height: 22px; font-variant-numeric: tabular-nums">
+<dc-import name="Sidebar" active="settings" hint-size="240px,1000px"></dc-import>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px">
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-size: 20px; line-height: 28px; font-weight: 600">Settings</h1>
+<p style="margin: 0; color: #6B7280">{{ desc }}</p>
+</div>
+<sc-if value="{{ isAdmins }}" hint-placeholder-val="{{ true }}">
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Invite admin</button>
+</sc-if>
+<sc-if value="{{ hasSave }}" hint-placeholder-val="{{ false }}">
+<button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #0F766E; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Save changes</button>
+</sc-if>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<nav aria-label="Settings sections" style="flex: 0 0 200px; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{ sections }}" as="n" hint-placeholder-count="5">
+<button type="button" aria-current="{{ n.current }}" onClick="{{ n.pick }}" style="height: 36px; padding: 0 12px; border: 0; border-radius: 8px; text-align: left; font: inherit; cursor: pointer; background: {{ n.bg }}; color: {{ n.color }}; font-weight: {{ n.weight }}">{{ n.label }}</button>
+</sc-for>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<!-- Admins -->
+<sc-if value="{{ isAdmins }}" hint-placeholder-val="{{ true }}">
+<section aria-labelledby="ad-h" style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px">
+<div style="padding: 16px 20px 12px"><h2 id="ad-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Admins</h2><p style="margin: 0; font-size: 12px; line-height: 16px; color: #6B7280">Super admins also manage admins, data and privacy, and email settings.</p></div>
+<table style="width: 100%; border-collapse: collapse">
+<thead><tr style="height: 40px; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; font-size: 12px; line-height: 16px; color: #6B7280"><th scope="col" style="text-align: left; font-weight: 600; padding-left: 20px">Name</th><th scope="col" style="text-align: left; font-weight: 600">Access</th><th scope="col" style="text-align: left; font-weight: 600">Last active</th><th scope="col" style="width: 56px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th></tr></thead>
+<tbody>
+<sc-for list="{{ admins }}" as="a" hint-placeholder-count="4">
+<tr style="height: 52px; border-bottom: 1px solid #E5E7EB">
+<td style="padding-left: 20px"><span style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 999px; background: #F3F4F6; color: #374151; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center">{{ a.initials }}</span><span style="display: flex; flex-direction: column"><span style="font-weight: 600; line-height: 18px">{{ a.name }}</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">{{ a.email }}</span></span></span></td>
+<td><span style="display: inline-flex; align-items: center; gap: 8px"><span>{{ a.access }}</span><sc-if value="{{ a.pending }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; border: 1px solid #B45309; color: #B45309; font-size: 12px; font-weight: 500">Invite pending</span></sc-if></span></td>
+<td style="color: {{ a.lastColor }}">{{ a.last }}</td>
+<td style="text-align: center"><button type="button" aria-label="{{ a.menuLabel }}" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #374151; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</section>
+</sc-if>
+
+<!-- AI and voice -->
+<sc-if value="{{ isAi }}" hint-placeholder-val="{{ false }}">
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 600">AI and voice</h2>
+<div style="display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<label for="voice" style="font-weight: 600">Interviewer voice</label>
+<span style="display: inline-flex; gap: 8px; align-items: center"><select id="voice" style="height: 36px; padding: 0 8px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; background: #FFFFFF"><option>Calm, mid-pitch</option><option>Warm, lower pitch</option><option>Bright, higher pitch</option></select>
+<button type="button" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>Play sample</button></span>
+</div>
+<div style="display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<span id="fb-l" style="display: flex; flex-direction: column"><span style="font-weight: 600">Feedback length</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">After each answer</span></span>
+<div role="radiogroup" aria-labelledby="fb-l" style="display: inline-flex; justify-self: start; padding: 2px; border: 1px solid #E5E7EB; border-radius: 8px; background: #FAFAF7"><button type="button" role="radio" aria-checked="false" style="height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: #6B7280; font: inherit; font-weight: 500; cursor: pointer">Short</button><button type="button" role="radio" aria-checked="true" style="height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; cursor: pointer">Standard</button></div>
+</div>
+<div style="display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<span style="font-weight: 600">Language</span>
+<span style="display: inline-flex; align-items: center; gap: 8px; color: #374151"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>English <span style="font-size: 12px; color: #6B7280">· the only language for now</span></span>
+</div>
+</section>
+</sc-if>
+
+<!-- Data and privacy -->
+<sc-if value="{{ isPrivacy }}" hint-placeholder-val="{{ false }}">
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0 0 8px; font-size: 16px; line-height: 24px; font-weight: 600">Retention</h2>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<label for="aud" style="display: flex; flex-direction: column"><span style="font-weight: 600">Keep audio recordings for</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">Default 30 days</span></label>
+<span style="display: flex; flex-direction: column; gap: 4px"><select id="aud" style="justify-self: start; width: 200px; height: 36px; padding: 0 8px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; background: #FFFFFF"><option>7 days</option><option selected="{{ true }}">30 days</option><option>90 days</option></select><span style="font-size: 12px; line-height: 16px; color: #6B7280">Audio is deleted automatically after this. Transcripts and scores are kept.</span></span>
+</div>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<label for="tr" style="font-weight: 600">Keep transcripts for</label>
+<select id="tr" style="justify-self: start; width: 200px; height: 36px; padding: 0 8px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937; background: #FFFFFF"><option>6 months</option><option selected="{{ true }}">12 months</option><option>Until the candidate is removed</option></select>
+</div>
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid #E5E7EB">
+<span id="del-l" style="display: flex; flex-direction: column"><span style="font-weight: 600">Candidates can delete their data</span><span style="font-size: 12px; line-height: 16px; color: #6B7280">Recordings, transcripts and scores, from their account page</span></span>
+<button type="button" role="switch" aria-checked="{{ delStr }}" aria-labelledby="del-l" onClick="{{ toggleDel }}" style="justify-self: start; width: 44px; height: 24px; padding: 2px; border-radius: 999px; border: 0; cursor: pointer; display: inline-flex; background: {{ delBg }}; justify-content: {{ delJustify }}"><span style="width: 20px; height: 20px; border-radius: 999px; background: #FFFFFF"></span></button>
+</div>
+</section>
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Data export</h2>
+<p style="margin: 0; color: #374151">Download every candidate, session and score as CSV files. Audio isn’t included.</p>
+<div style="display: flex; align-items: center; gap: 12px"><button type="button" style="height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-weight: 500; cursor: pointer">Export all data</button><span style="font-size: 12px; line-height: 16px; color: #6B7280">Last export: never</span></div>
+</section>
+</sc-if>
+
+<!-- Email -->
+<sc-if value="{{ isEmail }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section style="flex: 1 1 320px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Email</h2>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Sender name</span><input type="text" value="PrepPilot for [Company]" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937"></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600">Reply-to address</span><input type="email" placeholder="[reply-to@company.com]" style="height: 36px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D1D5DB; border-radius: 8px; font: inherit; color: #1F2937"></label>
+</section>
+<section aria-label="Invite email preview" style="flex: 1 1 360px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 20px">
+<span style="font-size: 12px; line-height: 16px; font-weight: 600; color: #6B7280">Invite preview</span>
+<span><span style="color: #6B7280">Subject:</span> You’re invited to practise for your interview</span>
+<div style="border-top: 1px solid #E5E7EB; padding-top: 8px; display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0">Hi [Name],</p>
+<p style="margin: 0">You’ve been invited to prepare for the [Role] interview with short flash cards and a voice mock interview. You’ll get feedback after every answer.</p>
+<span style="align-self: flex-start; padding: 8px 14px; border-radius: 8px; background: #0F766E; color: #FFFFFF; font-weight: 600">Log in to start</span>
+<p style="margin: 0; color: #6B7280">This link is just for you. It expires in 7 days.</p>
+</div>
+</section>
+</div>
+</sc-if>
+
+<!-- Audit log -->
+<sc-if value="{{ isAudit }}" hint-placeholder-val="{{ false }}">
+<section style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #E5E7EB">
+<button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">Who: Anyone</button>
+<button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">Action: Any</button>
+<button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #1F2937; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer">Last 30 days</button>
+</div>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="height: 40px; border-bottom: 1px solid #E5E7EB; font-size: 12px; color: #6B7280"><th scope="col" style="text-align: left; font-weight: 600; padding-left: 16px">Who</th><th scope="col" style="text-align: left; font-weight: 600">Action</th><th scope="col" style="text-align: left; font-weight: 600">Item</th><th scope="col" style="text-align: left; font-weight: 600">When</th></tr></thead>
+<tbody><sc-for list="{{ audit }}" as="r" hint-placeholder-count="4"><tr style="height: 44px; border-bottom: 1px solid #E5E7EB"><td style="padding-left: 16px">{{ r.who }}</td><td>{{ r.action }}</td><td style="color: #374151">{{ r.item }}</td><td style="color: #6B7280">{{ r.when }}</td></tr></sc-for></tbody>
+</table>
+</section>
+</sc-if>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["admins","ai","privacy","email","audit"],"default":"admins"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { sec: (props && props.view) || 'admins', del: true };
+}
+renderVals() {
+var self = this;
+var s = this.state;
+var SECS = [['admins', 'Admins', 'People who can use this console.'], ['ai', 'AI and voice', 'How the AI interviewer sounds and gives feedback.'], ['privacy', 'Data and privacy', 'How long candidate data is kept and who can delete it.'], ['email', 'Email', 'What invite emails look like.'], ['audit', 'Audit log', 'Who changed what, and when.']];
+var cur = SECS.filter(function (x) { return x[0] === s.sec; })[0] || SECS[0];
+return {
+sections: SECS.map(function (x) { var on = x[0] === s.sec; return { label: x[1], current: on ? 'page' : 'false', bg: on ? '#CCFBF1' : 'transparent', color: on ? '#0F766E' : '#1F2937', weight: on ? '600' : '500', pick: function () { self.setState({ sec: x[0] }); } }; }),
+desc: cur[2],
+isAdmins: s.sec === 'admins', isAi: s.sec === 'ai', isPrivacy: s.sec === 'privacy', isEmail: s.sec === 'email', isAudit: s.sec === 'audit',
+hasSave: s.sec === 'ai' || s.sec === 'privacy' || s.sec === 'email',
+admins: [
+{ initials: 'AM', name: 'Arjun Mehta (you)', email: '[arjun@company.com]', access: 'Super admin', last: 'Now', lastColor: '#1F2937' },
+{ initials: 'KM', name: 'Kavya Menon', email: '[kavya@company.com]', access: 'Admin', last: 'Yesterday', lastColor: '#1F2937' },
+{ initials: 'RD', name: 'Rohan Das', email: '[rohan@company.com]', access: 'Admin', last: '9 Oct 2026', lastColor: '#1F2937' },
+{ initials: 'MK', name: 'meera.k@example.com', email: 'Invited 1 day ago', access: 'Admin', pending: true, last: 'Not yet', lastColor: '#6B7280' }
+].map(function (a) { return Object.assign({ pending: false, menuLabel: 'Actions for ' + a.name }, a); }),
+delStr: s.del ? 'true' : 'false', delBg: s.del ? '#0F766E' : '#9CA3AF', delJustify: s.del ? 'flex-end' : 'flex-start',
+toggleDel: function () { self.setState({ del: !self.state.del }); },
+audit: [
+{ who: 'Arjun Mehta', action: 'Flagged an evaluation', item: 'Priya Sharma · session 3 · question 2', when: 'Today, 11:32' },
+{ who: 'Arjun Mehta', action: 'Sent 42 invites', item: 'october-cohort.csv', when: 'Today, 11:20' },
+{ who: 'Arjun Mehta', action: 'Edited role', item: 'Sales Development Rep', when: 'Today, 09:15' },
+{ who: 'Kavya Menon', action: 'Changed audio retention', item: '90 days → 30 days', when: '12 Oct 2026' }
+]
+};
+}
+}
+</script>
+</body>
+</html>
