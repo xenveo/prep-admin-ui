@@ -37,7 +37,7 @@ export function useSettingsDraft() {
     try {
       const next = await saveWorkspaceSettings(patch);
       setSavedOverride(next);
-      setEdits({});
+      setEdits((current) => Object.fromEntries(Object.entries(current).filter(([key, value]) => value !== patch[key as keyof WorkspaceSettings])));
       toast.show({ title: "Settings saved" });
       return true;
     } catch (e) {

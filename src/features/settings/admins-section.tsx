@@ -35,12 +35,14 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [accessFor, setAccessFor] = useState<Admin | null>(null);
   const [removeFor, setRemoveFor] = useState<Admin | null>(null);
+  const [mutating, setMutating] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const inviteReturn = useRef<HTMLElement | null>(null);
 
   useHeaderAction({
     label: "Invite admin",
     iconLeft: "plus",
+    loading: mutating,
     onClick: () => {
       inviteReturn.current = document.activeElement as HTMLElement | null;
       setInviteOpen(true);
@@ -87,18 +89,19 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
   function rowActions(a: Admin): MenuItem[] {
     const self = a.id === currentAdminId;
     return [
-      { id: "access", label: "Change access", onSelect: () => setAccessFor(a) },
+      { id: "access", label: "Change access", disabled: self || mutating, disabledReason: self ? "You can’t change your own access" : undefined, onSelect: () => setAccessFor(a) },
       {
         id: "resend",
         label: "Resend invite",
-        disabled: a.status !== "invite_pending",
+        disabled: mutating || a.status !== "invite_pending",
         disabledReason: a.status !== "invite_pending" ? "Already active" : undefined,
         onSelect: () => {
           setProblem(null);
+          setMutating(true);
           resendAdminInvite(a.id).then(
-            () => toast.show({ title: `Invite resent to ${a.email}` }),
+            () => { toast.show({ title: `Invite resent to ${a.email}` }); reload(); },
             (e: unknown) => setProblem(e instanceof Error ? e.message : "Couldn't resend the invite."),
-          );
+          ).finally(() => setMutating(false));
         },
       },
       {
@@ -106,7 +109,7 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
         label: "Remove admin",
         destructive: true,
         dividerBefore: true,
-        disabled: self,
+        disabled: self || mutating,
         disabledReason: self ? "You can't remove yourself" : undefined,
         onSelect: () => setRemoveFor(a),
       },
@@ -115,16 +118,17 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
 
   async function confirmRemove() {
     const a = removeFor;
-    if (!a) return;
+    if (!a || mutating) return;
     setRemoveFor(null);
     setProblem(null);
+    setMutating(true);
     try {
       await removeAdmin(a.id);
       toast.show({ title: `Removed ${displayName(a)}` });
       reload();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : "Couldn't remove this admin.");
-    }
+    } finally { setMutating(false); }
   }
 
   return (
@@ -211,6 +215,7 @@ function InviteAdminModal({
   }
 
   async function submit() {
+    if (busy) return;
     setBusy(true);
     setError(null);
     try {
@@ -305,7 +310,7 @@ function ChangeAccessModal({
   }
 
   async function submit() {
-    if (!admin) return;
+    if (!admin || busy) return;
     setBusy(true);
     setError(null);
     try {

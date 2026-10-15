@@ -11,12 +11,13 @@ import { useAsync } from "@/lib/use-async";
 import { getCurrentAdmin } from "@/services/settings";
 import { SettingsProvider, type HeaderAction } from "./settings-context";
 import { SECTIONS } from "./sections";
+import { ErrorBanner } from "./load-state";
 
 /** Header + 200px subnav shared by every settings section; sections own the header's primary button. */
 export function SettingsShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const current = SECTIONS.find((s) => pathname === `/settings/${s.key}` || pathname.startsWith(`/settings/${s.key}/`));
-  const { data: admin } = useAsync(getCurrentAdmin, []);
+  const { data: admin, error, reload } = useAsync(getCurrentAdmin, []);
   const [action, setAction] = useState<HeaderAction | null>(null);
   const ctx = useMemo(() => ({ admin, setAction }), [admin]);
   const isSuper = admin?.access === "super_admin";
@@ -67,7 +68,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="flex min-w-0 flex-1 basis-[560px] flex-col gap-4">
-          <SettingsProvider value={ctx}>{children}</SettingsProvider>
+          <SettingsProvider value={ctx}>{error ? <ErrorBanner message={error.message} onRetry={reload} /> : children}</SettingsProvider>
         </div>
       </div>
     </PageContainer>

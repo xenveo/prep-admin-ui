@@ -22,7 +22,7 @@ import {
 import { firstName, pluralize } from "@/lib/format";
 import { INVITE_RESULT_LABEL, type CandidateRow, type InviteCsvParse, type InviteRow } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
-import { inviteCandidates, listCandidates } from "@/services/candidates";
+import { getInviteContext, inviteCandidates, listCandidates, validateInviteRows } from "@/services/candidates";
 import { listRoles } from "@/services/roles";
 import { toRoleChoices } from "./role-choices";
 
@@ -54,10 +54,11 @@ export function InviteModal({
 }) {
   const panelId = useId();
   const rolesQ = useAsync(() => listRoles(), []);
+  const contextQ = useAsync(getInviteContext, []);
   const peopleQ = useAsync(() => listCandidates(), []);
   const roles = rolesQ.data;
   const existing = peopleQ.data?.rows;
-  const ready = Boolean(roles && existing);
+  const ready = Boolean(roles && existing && contextQ.data);
 
   const [rows, setRows] = useState<PersonRow[]>([{ key: 1, email: "", name: "" }]);
   const [nextKey, setNextKey] = useState(2);
@@ -69,7 +70,7 @@ export function InviteModal({
   const [csvFilter, setCsvFilter] = useState<"all" | "fix">("all");
   const [discard, setDiscard] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sendError, setSendError] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const approved = useMemo(() => (roles ?? []).filter((r) => r.status === "approved"), [roles]);
   const drafts = useMemo(() => (roles ?? []).filter((r) => r.status === "draft"), [roles]);
@@ -88,11 +89,11 @@ export function InviteModal({
 
   const ctx = useMemo(
     () => ({
-      approvedRoleNames: approved.map((r) => r.title),
-      draftRoleNames: drafts.map((r) => r.title),
-      existingEmails: existing?.map((c) => c.email) ?? [],
+      approvedRoleNames: contextQ.data?.approvedRoleNames ?? approved.map((r) => r.title),
+      draftRoleNames: contextQ.data?.draftRoleNames ?? drafts.map((r) => r.title),
+      existingEmails: contextQ.data?.existingEmails ?? existing?.map((c) => c.email) ?? [],
     }),
-    [approved, drafts, existing],
+    [approved, drafts, existing, contextQ.data],
   );
 
   // One by one: live validation. Roles are checked separately (the Send button), so a stand-in role name is used here.
@@ -167,7 +168,13 @@ export function InviteModal({
       setCsvError("No rows found in this file. Add one person per row under the header.");
       return;
     }
-    setCsv({ fileName: file.name, parse });
+    try {
+      const checked = await validateInviteRows(parse.rows.map(({email,name,roles})=>({email,name,roles})));
+      setCsv({ fileName: file.name, parse: {...parse, ...checked} });
+    } catch (error) {
+      setCsvError(error instanceof Error ? error.message : "Validation failed. Upload the file again.");
+      return;
+    }
     setCsvFilter("all");
   }
 
@@ -179,19 +186,20 @@ export function InviteModal({
 
   async function send() {
     setBusy(true);
-    setSendError(false);
+    setSendError(null);
     try {
       if (tab === "one") {
-        const toSend = rows
-          .filter((r) => results.get(r.key)?.result === "ready")
-          .map((r) => ({ email: r.email.trim(), name: r.name.trim(), roleIds: selectedRoleIds }));
+        const filled = rows.filter((r) => r.email.trim() || r.name.trim());
+        const checked = await validateInviteRows(filled.map((r)=>({email:r.email.trim(),name:r.name.trim(),roles:selectedRoleNames})));
+        const toSend = checked.rows.filter((r)=>r.result === "ready").map((r)=>({email:r.email,name:r.name,roleIds:selectedRoleIds}));
+        if (!toSend.length) throw new Error("No rows are ready to send. Check names, email addresses and approved roles.");
         const res = await inviteCandidates({
           source: "single",
           rows: toSend,
           accessUntil: accessUntil || null,
           maxSessions: maxSessions.trim() ? Number(maxSessions) : null,
         });
-        onSent({ sent: res.sent, skipped: res.skipped + oneSkipped });
+        onSent({ sent: res.sent, skipped: res.skipped + checked.summary.needFixing });
       } else if (csv) {
         const toSend = csv.parse.rows
           .filter((r) => r.result === "ready")
@@ -203,8 +211,8 @@ export function InviteModal({
         const res = await inviteCandidates({ source: "csv", fileName: csv.fileName, rows: toSend });
         onSent({ sent: res.sent, skipped: res.skipped + (csvSummary?.needFixing ?? 0) });
       }
-    } catch {
-      setSendError(true);
+    } catch (error) {
+      setSendError(error instanceof Error ? error.message : "The invites weren't sent. Try again.");
       setBusy(false);
     }
   }
@@ -268,6 +276,7 @@ export function InviteModal({
         }
       >
         <div id={panelId} role="tabpanel" aria-labelledby={`tab-${tab}`} className="flex flex-col gap-5">
+          {(rolesQ.error || peopleQ.error || contextQ.error) && <p role="alert" className="text-sm text-improve-text">Invite information could not be loaded. <Button onClick={()=>{rolesQ.reload();peopleQ.reload();contextQ.reload();}}>Try again</Button></p>}
           {tab === "one" ? (
             <>
               <section className="flex flex-col gap-2" aria-labelledby={`${panelId}-people`}>
@@ -536,7 +545,7 @@ export function InviteModal({
           )}
           {sendError && (
             <p role="alert" className="m-0 text-sm font-medium text-error">
-              Couldn’t send invites. Try again.
+              {sendError}
             </p>
           )}
         </div>

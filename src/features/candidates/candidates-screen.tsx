@@ -23,6 +23,7 @@ import {
   exportCandidatesCsv,
   listCandidates,
   listSavedFilters,
+  reactivateCandidates,
   removeRole,
   resendInvite,
   revokeInvite,
@@ -62,6 +63,7 @@ export function CandidatesScreen() {
   const inviteParam = url.get("invite");
   const inviteTab: InviteTab | null = inviteParam === "one" || inviteParam === "csv" ? inviteParam : null;
 
+  const mutationBusy = useRef(false);
   const [version, setVersion] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
   const savedQ = useAsync(() => listSavedFilters(), [savedVersion]);
@@ -148,11 +150,13 @@ export function CandidatesScreen() {
   ];
 
   async function guard(fn: () => Promise<void>) {
+    if (mutationBusy.current) return;
+    mutationBusy.current = true;
     try {
       await fn();
-    } catch {
-      toast.show({ title: "Something went wrong", detail: "That didn’t go through. Try again." });
-    }
+    } catch (error) {
+      toast.show({ title: "Something went wrong", detail: error instanceof Error ? error.message : "That didn’t go through. Try again." });
+    } finally { mutationBusy.current = false; }
   }
 
   async function resend(ids: string[]) {
@@ -168,6 +172,10 @@ export function CandidatesScreen() {
       );
       refresh();
     });
+  }
+
+  async function reactivate(id:string) {
+    await guard(async()=>{ const result=await reactivateCandidates([id]); toast.show({title:result.reactivated ? "Candidate reactivated" : "No changes"}); refresh(); });
   }
 
   async function exportCsv(ids: string[]) {
@@ -195,15 +203,9 @@ export function CandidatesScreen() {
           toast.show({ title: "Role removed", detail: `${c.roleTitle} was removed from ${c.name}.` });
           break;
         case "bulk-deactivate": {
-          const active = c.rows.filter((r) => r.status === "active").map((r) => r.id);
-          const pending = c.rows.filter((r) => r.status === "invite_pending").map((r) => r.id);
-          if (active.length) await deactivateCandidates(active);
-          for (const id of pending) await revokeInvite(id);
+          const result = await deactivateCandidates(c.rows.map((r)=>r.id));
           setSelection(new Set());
-          toast.show({
-            title: `${pluralize(c.rows.length, "candidate")} deactivated`,
-            detail: pending.length ? `${pluralize(pending.length, "pending invite")} revoked.` : "Sessions and scores are kept.",
-          });
+          toast.show({title:`${pluralize(result.deactivated,"candidate")} updated`,detail:`Sessions and scores are kept.${result.skipped ? ` ${result.skipped} skipped.` : ""}`});
           break;
         }
       }
@@ -223,9 +225,7 @@ export function CandidatesScreen() {
 
   async function submitSave(name: string) {
     await guard(async () => {
-      const { sort: _sort, ...rest } = query;
-      void _sort;
-      const f = await saveFilter(name, rest);
+      const f = await saveFilter(name, query);
       setSavedVersion((v) => v + 1);
       url.set({ saved: f.id });
       setSaveOpen(false);
@@ -365,6 +365,7 @@ export function CandidatesScreen() {
                 rowActions={(r) =>
                   candidateMenuItems(r, {
                     resend: () => resend([r.id]),
+                    reactivate: () => reactivate(r.id),
                     assign: () =>
                       setAssign({ ids: [r.id], subject: r.name, excludeRoleIds: r.roles.map((x) => x.id) }),
                     deactivate: () =>
@@ -386,6 +387,7 @@ export function CandidatesScreen() {
           version={version}
           onClose={closePanel}
           onResend={(id) => resend([id])}
+          onReactivate={reactivate}
           onAssign={(d) =>
             setAssign({ ids: [d.id], subject: d.name, excludeRoleIds: d.assignments.map((a) => a.roleId) })
           }

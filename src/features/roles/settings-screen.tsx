@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,8 @@ export function SettingsScreen() {
   const [maxSessions, setMaxSessions] = useState(s.maxSessionsPerCandidate === null ? "" : String(s.maxSessionsPerCandidate));
   const [sessionW, setSessionW] = useState<Record<string, number>>({ ...s.sessionWeights });
   const [dimW, setDimW] = useState<Record<string, number>>({ ...s.dimensionWeights });
+  const saveLock = useRef(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const perSessionN = Number(perSession);
@@ -55,10 +57,10 @@ export function SettingsScreen() {
       ? "Enter a whole number from 1 to 20"
       : undefined;
   const guideSeconds = parseDuration(guide);
-  const guideError = !/^\d+:[0-5]\d$/.test(guide.trim()) || !(guideSeconds > 0) ? "Use minutes and seconds, like 2:00" : undefined;
+  const guideError = !/^\d+:[0-5]\d$/.test(guide.trim()) || (guideSeconds < 15 || guideSeconds > 600) ? "Use 0:15 to 10:00" : undefined;
   const maxN = Number(maxSessions);
   const maxError =
-    maxSessions.trim() !== "" && (!Number.isInteger(maxN) || maxN < 1) ? "Enter a whole number, or leave blank for no limit" : undefined;
+    maxSessions.trim() !== "" && (!Number.isInteger(maxN) || maxN < 1 || maxN > 100) ? "Enter 1 to 100, or leave blank for no limit" : undefined;
   const weightsError = !weightsValid(sessionW)
     ? "Session score weights must add up to 100%"
     : !weightsValid(dimW)
@@ -67,7 +69,10 @@ export function SettingsScreen() {
   const blockedReason = perSessionError ?? guideError ?? maxError ?? weightsError;
 
   async function submit() {
+    if (saveLock.current || blockedReason || readOnly) return;
+    saveLock.current = true;
     setSaving(true);
+    setSaveError(null);
     try {
       await updateRole(role.id, {
         settings: {
@@ -83,14 +88,16 @@ export function SettingsScreen() {
       emitRoleChanged(role.id);
       toast.show({ title: "Settings saved" });
     } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Couldn't save settings. Try again.");
       toast.show({ title: "Couldn't save settings", detail: e instanceof Error ? e.message : undefined });
     } finally {
+      saveLock.current = false;
       setSaving(false);
     }
   }
 
   return (
-    <fieldset disabled={readOnly} className="m-0 flex min-w-0 max-w-[760px] flex-col gap-6 border-0 p-0">
+    <fieldset disabled={readOnly || saving} className="m-0 flex min-w-0 max-w-[760px] flex-col gap-6 border-0 p-0">
       <legend className="sr-only">Role settings</legend>
       {readOnly && <p className="m-0 text-sm text-ink-muted">This role is archived, so its settings can’t be changed.</p>}
       <Section title="Mock interview">
@@ -173,9 +180,10 @@ export function SettingsScreen() {
         <WeightBar label="Answer dimensions" parts={DIMENSION_PARTS} values={dimW} onChange={setDimW} />
       </Section>
 
+      {saveError && <p role="alert" className="m-0 text-sm text-improve-text">{saveError}</p>}
       <div className="flex justify-end">
         <Button variant="primary" disabled={saving} disabledReason={blockedReason} onClick={submit}>
-          {saving ? "Saving…" : "Save settings"}
+          {saving ? "Saving…" : saveError ? "Retry save settings" : "Save settings"}
         </Button>
       </div>
     </fieldset>

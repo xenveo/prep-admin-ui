@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
-import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { downloadTextFile } from "@/lib/csv";
 import { useAsync } from "@/lib/use-async";
@@ -13,8 +13,6 @@ import { useUrlState } from "@/lib/use-url-state";
 import { exportReportCsv, getReport } from "@/services/reports";
 import { listRoles } from "@/services/roles";
 import { ReportBody } from "./report-body";
-
-const DEFAULT_ROLE_TITLE = "Customer Support Associate";
 
 export function ReportsScreen() {
   const url = useUrlState();
@@ -26,22 +24,23 @@ export function ReportsScreen() {
   const requested = url.get("role");
   const roleId =
     (requested && list.find((r) => r.id === requested)?.id) ??
-    list.find((r) => r.title === DEFAULT_ROLE_TITLE)?.id ??
     list[0]?.id ??
     "";
   const from = url.get("from") ?? undefined;
   const to = url.get("to") ?? undefined;
+  const dateBasis = url.get("dateBasis") === "invited" ? "invited" : "completed";
+  const invalidRange = Boolean(from && to && from > to);
 
   const report = useAsync(
-    () => (roleId ? getReport({ roleId, from, to }) : Promise.resolve(undefined)),
-    [roleId, from, to],
+    () => (roleId && !invalidRange ? getReport({ roleId, from, to, dateBasis }) : Promise.resolve(undefined)),
+    [roleId, from, to, dateBasis, invalidRange],
   );
 
   async function onExport() {
     setExporting(true);
     setExportError(false);
     try {
-      const file = await exportReportCsv({ roleId, from, to });
+      const file = await exportReportCsv({ roleId, from, to, dateBasis });
       downloadTextFile(file.filename, file.csv);
     } catch {
       setExportError(true);
@@ -55,7 +54,7 @@ export function ReportsScreen() {
       title="Reports"
       description="How prepared candidates are, and where they get stuck."
       secondaryActions={
-        <Button iconLeft="download" onClick={onExport} disabledReason={!roleId ? "Pick a role to export." : exporting ? "Preparing the file." : undefined}>
+        <Button iconLeft="download" onClick={onExport} disabledReason={!roleId ? "Pick a role to export." : invalidRange ? "The start date must precede the end date." : exporting ? "Preparing the file." : undefined}>
           Export CSV
         </Button>
       }
@@ -102,12 +101,11 @@ export function ReportsScreen() {
             </Select>
           )}
         </Field>
-        <span className="inline-flex h-9 items-center gap-2 rounded-md border border-line bg-surface px-3 text-sm text-ink">
-          <Icon name="calendar" size={16} className="text-ink-muted" />
-          {report.data?.range.label ?? "Last 30 days"}
-        </span>
+        <Field label="From">{({id}) => <Input id={id} type="date" value={from ?? ""} onChange={(e)=>url.set({from:e.target.value || null})} />}</Field>
+        <Field label="To">{({id}) => <Input id={id} type="date" value={to ?? ""} onChange={(e)=>url.set({to:e.target.value || null})} />}</Field>
+        <Field label="Date basis">{({id}) => <Select id={id} value={dateBasis} onChange={(e)=>url.set({dateBasis:e.target.value})}><option value="completed">Session completion</option><option value="invited">Candidate invitation</option></Select>}</Field>
       </div>
-      <ReportBody report={report.data} loading={report.loading} error={report.error} onRetry={report.reload} />
+      {invalidRange ? <p role="alert" className="text-sm text-improve-text">The start date must precede the end date.</p> : !roleId && !roles.loading ? <EmptyState icon="chart" title="No roles yet" description="Create a role to view its reports." /> : <ReportBody report={report.data} loading={report.loading} error={report.error} onRetry={report.reload} />}
     </>
   );
 }

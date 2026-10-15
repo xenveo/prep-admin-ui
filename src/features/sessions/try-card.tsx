@@ -20,7 +20,7 @@ export function TryCard({ label, data }: { label: "First try" | "Second try"; da
         <span className="text-xl font-bold text-ink">{data.score}</span>
         <BandChip band={data.band} />
       </div>
-      <AudioPlayer label={label} durationSeconds={data.audioSeconds} />
+      <AudioPlayer label={label} durationSeconds={data.audioSeconds} src={data.audioUrl} />
       <div>
         <Label>Transcript</Label>
         <TranscriptHighlights transcript={data.transcript} highlights={data.highlights} />
@@ -65,7 +65,7 @@ export function TryCard({ label, data }: { label: "First try" | "Second try"; da
           </ul>
         </div>
       )}
-      <table className="w-full border-collapse text-[13px]">
+      {data.delivery ? <table className="w-full border-collapse text-[13px]">
         <caption className="pb-1 text-left text-xs font-semibold text-ink-muted">Delivery</caption>
         <tbody>
           <tr className="border-t border-line">
@@ -83,7 +83,7 @@ export function TryCard({ label, data }: { label: "First try" | "Second try"; da
             <td className="text-right text-ink">{data.delivery.longestPauseSec} s</td>
           </tr>
         </tbody>
-      </table>
+      </table> : <p className="m-0 text-xs text-ink-muted">Delivery metrics are unavailable for this answer.</p>}
     </article>
   );
 }

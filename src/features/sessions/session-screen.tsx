@@ -163,12 +163,12 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                     {cur.text}
                   </h2>
                 </div>
-                {cur.tries ? (
+                {cur.tries && cur.tries.length > 0 ? (
                   <>
                     <HighlightLegend />
                     <div className="grid items-start gap-4 min-[1360px]:grid-cols-2">
-                      <TryCard label="First try" data={cur.tries[0]} />
-                      <TryCard label="Second try" data={cur.tries[1]} />
+                      {cur.tries.map((attempt) => <TryCard key={attempt.attempt} label={attempt.attempt === 1 ? "First try" : "Second try"} data={attempt} />)}
+                      {cur.tries.length === 1 && <p className="text-sm text-ink-muted">No recorded retry. The first answer is used for the session score.</p>}
                     </div>
                   </>
                 ) : (

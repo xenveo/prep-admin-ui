@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { BulletListEditor } from "@/components/ui/bullet-list-editor";
 import { DataTable, type Column, type SortState } from "@/components/ui/data-table";
@@ -18,7 +19,7 @@ import { SubScoreBars } from "@/components/charts/sub-score-bars";
 import { HighlightLegend, TranscriptHighlights, type Highlight } from "@/components/media/transcript-highlights";
 import { cn } from "@/lib/cn";
 import { emitRoleChanged } from "@/lib/role-events";
-import { evaluateSampleAnswer, getRole, listQuestions, saveQuestion } from "@/services/roles";
+import { deleteQuestion, draftQuestionsWithAI, evaluateSampleAnswer, getRole, listFlashCards, listQuestions, saveQuestion } from "@/services/roles";
 import {
   CARD_CATEGORY_LABEL,
   DEFAULT_DIMENSION_WEIGHTS,
@@ -29,6 +30,7 @@ import {
   type DimensionWeights,
   type ExpectedStructure,
   type Question,
+  type FlashCard,
   type Rubric,
   type TestEvaluation,
 } from "@/lib/types";
@@ -38,11 +40,12 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = { easy: "Easy", medium: "Me
 const DIFFICULTY_LEVEL: Record<Difficulty, number> = { easy: 1, medium: 2, hard: 3 };
 const NEW_ID = "__new__";
 
-type Form = { text: string; category: CardCategory; difficulty: Difficulty; rubric: Rubric };
+type Form = { cardId: string | null; text: string; category: CardCategory; difficulty: Difficulty; rubric: Rubric };
 type TestState = { answer: string; running: boolean; result?: TestEvaluation; error?: string };
 
 function emptyForm(): Form {
   return {
+    cardId: null,
     text: "",
     category: "behavioural",
     difficulty: "medium",
@@ -50,7 +53,7 @@ function emptyForm(): Form {
   };
 }
 function formOf(q: Question): Form {
-  return { text: q.text, category: q.category, difficulty: q.difficulty, rubric: q.rubric };
+  return { cardId: q.cardId, text: q.text, category: q.category, difficulty: q.difficulty, rubric: q.rubric };
 }
 
 function DifficultyGlyph({ difficulty }: { difficulty: Difficulty }) {
@@ -111,27 +114,16 @@ const COLUMNS: Column<Question>[] = [
   },
 ];
 
-/** Builds evidence highlights from a sample answer and the evaluation's matched/issue lines (illustrative until the real evaluator returns spans). */
+/** Only highlight evaluator evidence that occurs verbatim in the answer. */
 function highlightsFor(ev: TestEvaluation): Highlight[] {
-  const keys = ev.matched.flatMap((m) => m.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 4));
-  const sentences = ev.answer.match(/[^.!?]+[.!?]*/g)?.map((s) => s.trim()).filter(Boolean) ?? [];
-  const out: Highlight[] = [];
-  let issueUsed = ev.issues.length === 0;
-  sentences.forEach((s, i) => {
-    const lower = s.toLowerCase();
-    const hit = keys.some((k) => lower.includes(k.slice(0, 5)));
-    if (hit) out.push({ text: s, kind: "match", note: "Matches a rubric key point" });
-    else if (!issueUsed && i === sentences.length - 1) {
-      out.push({ text: s, kind: "issue", note: ev.issues[0] });
-      issueUsed = true;
-    }
-  });
-  return out;
+  return ev.matched.filter((text) => ev.answer.includes(text)).map((text) => ({text, kind: "match", note: "Matches a rubric key point"}));
 }
 
 export function QuestionsScreen({ roleId }: { roleId: string }) {
   const toast = useToast();
   const [questions, setQuestions] = useState<Question[] | null>(null);
+  const [cards, setCards] = useState<FlashCard[]>([]);
+  const draftAbort = useRef<AbortController | null>(null);
   const [perSession, setPerSession] = useState<number | null>(null);
   const [weights, setWeights] = useState<DimensionWeights>(DEFAULT_DIMENSION_WEIGHTS);
   const [error, setError] = useState(false);
@@ -139,14 +131,16 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, Form>>({});
   const [tests, setTests] = useState<Record<string, TestState>>({});
+  const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [drafting, setDrafting] = useState(false);
   const focusRow = useRef<((id: string) => void) | null>(null);
   const lastRowRef = useRef<string | null>(null);
 
   const fetchAll = useCallback(() => {
-    Promise.all([listQuestions(roleId), getRole(roleId)]).then(
-      ([qs, role]) => {
+    Promise.all([listQuestions(roleId), getRole(roleId), listFlashCards(roleId)]).then(
+      ([qs, role, cards]) => {
+        setCards(cards);
         setQuestions(qs);
         setPerSession(role.settings.questionsPerSession);
         setWeights(role.settings.dimensionWeights);
@@ -163,6 +157,7 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
 
   useEffect(() => {
     fetchAll();
+    return () => draftAbort.current?.abort();
   }, [fetchAll]);
 
   const rows = useMemo(() => {
@@ -248,11 +243,23 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
         lastRowRef.current = saved.id;
         setOpenId(saved.id);
       }
-    } catch {
-      toast.show({ title: "Couldn't save the question", detail: "Try again." });
+    } catch (error) {
+      toast.show({ title: "Couldn't save the question", detail: error instanceof Error ? error.message : "Try again." });
     } finally {
       setSaving(false);
     }
+  }
+
+  async function removeQuestion() {
+    if (!openQuestion || saving) return;
+    setSaving(true);
+    try {
+      await deleteQuestion(openQuestion.id);
+      setQuestions((qs)=>qs?.filter((q)=>q.id !== openQuestion.id) ?? []);
+      setDeleting(false); close(); emitRoleChanged(roleId);
+      toast.show({title:"Question removed",detail:"Past sessions and scores are kept."});
+    } catch(error) {toast.show({title:"Couldn't remove question",detail:error instanceof Error ? error.message : "Try again."});}
+    finally {setSaving(false);}
   }
 
   async function runTest() {
@@ -271,40 +278,19 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
     }
   }
 
-  // STUB: there is no question-drafting service yet, so create generic AI drafts via saveQuestion.
   async function draftMore() {
     setDrafting(true);
+    draftAbort.current?.abort();
+    const controller = new AbortController();
+    draftAbort.current = controller;
     try {
-      const mk = (text: string, category: CardCategory, difficulty: Difficulty): Parameters<typeof saveQuestion>[1] => ({
-        roleId,
-        text,
-        category,
-        difficulty,
-        status: "ai_draft",
-        rubric: {
-          keyPoints: [
-            { point: "Describes the situation clearly", example: "" },
-            { point: "Explains what they did and why", example: "" },
-          ],
-          redFlags: ["No clear outcome"],
-          expectedStructure: "star",
-        },
-      });
-      const created = await Promise.all([
-        saveQuestion(roleId, mk("Tell me about a time you had to learn something quickly.", "behavioural", "medium")),
-        saveQuestion(roleId, mk("How do you decide what to do first when everything feels urgent?", "situational", "medium")),
-      ]);
+      const created = await draftQuestionsWithAI(roleId, controller.signal);
       setQuestions((qs) => [...(qs ?? []), ...created]);
       emitRoleChanged(roleId);
-      toast.show({
-        title: `${created.length} AI drafts added`,
-        detail: "Review and approve them before candidates see them.",
-      });
-    } catch {
-      toast.show({ title: "Couldn't draft questions", detail: "Try again in a moment." });
-    } finally {
-      setDrafting(false);
-    }
+      toast.show({title: `${created.length} AI drafts added`, detail: "Review and approve them before candidates see them."});
+    } catch (error) {
+      if (!controller.signal.aborted) toast.show({title: "Couldn't draft questions", detail: error instanceof Error ? error.message : "Try again."});
+    } finally { if (!controller.signal.aborted) setDrafting(false); }
   }
 
   if (error) {
@@ -377,6 +363,7 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
                 Approve question
               </Button>
             ) : null}
+            {openQuestion && <Button disabled={saving} onClick={()=>setDeleting(true)}>{openQuestion.status === "ai_draft" ? "Discard draft" : "Remove question"}</Button>}
             <Button onClick={close}>Close</Button>
             <Button variant="primary" onClick={() => save()} disabled={saving}>
               {saving ? "Saving…" : "Save changes"}
@@ -395,6 +382,14 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
               <label className="flex flex-col gap-1">
                 <span className="font-semibold text-ink">Question</span>
                 <Textarea rows={2} value={form.text} onChange={(e) => setForm({ text: e.target.value })} />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="font-semibold text-ink">Linked flash card</span>
+                <Select value={form.cardId ?? ""} onChange={(e) => setForm({cardId: e.target.value || null})}>
+                  <option value="">No linked card</option>
+                  {cards.map((card) => <option key={card.id} value={card.id}>{card.position}. {card.question}{card.status === "ai_draft" ? " (AI draft)" : ""}</option>)}
+                </Select>
+                <span className="text-xs text-ink-muted">Role approval requires questions linked to approved flash cards.</span>
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="flex flex-col gap-1">
@@ -524,6 +519,7 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
           </div>
         ) : null}
       </SidePanel>
+      <ConfirmDialog open={deleting} title={openQuestion?.status === "ai_draft" ? "Discard this question draft?" : "Remove this question?"} body="Candidates will no longer be asked this question in new sessions. Past sessions and scores are kept." tone="destructive" confirmLabel={saving ? "Removing…" : "Remove question"} onCancel={()=>setDeleting(false)} onConfirm={removeQuestion} />
     </>
   );
 }

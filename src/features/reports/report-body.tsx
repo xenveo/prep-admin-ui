@@ -81,8 +81,6 @@ export function ReportBody({
   const withSessions = report.bandsLatest;
   const totalLatest = BANDS.reduce((n, b) => n + withSessions[b.id], 0);
 
-  // Illustrative figures (baseline bands, dimension averages, needs attention) come from the service;
-  // they are flagged in report.illustrative and intentionally not marked in the UI.
   const bandRows = BANDS.map((b) => [
     BAND_LABEL[b.id],
     report.bandsBaseline[b.id],
@@ -92,6 +90,7 @@ export function ReportBody({
 
   return (
     <div className={`flex flex-col gap-6 ${loading ? "opacity-70" : ""}`} aria-busy={loading || undefined}>
+      {error && <p role="alert" className="text-sm text-improve-text">The report could not be refreshed. <Button variant="text" onClick={onRetry}>Try again</Button></p>}
       <StatStrip
         stats={[
           { label: "Invited", value: s.invited },

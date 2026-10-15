@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { FlashCardPreview } from "@/components/media/flash-card-preview";
 import { CARD_CATEGORY_LABEL } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
@@ -26,10 +27,18 @@ export function PreviewScreen() {
       <div className="flex flex-col gap-1">
         <h2 className="m-0 text-base font-semibold leading-6 text-ink">Preview as candidate</h2>
         <p className="m-0 text-sm text-ink-muted">
-          This is the approved content candidates will see. AI drafts are never shown here. Later this tab will reuse the
-          candidate app screens.
+          This is the approved content candidates will see. Start a test interview to try these questions and receive AI feedback.
         </p>
       </div>
+
+      <div className="flex flex-col items-start gap-2">
+        <ButtonLink href={`/roles/${encodeURIComponent(role.id)}/test`} variant="primary" disabled={role.status === "archived"}>Start test interview</ButtonLink>
+        <p className="text-sm text-ink-muted">Test interviews are excluded from candidate statistics.</p>
+      </div>
+      {(cards.error || questions.error) && <div role="alert" className="flex flex-col items-start gap-2 text-sm text-error">
+        <p>{cards.error?.message ?? questions.error?.message}</p>
+        <Button onClick={() => { cards.reload(); questions.reload(); }}>Reload content</Button>
+      </div>}
 
       <section aria-labelledby="pv-cards" className="flex flex-col gap-3">
         <h3 id="pv-cards" className="m-0 text-sm font-semibold text-ink">
@@ -37,7 +46,7 @@ export function PreviewScreen() {
         </h3>
         {loading ? (
           <p className="m-0 text-sm text-ink-muted">Loading…</p>
-        ) : approvedCards.length === 0 ? (
+        ) : cards.error && !cards.data ? null : approvedCards.length === 0 ? (
           <p className="m-0 text-sm text-ink-muted">No approved flash cards yet. Approve a card on the Flash cards tab to see it here.</p>
         ) : (
           <ul className="m-0 flex list-none flex-col gap-4 p-0">
@@ -67,7 +76,7 @@ export function PreviewScreen() {
         <h3 id="pv-questions" className="m-0 text-sm font-semibold text-ink">
           Questions ({approvedQuestions.length})
         </h3>
-        {approvedQuestions.length === 0 ? (
+        {questions.error && !questions.data ? null : approvedQuestions.length === 0 ? (
           <p className="m-0 text-sm text-ink-muted">
             {questions.loading && !questions.data ? "Loading…" : "No approved questions yet."}
           </p>

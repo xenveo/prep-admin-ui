@@ -14,7 +14,7 @@ import {
   type FlagIssue,
 } from "@/lib/types";
 import { cn } from "@/lib/cn";
-import { submitFlag } from "@/services/sessions";
+import { resolveFlag, submitFlag } from "@/services/sessions";
 
 const DIMENSIONS: FlagDimension[] = ["structure", "content", "delivery", "relevance", "overall", "feedback"];
 const DIMENSION_OPTION: Record<FlagDimension, string> = {
@@ -45,6 +45,16 @@ export function FlagRail({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [resolution, setResolution] = useState<Record<string,string>>({});
+  const [resolving,setResolving] = useState<string | null>(null);
+  const [resolveError,setResolveError] = useState("");
+  async function resolve(id:string) {
+    if (!resolution[id]?.trim() || resolving) return;
+    setResolving(id); setResolveError("");
+    try { await resolveFlag(id,resolution[id]); onSubmitted(); }
+    catch(error) {setResolveError(error instanceof Error ? error.message : "The flag could not be resolved.");}
+    finally {setResolving(null);}
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -121,6 +131,7 @@ export function FlagRail({
       </form>
 
       <section aria-labelledby="flag-history" className="flex flex-col gap-2">
+        {resolveError && <p role="alert" className="text-sm text-improve-text">{resolveError}</p>}
         <h2 id="flag-history" className="m-0 text-base font-semibold text-ink">
           Flag history
         </h2>
@@ -147,6 +158,7 @@ export function FlagRail({
                 </div>
                 {f.issue && <span className="text-xs text-ink-muted">{FLAG_ISSUE_LABEL[f.issue]}</span>}
                 {f.note && <span className="text-[13px] leading-5 text-ink">{f.note}</span>}
+                {f.status === "open" && <div className="flex flex-col gap-2"><label className="text-xs text-ink-muted">Resolution<Textarea rows={2} value={resolution[f.id] ?? ""} onChange={(e)=>setResolution((r)=>({...r,[f.id]:e.target.value}))} /></label><Button size="sm" disabled={Boolean(resolving) || !resolution[f.id]?.trim()} onClick={()=>resolve(f.id)}>{resolving === f.id ? "Resolving…" : "Resolve flag"}</Button></div>}
                 {f.resolution && <span className="text-xs text-ink-muted">{f.resolution}</span>}
                 <span className="text-xs text-ink-muted">
                   {f.createdByName} · {formatDate(f.createdAt)}

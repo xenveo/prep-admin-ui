@@ -34,6 +34,7 @@ export function CandidatePanel({
   version,
   onClose,
   onResend,
+  onReactivate,
   onAssign,
   onConfirm,
 }: {
@@ -42,6 +43,7 @@ export function CandidatePanel({
   version: number;
   onClose: () => void;
   onResend: (id: string) => void;
+  onReactivate: (id: string) => void;
   onAssign: (d: CandidateDetail) => void;
   onConfirm: (c: ConfirmState) => void;
 }) {
@@ -54,6 +56,7 @@ export function CandidatePanel({
   const menuItems = d
     ? candidateMenuItems(d, {
         resend: () => onResend(d.id),
+        reactivate: () => onReactivate(d.id),
         deactivate: () =>
           onConfirm({ kind: "deactivate", id: d.id, name: d.name, sessions: d.sessions.length }),
         revoke: () => onConfirm({ kind: "revoke", id: d.id, name: d.name }),
@@ -92,6 +95,7 @@ export function CandidatePanel({
       {!d && !error && <PanelSkeleton />}
       {d && (
         <div className="flex flex-col gap-6">
+          {error && <p role="alert" className="text-sm text-improve-text">Candidate information could not be refreshed. <Button onClick={reload}>Retry</Button></p>}
           {pending && (
             <div className="flex items-center gap-3 rounded-md bg-improve-soft px-3 py-2.5 text-improve-text">
               <Icon name="mail" size={18} />

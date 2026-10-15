@@ -72,7 +72,7 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
   const r = role.data;
   const base = `/roles/${encodeURIComponent(roleId)}`;
   const segment = pathname.split("/").filter(Boolean)[2] ?? "details";
-  const activeId = ["details", "cards", "questions", "settings", "preview"].includes(segment) ? segment : "details";
+  const activeId = segment === "test" ? "preview" : ["details", "cards", "questions", "settings", "preview"].includes(segment) ? segment : "details";
   const tabs: TabItem[] = [
     { id: "details", label: "Details", href: `${base}/details` },
     {
@@ -91,14 +91,15 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
   const toNotify = req.data?.candidatesToNotify ?? r.candidatesAssigned;
 
   async function confirmApprove() {
+    if (busy) return;
     setBusy(true);
     try {
-      await approveRole(roleId);
+      const approved = await approveRole(roleId);
       setApproveOpen(false);
       emitRoleChanged(roleId);
       toast.show({
         title: `${r.title} is approved`,
-        detail: toNotify > 0 ? `${toNotify} ${pluralize(toNotify, "candidate")} notified by email.` : undefined,
+        detail: approved.notified > 0 ? `${approved.notified} ${pluralize(approved.notified, "candidate")} notified by email.` : undefined,
       });
     } catch (e) {
       setApproveOpen(false);
@@ -109,6 +110,7 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
   }
 
   async function confirmArchive() {
+    if (busy) return;
     setBusy(true);
     try {
       await archiveRole(roleId);
@@ -151,7 +153,8 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
             <Button
               ref={approveRef}
               variant="primary"
-              disabledReason={unmet}
+              disabled={busy}
+              disabledReason={req.loading ? "Checking approval requirements…" : req.error ? "Approval requirements could not be loaded." : unmet}
               onClick={() => setApproveOpen(true)}
             >
               Approve role

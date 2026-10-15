@@ -133,7 +133,7 @@ export function candidateColumns(): Column<CandidateRow>[] {
 /** Menu shared by the row ⋯ menu and the panel header menu. */
 export function candidateMenuItems(
   r: { status: CandidateStatus },
-  on: { resend: () => void; assign?: () => void; deactivate: () => void; revoke: () => void },
+  on: { resend: () => void; assign?: () => void; reactivate?: () => void; deactivate: () => void; revoke: () => void },
 ): MenuItem[] {
   const items: MenuItem[] = [
     {
@@ -145,6 +145,7 @@ export function candidateMenuItems(
     },
   ];
   if (on.assign) items.push({ id: "assign", label: "Assign roles", onSelect: on.assign });
+  if (r.status === "deactivated" && on.reactivate) items.push({id:"reactivate",label:"Reactivate",onSelect:on.reactivate});
   if (r.status === "active") {
     items.push({ id: "deactivate", label: "Deactivate", onSelect: on.deactivate, destructive: true, dividerBefore: true });
   } else if (r.status === "invite_pending") {

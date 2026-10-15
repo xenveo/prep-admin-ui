@@ -119,6 +119,7 @@ function seedTry(t: FxTry): Try {
     band: toBand(t.band),
     audioSeconds: m * 60 + s,
     audioLabel: t.audio,
+    audioUrl: null,
     subScores: t.subScores,
     transcript: t.transcript,
     highlights: t.highlights,
@@ -138,6 +139,7 @@ function seedQuestion(roleId: string, q: FxQuestion): Question {
   return {
     id: q.id,
     roleId,
+    cardId: null,
     text: q.text,
     category: q.category,
     difficulty: q.difficulty,

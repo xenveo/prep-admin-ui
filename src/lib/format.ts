@@ -1,37 +1,33 @@
-/**
- * Date, number and name formatting. Output is deterministic: timestamps are read as
- * wall-clock values exactly as written (any UTC offset is ignored) and "today" is fixed
- * to 2026-10-15 so server and client render the same strings.
+/** Date-only values retain their calendar date. Timestamps are instants displayed in Asia/Kolkata.
+ * Relative labels use the actual clock; callers may pass `now` for a stable render snapshot.
  */
-import { TODAY } from "@/lib/types";
-
+export const DISPLAY_TIME_ZONE = "Asia/Kolkata";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MINUS = "−";
-
 type Wall = { y: number; m: number; d: number; hh: number; mm: number; hasTime: boolean };
-
 function parseWall(iso: string): Wall | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(iso);
-  if (!match) return null;
-  return {
-    y: Number(match[1]),
-    m: Number(match[2]),
-    d: Number(match[3]),
-    hh: match[4] ? Number(match[4]) : 0,
-    mm: match[5] ? Number(match[5]) : 0,
-    hasTime: match[4] !== undefined,
-  };
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (dateOnly) {
+    const [y, m, d] = dateOnly.slice(1).map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) return null;
+    return { y, m, d, hh: 0, mm: 0, hasTime: false };
+  }
+  // Backend ISO timestamps include an offset. Treat any legacy offset-free value as UTC.
+  const input = /[zZ]$|[+-]\d\d:\d\d$/.test(iso) ? iso : `${iso.replace(" ", "T")}Z`;
+  const date = new Date(input);
+  if (!Number.isFinite(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: DISPLAY_TIME_ZONE, year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(date);
+  const value = (type: string) => Number(parts.find(part => part.type === type)?.value);
+  return { y: value("year"), m: value("month"), d: value("day"), hh: value("hour"), mm: value("minute"), hasTime: true };
 }
-
-function dayNumber(w: Wall): number {
-  return Math.floor(Date.UTC(w.y, w.m - 1, w.d) / 86_400_000);
-}
+function dayNumber(w: Wall): number { return Math.floor(Date.UTC(w.y, w.m - 1, w.d) / 86_400_000); }
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const time = (w: Wall) => `${pad(w.hh)}:${pad(w.mm)}`;
 
 /** Whole days between `iso` and `now` (positive = in the past). null if unparseable. */
-export function daysSince(iso: string, now: string = TODAY): number | null {
+export function daysSince(iso: string, now: string = new Date().toISOString()): number | null {
   const a = parseWall(iso);
   const b = parseWall(now);
   if (!a || !b) return null;
@@ -76,7 +72,7 @@ export function formatDateRange(from: string, to: string): string {
 }
 
 /** "Today 10:42", "Yesterday", "2 days ago"; older than two weeks falls back to "29 Sep". */
-export function relativeTime(iso: string, now: string = TODAY): string {
+export function relativeTime(iso: string, now: string = new Date().toISOString()): string {
   if (iso === "now") return "Now";
   const w = parseWall(iso);
   const diff = daysSince(iso, now);
@@ -89,7 +85,7 @@ export function relativeTime(iso: string, now: string = TODAY): string {
 }
 
 /** Lower-case phrase for sentences: "today", "yesterday", "2 days ago". */
-export function relativeDay(iso: string, now: string = TODAY): string {
+export function relativeDay(iso: string, now: string = new Date().toISOString()): string {
   const diff = daysSince(iso, now);
   if (diff === null) return iso;
   if (diff <= 0) return "today";
@@ -99,12 +95,12 @@ export function relativeDay(iso: string, now: string = TODAY): string {
 }
 
 /** "Invite sent 2 days ago" */
-export function inviteSentLabel(invitedAt: string, now: string = TODAY): string {
+export function inviteSentLabel(invitedAt: string, now: string = new Date().toISOString()): string {
   return `Invite sent ${relativeDay(invitedAt, now)}`;
 }
 
 /** "Invited 2 days ago" */
-export function invitedLabel(invitedAt: string, now: string = TODAY): string {
+export function invitedLabel(invitedAt: string, now: string = new Date().toISOString()): string {
   return `Invited ${relativeDay(invitedAt, now)}`;
 }
 

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { signOutAdmin, useAdminSession } from "@/components/layout/admin-session";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Tooltip } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -27,6 +29,17 @@ export function Sidebar({
   collapsed: boolean;
   onToggle: () => void;
 }) {
+  const admin = useAdminSession();
+  const name = admin?.name || admin?.email || "Administrator";
+  const initials = name.split(/[ @._-]+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase();
+  const access = admin?.access === "super_admin" ? "Super admin" : "Admin";
+  const [signingOut, setSigningOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  async function logOut() {
+    setSigningOut(true);
+    try { await signOutAdmin(); }
+    catch (error) { setLogoutError(error instanceof Error ? error.message : "Could not log out."); setSigningOut(false); }
+  }
   const justify = collapsed ? "justify-center" : "justify-start";
 
   return (
@@ -114,22 +127,24 @@ export function Sidebar({
 
         <div className={cn("flex items-center gap-2.5 py-2", collapsed ? "justify-center" : "px-2.5")}>
           <span
-            title="Arjun Mehta"
+            title={name}
             aria-hidden={collapsed ? undefined : true}
-            aria-label={collapsed ? "Arjun Mehta, Recruitment trainer" : undefined}
+            aria-label={collapsed ? `${name}, ${access}` : undefined}
             role={collapsed ? "img" : undefined}
             className="inline-flex size-8 flex-none items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary-text"
           >
-            AM
+            {initials}
           </span>
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-semibold leading-5">Arjun Mehta</span>
-              <span className="truncate text-xs leading-4 text-ink-muted">Recruitment trainer</span>
+              <span className="truncate text-sm font-semibold leading-5">{name}</span>
+              <span className="truncate text-xs leading-4 text-ink-muted">{access}</span>
             </div>
           )}
         </div>
 
+        {admin && <button type="button" disabled={signingOut} onClick={() => void logOut()} aria-label="Log out" className={cn(itemBase, justify, "text-ink-muted hover:bg-neutral-soft disabled:opacity-50")}>{collapsed ? "↪" : signingOut ? "Logging out…" : "Log out"}</button>}
+        {logoutError && <p role="alert" className="text-xs text-error">{logoutError}</p>}
         {collapsed && (
           <Tooltip content="Expand sidebar" side="right">
             <button

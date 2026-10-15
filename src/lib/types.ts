@@ -231,6 +231,7 @@ export type Question = {
   difficulty: Difficulty;
   status: "ai_draft" | "approved";
   rubric: Rubric;
+  cardId: string | null;
   timesAsked: number;
   avgFirstTry: number | null;
   avgSecondTry: number | null;
@@ -438,7 +439,8 @@ export type Try = {
   highlights: Highlight[];
   worked: string;
   improve: string;
-  delivery: DeliveryMetrics;
+  delivery: DeliveryMetrics | null;
+  audioUrl: string | null;
   /** Second try only. */
   appliedFromFeedback?: { text: string; state: AppliedState; detail?: string }[];
 };
@@ -447,11 +449,11 @@ export type SessionQuestion = {
   /** 1-based position */
   n: number;
   text: string;
-  category?: CardCategory;
+  category?: string;
   firstScore: number;
   secondScore: number;
   /** Present only where the fixtures have full detail (Q2 of Priya's session 3). */
-  tries?: [Try, Try];
+  tries?: Try[];
 };
 
 export type FlagDimension = DimensionId | "overall" | "feedback";
@@ -525,7 +527,7 @@ export type SessionReview = {
 
 export type BandCounts = Record<Band, number>;
 
-export type ReportQuery = { roleId: string; from?: string; to?: string };
+export type ReportQuery = { roleId: string; from?: string; to?: string; dateBasis?: "completed" | "invited" };
 
 export type HardestQuestion = {
   questionId?: string;

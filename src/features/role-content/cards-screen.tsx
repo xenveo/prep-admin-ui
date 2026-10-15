@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { BulletListEditor } from "@/components/ui/bullet-list-editor";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { ReorderableList } from "@/components/ui/reorderable-list";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -31,11 +32,14 @@ export function CardsScreen({ roleId }: { roleId: string }) {
   const [cards, setCards] = useState<FlashCard[] | null>(null);
   const [error, setError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | undefined>();
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [drafting, setDrafting] = useState(false);
+  const draftAbort = useRef<AbortController | null>(null);
+  const [newQuestion, setNewQuestion] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const saves = useRef(new Map<string, Promise<void>>());
   const cardsRef = useRef<FlashCard[]>([]);
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const questionRef = useRef<HTMLTextAreaElement>(null);
@@ -65,28 +69,39 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   useEffect(() => {
     fetchCards();
+    return () => draftAbort.current?.abort();
   }, [fetchCards]);
 
   const persist = useCallback(
-    (id: string) => {
+    async function persistCard(id: string): Promise<void> {
       timers.current.delete(id);
       const c = cardsRef.current.find((x) => x.id === id);
       if (!c) return;
       setSaveState("saving");
-      saveFlashCard(roleId, {
-        roleId,
-        id: c.id,
-        category: c.category,
-        question: c.question,
-        strongAnswerPoints: c.strongAnswerPoints,
-        tip: c.tip,
-        commonMistakes: c.commonMistakes,
-      }).then(
-        () => setSaveState("saved"),
-        () => setSaveState("idle"),
-      );
+      try {
+        const previous = saves.current.get(id) ?? Promise.resolve();
+        const operation = previous.catch(() => {}).then(async () => {
+          await saveFlashCard(roleId, {
+            roleId, id: c.id, category: c.category, question: c.question,
+            strongAnswerPoints: c.strongAnswerPoints.filter((s) => s.trim()), tip: c.tip,
+            commonMistakes: c.commonMistakes.filter((s) => s.trim()),
+          });
+        });
+        saves.current.set(id, operation);
+        await operation;
+        setSaveState("saved");
+        emitRoleChanged(roleId);
+      } catch (error) {
+        setSaveState("error");
+        toast.show({
+          title: "Card changes weren't saved",
+          detail: error instanceof Error ? error.message : "Try again.",
+          action: { label: "Retry save", onClick: () => { void persistCard(id).catch(() => {}); } },
+        });
+        throw error;
+      }
     },
-    [roleId],
+    [roleId, toast],
   );
 
   useEffect(() => {
@@ -94,21 +109,13 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     return () => {
       for (const [id, t] of map) {
         clearTimeout(t);
-        const c = cardsRef.current.find((x) => x.id === id);
-        if (c)
-          void saveFlashCard(roleId, {
-            roleId,
-            id: c.id,
-            category: c.category,
-            question: c.question,
-            strongAnswerPoints: c.strongAnswerPoints,
-            tip: c.tip,
-            commonMistakes: c.commonMistakes,
-          });
+        // Keep the final edit behind earlier saves for this card. persist captures
+        // its latest fields now and reports a failure through the shared toast.
+        void persist(id).catch(() => {});
       }
       map.clear();
     };
-  }, [roleId]);
+  }, [persist]);
 
   const selected = cards?.find((c) => c.id === selectedId) ?? cards?.[0];
 
@@ -126,29 +133,32 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     setSaveState("saving");
     const prev = timers.current.get(id);
     if (prev) clearTimeout(prev);
-    timers.current.set(id, setTimeout(() => persist(id), 600));
+    timers.current.set(id, setTimeout(() => { void persist(id).catch(() => {}); }, 600));
   }
 
-  function flush(id: string) {
+  async function flush(id: string) {
     const t = timers.current.get(id);
     if (t) {
       clearTimeout(t);
-      persist(id);
+      await persist(id);
     }
+    await saves.current.get(id);
   }
 
   async function addCard() {
+    if (!newQuestion?.trim()) return;
     setAdding(true);
     try {
       const card = await saveFlashCard(roleId, {
         roleId,
         category: "behavioural",
-        question: "",
-        strongAnswerPoints: [""],
+        question: newQuestion.trim(),
+        strongAnswerPoints: [],
         tip: "",
-        commonMistakes: [""],
+        commonMistakes: [],
         status: "approved",
       });
+      setNewQuestion(null);
       commit([...cardsRef.current, card]);
       setSelectedId(card.id);
       focusQuestion.current = true;
@@ -162,8 +172,11 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   async function draftMore() {
     setDrafting(true);
+    draftAbort.current?.abort();
+    const controller = new AbortController();
+    draftAbort.current = controller;
     try {
-      const created = await draftFlashCardsWithAI(roleId);
+      const created = await draftFlashCardsWithAI(roleId, controller.signal);
       commit([...cardsRef.current, ...created]);
       if (created[0]) setSelectedId(created[0].id);
       emitRoleChanged(roleId);
@@ -171,18 +184,18 @@ export function CardsScreen({ roleId }: { roleId: string }) {
         title: `${created.length} AI drafts added`,
         detail: "Review and approve them before candidates see them.",
       });
-    } catch {
-      toast.show({ title: "Couldn't draft cards", detail: "Try again in a moment." });
+    } catch (error) {
+      if (!controller.signal.aborted) toast.show({ title: "Couldn't draft cards", detail: error instanceof Error ? error.message : "Try again." });
     } finally {
-      setDrafting(false);
+      if (!controller.signal.aborted) setDrafting(false);
     }
   }
 
   async function approve() {
     if (!selected) return;
-    flush(selected.id);
     setBusy(true);
     try {
+      await flush(selected.id);
       const updated = await approveFlashCard(selected.id);
       commit(cardsRef.current.map((c) => (c.id === updated.id ? { ...c, status: updated.status } : c)));
       emitRoleChanged(roleId);
@@ -217,13 +230,20 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     }
   }
 
-  function reorder(next: FlashCard[]) {
-    commit(next.map((c, i) => ({ ...c, position: i + 1 })));
-    void reorderFlashCards(
-      roleId,
-      next.map((c) => c.id),
-    );
+  async function reorder(next: FlashCard[]) {
+    setBusy(true);
+    try {
+      const saved = await reorderFlashCards(roleId, next.map((c) => c.id));
+      commit(saved);
+    } catch (error) {
+      toast.show({title: "Couldn't reorder cards",detail:error instanceof Error ? error.message : "Try again."});
+    } finally { setBusy(false); }
   }
+
+  const createDialog = <Modal open={newQuestion !== null} title="New flash card" onClose={() => { if (!adding) setNewQuestion(null); }} footer={<><Button disabled={adding} onClick={()=>setNewQuestion(null)}>Cancel</Button><Button variant="primary" disabled={adding || !newQuestion?.trim()} onClick={addCard}>{adding ? "Creating…" : "Create card"}</Button></>}>
+    <label className="flex flex-col gap-1"><span className="text-sm font-semibold">Question</span><Textarea rows={3} value={newQuestion ?? ""} onChange={(e)=>setNewQuestion(e.target.value)} /></label>
+    <p className="text-xs text-ink-muted">Add answer points and a tip after creating the card.</p>
+  </Modal>;
 
   if (error) {
     return (
@@ -240,13 +260,14 @@ export function CardsScreen({ roleId }: { roleId: string }) {
   if (cards.length === 0) {
     return (
       <div className="rounded-lg border border-line bg-surface">
+        {createDialog}
         <EmptyState
           icon="file"
           title="No flash cards yet"
           description="Flash cards are what candidates study before a mock interview. Add your own or let AI draft a first set from the role description."
           action={
             <div className="flex gap-2">
-              <Button onClick={addCard} disabled={adding}>+ Add card</Button>
+              <Button onClick={()=>setNewQuestion("")} disabled={adding}>+ Add card</Button>
               <Button variant="secondary-teal" iconLeft="sparkle" onClick={draftMore} disabled={drafting}>
                 {drafting ? "Drafting…" : "Draft with AI"}
               </Button>
@@ -263,6 +284,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   return (
     <div className="flex flex-wrap items-start gap-4">
+      {createDialog}
       <section aria-labelledby="cards-h" className="flex max-w-full flex-[0_0_320px] flex-col rounded-lg border border-line bg-surface">
         <div className="flex items-center justify-between gap-2 border-b border-line py-3 pr-3 pl-4">
           <h2 id="cards-h" className="m-0 text-sm leading-5 font-semibold text-ink">
@@ -309,7 +331,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
           />
         </div>
         <div className="flex gap-2 border-t border-line p-3">
-          <Button size="sm" onClick={addCard} disabled={adding}>+ Add card</Button>
+          <Button size="sm" onClick={()=>setNewQuestion("")} disabled={adding}>+ Add card</Button>
           <Button size="sm" variant="secondary-teal" onClick={draftMore} disabled={drafting} aria-busy={drafting}>
             {drafting ? "Drafting…" : "Draft more with AI"}
           </Button>
@@ -322,7 +344,8 @@ export function CardsScreen({ roleId }: { roleId: string }) {
             <h2 id="ed-h" className="m-0 text-sm leading-5 font-semibold text-ink">Card {index + 1}</h2>
             {isDraft ? <StatusChip status="ai-draft" /> : null}
             <span role="status" aria-live="polite" className="ml-auto text-xs text-ink-muted">
-              {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
+              {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Unsaved changes" : ""}
+              {saveState === "error" && <Button size="sm" onClick={() => { void persist(selected.id).catch(() => {}); }}>Retry save</Button>}
             </span>
           </div>
           <div className="flex flex-col gap-4 p-4">
@@ -337,7 +360,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
                 rows={2}
                 value={selected.question}
                 onChange={(e) => edit({ question: e.target.value })}
-                onBlur={() => flush(selected.id)}
+                onBlur={() => { void flush(selected.id).catch(() => {}); }}
               />
             </label>
             <div className="flex flex-col gap-1.5">
@@ -368,7 +391,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
                 maxLength={TIP_MAX_LENGTH}
                 aria-describedby="card-tip-count"
                 onChange={(e) => edit({ tip: e.target.value })}
-                onBlur={() => flush(selected.id)}
+                onBlur={() => { void flush(selected.id).catch(() => {}); }}
               />
               <span id="card-tip-count" className="self-end text-xs text-ink-muted">
                 {selected.tip.length} / {TIP_MAX_LENGTH}
