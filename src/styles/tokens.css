@@ -233,6 +233,8 @@
 }
 
 /* Base */
-html { background: var(--bg); color: var(--ink); font: var(--text-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+/* Keep the root at 16px so Tailwind's rem scale (text-xs = 12px, p-4 = 16px) matches the design's px values;
+   body text is set to 14px in globals.css. */
+html { background: var(--bg); color: var(--ink); font-size: 16px; font-family: var(--font-sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 ::placeholder { color: var(--ink-faint); }
