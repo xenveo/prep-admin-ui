@@ -11,6 +11,9 @@ export function PageHeader({
   statusChip,
   meta,
   leading,
+  titleSize = "lg",
+  actionsAlign,
+  className,
 }: {
   title: string;
   description?: string;
@@ -20,9 +23,15 @@ export function PageHeader({
   statusChip?: ReactNode;
   meta?: ReactNode;
   leading?: ReactNode;
+  /** lg = 28px page title; md = 26px (record pages such as the role editor). `leading` always implies 26px. */
+  titleSize?: "lg" | "md";
+  /** Vertical alignment of the actions against the title block. Defaults to centre with `leading`, else bottom. */
+  actionsAlign?: "start" | "center" | "end";
+  className?: string;
 }) {
+  const align = actionsAlign ?? (leading ? "center" : "end");
   return (
-    <header className="mb-6 flex flex-col gap-6">
+    <header className={cn("mb-6 flex flex-col gap-6", className)}>
       {breadcrumb && breadcrumb.length > 0 && (
         <nav aria-label="Breadcrumb">
           <ol className="m-0 flex list-none flex-wrap items-center gap-2 p-0 text-[13px] leading-5 text-ink-faint">
@@ -46,7 +55,12 @@ export function PageHeader({
           </ol>
         </nav>
       )}
-      <div className={cn("flex flex-wrap justify-between gap-4", leading ? "items-center" : "items-end")}>
+      <div
+        className={cn(
+          "flex flex-wrap justify-between gap-4",
+          align === "start" ? "items-start" : align === "center" ? "items-center" : "items-end",
+        )}
+      >
         <div className="flex min-w-0 flex-1 items-center gap-5">
           {leading}
           <div className="flex min-w-0 flex-col gap-1.5">
@@ -54,7 +68,7 @@ export function PageHeader({
               <h1
                 className={cn(
                   "m-0 font-semibold leading-tight tracking-[-0.02em] text-ink",
-                  leading ? "text-[26px]" : "text-[28px]",
+                  leading || titleSize === "md" ? "text-[26px]" : "text-[28px]",
                 )}
               >
                 {title}

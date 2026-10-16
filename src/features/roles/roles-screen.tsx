@@ -15,13 +15,20 @@ import { Select } from "@/components/ui/select";
 import { StatusChip } from "@/components/ui/status-chip";
 import { Tabs } from "@/components/ui/tabs";
 import { Icon } from "@/components/ui/icon";
-import { formatDate, relativeTime } from "@/lib/format";
-import { SENIORITY_LABEL, type JobRole, type Seniority } from "@/lib/types";
+import { formatDate, pluralize, relativeTime } from "@/lib/format";
+import { SENIORITY_LABEL, type JobRole, type RoleStatus, type Seniority } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
 import { createRole, listRoles } from "@/services/roles";
 
 const SENIORITIES = Object.keys(SENIORITY_LABEL) as Seniority[];
+
+/** Shown next to the dash when a role has no average score. */
+const EMPTY_SCORE_LABEL: Record<RoleStatus, string> = {
+  draft: "Not live yet",
+  approved: "No sessions yet",
+  archived: "Archived",
+};
 
 function editedLabel(iso: string): string {
   const rt = relativeTime(iso);
@@ -134,55 +141,94 @@ export function RolesScreen() {
     {
       id: "role",
       header: "Role",
-      width: "minmax(240px, 2fr)",
+      width: "minmax(220px, 2fr)",
+      skeletonWidth: 160,
       render: (r) => (
-        <span className="flex min-w-0 flex-col">
-          <span className="truncate font-semibold text-ink">{r.title}</span>
-          <span className="text-xs leading-4 text-ink-muted">{SENIORITY_LABEL[r.seniority]}</span>
+        <span className="flex min-w-0 flex-col gap-[3px]">
+          <span className="truncate text-[15px] leading-5 font-semibold text-ink">{r.title}</span>
+          <span className="truncate text-[13px] leading-[18px] text-ink-faint">{SENIORITY_LABEL[r.seniority]}</span>
         </span>
       ),
     },
-    { id: "status", header: "Status", width: 120, render: (r) => <StatusChip status={r.status} /> },
-    { id: "cards", header: "Flash cards", align: "right", width: 104, render: (r) => r.flashCardCount },
-    { id: "questions", header: "Questions", align: "right", width: 104, render: (r) => r.questionCount },
     {
-      id: "drafts",
-      header: "AI drafts",
-      width: 136,
-      render: (r) =>
-        r.aiDraftCardCount > 0 ? (
-          <ReviewBadge count={r.aiDraftCardCount} href={`/roles/${encodeURIComponent(r.id)}/cards`} />
-        ) : (
-          <span className="text-ink-muted">–</span>
-        ),
+      id: "status",
+      header: "Status",
+      width: 110,
+      skeletonWidth: 70,
+      render: (r) => <StatusChip status={r.status} appearance="pill" />,
     },
-    { id: "candidates", header: "Candidates", align: "right", width: 112, render: (r) => r.candidatesAssigned },
+    {
+      id: "content",
+      header: "Content",
+      width: "minmax(150px, 1fr)",
+      skeletonWidth: 120,
+      render: (r) => (
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-[13px] text-ink-soft">
+            {pluralize(r.flashCardCount, "card")} · {pluralize(r.questionCount, "question")}
+          </span>
+          {r.aiDraftCardCount > 0 && (
+            // The badge links to the cards tab; keep its click from also opening the row.
+            <span className="inline-flex" onClick={(e) => e.stopPropagation()}>
+              <ReviewBadge count={r.aiDraftCardCount} href={`/roles/${encodeURIComponent(r.id)}/cards`} />
+            </span>
+          )}
+        </span>
+      ),
+    },
+    {
+      id: "candidates",
+      header: "Candidates",
+      align: "right",
+      width: 90,
+      skeletonWidth: 20,
+      render: (r) => <span className="font-mono text-[13px] text-ink">{r.candidatesAssigned}</span>,
+    },
     {
       id: "score",
       header: "Avg latest score",
-      width: 188,
-      render: (r) =>
-        r.avgLatestScore !== null ? (
-          <ScoreCell score={r.avgLatestScore} band={r.avgLatestBand ?? undefined} />
-        ) : (
-          <span className="flex items-center gap-2">
-            <ScoreCell score={null} />
-            <span className="text-xs leading-4 text-ink-muted">{r.status === "archived" ? "Archived" : "Not live yet"}</span>
-          </span>
-        ),
+      width: 170,
+      skeletonWidth: 110,
+      render: (r) => (
+        <ScoreCell
+          score={r.avgLatestScore}
+          band={r.avgLatestBand ?? undefined}
+          emptyLabel={EMPTY_SCORE_LABEL[r.status]}
+        />
+      ),
     },
     {
       id: "edited",
       header: "Last edited",
-      width: 172,
+      align: "right",
+      width: 110,
+      skeletonWidth: 70,
       render: (r) => (
-        <span className="flex min-w-0 flex-col">
-          <span>{editedLabel(r.updatedAt)}</span>
-          <span className="text-xs leading-4 text-ink-muted">{r.updatedByName ?? "–"}</span>
+        <span className="flex min-w-0 flex-col items-end gap-0.5">
+          <span className="max-w-full truncate text-[13px] text-ink-soft">{editedLabel(r.updatedAt)}</span>
+          <span className="max-w-full truncate text-xs leading-4 text-ink-faint">{r.updatedByName ?? "—"}</span>
+        </span>
+      ),
+    },
+    {
+      id: "open",
+      header: <span className="sr-only">Open</span>,
+      align: "right",
+      width: 16,
+      skeletonWidth: 0,
+      render: () => (
+        <span aria-hidden="true" className="text-ink-faint">
+          ›
         </span>
       ),
     },
   ];
+
+  const emptyCopy = query.trim()
+    ? { title: "No roles match", text: "Try a different search." }
+    : tab === "archived"
+      ? { title: "No archived roles", text: "Roles you archive appear here. Candidates keep their past results." }
+      : { title: "No active roles", text: "Create a job role to get started." };
 
   const isEmpty = !!all && all.length === 0;
   const newButton = (
@@ -204,7 +250,7 @@ export function RolesScreen() {
           <Button onClick={reload}>Try again</Button>
         </div>
       ) : isEmpty ? (
-        <section className="rounded-lg border border-line bg-surface py-10">
+        <section className="rounded-panel border border-line bg-surface py-10">
           <EmptyState
             icon="briefcase"
             title="Create your first job role"
@@ -213,8 +259,9 @@ export function RolesScreen() {
           />
         </section>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-6">
           <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line">
+            {/* The wrapper draws the shared bottom line; Tabs' own border is switched off. */}
             <Tabs
               label="Role status"
               activeId={tab}
@@ -223,37 +270,38 @@ export function RolesScreen() {
                 { id: "active", label: "Active", count: all ? active.length : undefined },
                 { id: "archived", label: "Archived", count: all ? archived.length : undefined },
               ]}
-              className="border-b-0"
+              className="border-b-0!"
             />
-            <div className="relative mb-2 w-[260px] max-w-full">
-              <Icon name="search" size={16} className="pointer-events-none absolute top-2.5 left-2.5 text-ink-muted" />
-              <Input
+            <label className="mb-2 flex h-9 w-[280px] max-w-full cursor-text items-center gap-2.5 rounded-[9px] border border-input-line bg-surface px-3 focus-within:[outline:var(--focus-ring)] focus-within:[outline-offset:var(--focus-offset)]">
+              <Icon name="search" size={14} className="shrink-0 text-ink-faint" />
+              <input
                 type="search"
                 aria-label="Search roles"
                 placeholder="Search roles"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-[34px]"
+                className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-ink-faint focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none"
               />
-            </div>
+            </label>
           </div>
-          <DataTable
-            ariaLabel="Job roles"
-            columns={columns}
-            rows={rows}
-            rowId={(r) => r.id}
-            loading={loading && !all}
-            twoLine
-            onOpenRow={(r) => router.push(`/roles/${encodeURIComponent(r.id)}/details`)}
-            emptyState={
-              <EmptyState
-                icon="search"
-                title={query.trim() ? "No roles match your search" : tab === "archived" ? "No archived roles" : "No active roles"}
-                description={query.trim() ? "Try a different name." : undefined}
-              />
-            }
-          />
-          <p className="m-0 text-xs leading-4 text-ink-muted">Use ↑ ↓ to move between roles and Enter to open one.</p>
+          <div className="flex flex-col gap-3">
+            <DataTable
+              ariaLabel="Job roles"
+              columns={columns}
+              rows={rows}
+              rowId={(r) => r.id}
+              loading={loading && !all}
+              twoLine
+              onOpenRow={(r) => router.push(`/roles/${encodeURIComponent(r.id)}/details`)}
+              emptyState={
+                <div className="flex flex-col items-center gap-2">
+                  <p className="m-0 text-[15px] leading-[22px] font-semibold text-ink">{emptyCopy.title}</p>
+                  <p className="m-0 max-w-[420px] text-sm text-ink-faint">{emptyCopy.text}</p>
+                </div>
+              }
+            />
+            <p className="m-0 text-xs leading-4 text-ink-faint">Use ↑ ↓ to move between roles and Enter to open one.</p>
+          </div>
         </div>
       )}
       <CreateRoleModal open={creating} onClose={() => setCreating(false)} returnFocusRef={newRef} />

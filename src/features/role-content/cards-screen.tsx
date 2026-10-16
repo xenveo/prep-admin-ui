@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { BulletListEditor } from "@/components/ui/bullet-list-editor";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Modal } from "@/components/ui/modal";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Input } from "@/components/ui/input";
 import { ReorderableList } from "@/components/ui/reorderable-list";
 import { StatusChip } from "@/components/ui/status-chip";
@@ -14,6 +15,7 @@ import { useToast } from "@/components/ui/toast";
 import { FlashCardPreview } from "@/components/media/flash-card-preview";
 import { cn } from "@/lib/cn";
 import { emitRoleChanged } from "@/lib/role-events";
+import { useRole } from "@/features/roles/role-context";
 import {
   approveFlashCard,
   discardFlashCard,
@@ -35,6 +37,9 @@ type EditableFields = Pick<
   FlashCard,
   "category" | "question" | "strongAnswerPoints" | "tip" | "commonMistakes" | "sampleAnswerOutline"
 >;
+type PreviewSide = "front" | "back";
+/** Design list-footer button: 9px radius, 9px × 14px padding, 13px semibold. */
+const LIST_BUTTON = "h-auto! gap-1.5! rounded-[9px]! px-3.5! py-[9px]! font-semibold!";
 
 export function CardsScreen({ roleId }: { roleId: string }) {
   const toast = useToast();
@@ -46,14 +51,16 @@ export function CardsScreen({ roleId }: { roleId: string }) {
   const draftAbort = useRef<AbortController | null>(null);
   const [newQuestion, setNewQuestion] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-  const [discardOpen, setDiscardOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [previewSide, setPreviewSide] = useState<PreviewSide>("front");
   const [busy, setBusy] = useState(false);
   const saves = useRef(new Map<string, Promise<void>>());
   const cardsRef = useRef<FlashCard[]>([]);
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const questionRef = useRef<HTMLTextAreaElement>(null);
   const focusQuestion = useRef(false);
-  const discardRef = useRef<HTMLButtonElement>(null);
+  const deleteRef = useRef<HTMLButtonElement>(null);
+  const role = useRole();
 
   const commit = useCallback((next: FlashCard[]) => {
     cardsRef.current = next;
@@ -136,6 +143,11 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     }
   });
 
+  function select(id: string | undefined) {
+    setSelectedId(id);
+    setPreviewSide("front");
+  }
+
   function edit(patch: Partial<EditableFields>) {
     if (!selected) return;
     const id = selected.id;
@@ -171,7 +183,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
       });
       setNewQuestion(null);
       commit([...cardsRef.current, card]);
-      setSelectedId(card.id);
+      select(card.id);
       focusQuestion.current = true;
       emitRoleChanged(roleId);
     } catch {
@@ -189,7 +201,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     try {
       const created = await draftFlashCardsWithAI(roleId, controller.signal);
       commit([...cardsRef.current, ...created]);
-      if (created[0]) setSelectedId(created[0].id);
+      if (created[0]) select(created[0].id);
       emitRoleChanged(roleId);
       toast.show({
         title: `${created.length} AI drafts added`,
@@ -218,10 +230,11 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     }
   }
 
-  async function discard() {
+  async function remove() {
     if (!selected) return;
     const id = selected.id;
-    setDiscardOpen(false);
+    const wasDraft = selected.status === "ai_draft";
+    setDeleteOpen(false);
     setBusy(true);
     const t = timers.current.get(id);
     if (t) clearTimeout(t);
@@ -231,11 +244,11 @@ export function CardsScreen({ roleId }: { roleId: string }) {
       const idx = cardsRef.current.findIndex((c) => c.id === id);
       const next = cardsRef.current.filter((c) => c.id !== id).map((c, i) => ({ ...c, position: i + 1 }));
       commit(next);
-      setSelectedId(next[Math.min(idx, next.length - 1)]?.id);
+      select(next[Math.min(idx, next.length - 1)]?.id);
       emitRoleChanged(roleId);
-      toast.show({ title: "AI draft discarded" });
+      toast.show({ title: wasDraft ? "AI draft discarded" : "Card deleted" });
     } catch {
-      toast.show({ title: "Couldn't discard the card", detail: "Try again." });
+      toast.show({ title: wasDraft ? "Couldn't discard the card" : "Couldn't delete the card", detail: "Try again." });
     } finally {
       setBusy(false);
     }
@@ -270,7 +283,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   if (cards.length === 0) {
     return (
-      <div className="rounded-lg border border-line bg-surface">
+      <div className="rounded-panel border border-line bg-surface">
         {createDialog}
         <EmptyState
           icon="file"
@@ -279,7 +292,8 @@ export function CardsScreen({ roleId }: { roleId: string }) {
           action={
             <div className="flex gap-2">
               <Button onClick={()=>setNewQuestion("")} disabled={adding}>+ Add card</Button>
-              <Button variant="secondary-teal" iconLeft="sparkle" onClick={draftMore} disabled={drafting}>
+              <Button variant="secondary-teal" onClick={draftMore} disabled={drafting} aria-busy={drafting}>
+                <span aria-hidden="true">✦</span>
                 {drafting ? "Drafting…" : "Draft with AI"}
               </Button>
             </div>
@@ -292,90 +306,139 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   const index = selected ? cards.findIndex((c) => c.id === selected.id) : 0;
   const isDraft = selected?.status === "ai_draft";
+  const tipLength = selected?.tip.length ?? 0;
+  const outlineLength = (selected?.sampleAnswerOutline ?? "").length;
+  const questionMissing = selected ? !selected.question.trim() : false;
+  const liveNote = isDraft
+    ? "AI draft, hidden from candidates until you approve it"
+    : role.status === "approved"
+      ? "live for candidates because this role is approved"
+      : role.status === "archived"
+        ? "this role is archived, so candidates don’t see it"
+        : "candidates see it once this role is approved";
 
   return (
-    <div className="flex flex-wrap items-start gap-4">
+    <div className="flex flex-wrap items-start gap-5">
       {createDialog}
-      <section aria-labelledby="cards-h" className="flex max-w-full flex-[0_0_320px] flex-col rounded-lg border border-line bg-surface">
-        <div className="flex items-center justify-between gap-2 border-b border-line py-3 pr-3 pl-4">
-          <h2 id="cards-h" className="m-0 text-sm leading-5 font-semibold text-ink">
+      <section
+        aria-labelledby="cards-h"
+        className="flex max-w-[380px] min-w-0 flex-[1_1_300px] flex-col overflow-hidden rounded-panel border border-line bg-surface"
+      >
+        <div className="flex items-baseline justify-between gap-3 border-b border-line px-4 py-3.5">
+          <h2 id="cards-h" className="m-0 text-sm font-semibold text-ink">
             {cards.length} {cards.length === 1 ? "card" : "cards"}
           </h2>
-          <span className="text-xs leading-4 text-ink-muted">Shown to candidates in this order</span>
+          <span className="text-xs text-ink-faint">Shown to candidates in this order</span>
         </div>
-        <div className="p-2">
-          <ReorderableList
-            items={cards}
-            itemId={(c) => c.id}
-            onReorder={reorder}
-            selectedId={selected?.id}
-            onSelect={setSelectedId}
-            ariaLabel="Flash cards"
-            itemLabel={(c, i) => `Card ${i + 1}`}
-            renderItem={(c, { index: i, selected: sel, handle }) => (
-              <div
-                className={cn(
-                  "flex min-h-[52px] items-center gap-1 rounded-md py-1.5 pr-3 pl-1",
-                  sel ? "bg-primary-tint shadow-[inset_3px_0_0_var(--primary)]" : "hover:bg-bg",
-                )}
+        <ReorderableList
+          items={cards}
+          itemId={(c) => c.id}
+          onReorder={reorder}
+          selectedId={selected?.id}
+          onSelect={select}
+          ariaLabel="Flash cards"
+          itemLabel={(c, i) => `Card ${i + 1}`}
+          renderItem={(c, { index: i, selected: sel, handle }) => (
+            <div
+              className={cn(
+                "grid cursor-pointer grid-cols-[12px_20px_minmax(0,1fr)] items-start gap-2 py-3 pr-3.5 pl-2.5 transition-colors duration-100",
+                sel ? "bg-row-hover shadow-[inset_3px_0_0_var(--primary)]" : "hover:bg-row-hover",
+              )}
+            >
+              {handle}
+              <span aria-hidden="true" className="font-mono text-xs leading-5 text-ink-faint">
+                {i + 1}
+              </span>
+              <button
+                type="button"
+                aria-current={sel ? "true" : undefined}
+                onClick={() => select(c.id)}
+                className="focus-inset flex min-w-0 cursor-pointer flex-col gap-[5px] rounded-sm text-left"
               >
-                {handle}
-                <button
-                  type="button"
-                  aria-current={sel ? "true" : undefined}
-                  onClick={() => setSelectedId(c.id)}
-                  className="focus-inset flex min-w-0 flex-1 cursor-pointer flex-col gap-1 rounded-md p-1 text-left"
+                <span
+                  className={cn(
+                    "text-[13px] leading-[1.45] text-pretty text-ink",
+                    sel ? "font-semibold" : "font-medium",
+                    !c.question.trim() && "text-ink-faint",
+                  )}
                 >
-                  <span className="flex min-w-0 items-baseline gap-1.5">
-                    <span className="shrink-0 text-xs text-ink-muted">{i + 1}</span>
-                    <span className={cn("truncate text-[13px] leading-[18px] text-ink", sel ? "font-semibold" : "font-medium")}>
-                      {c.question || "New card"}
+                  <span className="sr-only">Card {i + 1}: </span>
+                  {c.question.trim() || "Untitled card"}
+                </span>
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-faint">
+                  {CARD_CATEGORY_LABEL[c.category]}
+                  {c.status === "ai_draft" ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-improve-soft px-1.5 text-[11px] leading-[18px] font-semibold text-improve-text">
+                      <span aria-hidden="true" className="size-1 rounded-full bg-improve" />
+                      AI draft
                     </span>
-                  </span>
-                  <span className="flex items-center gap-1.5 pl-3.5">
-                    <StatusChip status={c.status === "ai_draft" ? "ai-draft" : "approved"} className="!h-5 !text-[11px]" />
-                    <span className="text-xs leading-4 text-ink-muted">{CARD_CATEGORY_LABEL[c.category]}</span>
-                  </span>
-                </button>
-              </div>
-            )}
-          />
-        </div>
-        <div className="flex gap-2 border-t border-line p-3">
-          <Button size="sm" onClick={()=>setNewQuestion("")} disabled={adding}>+ Add card</Button>
-          <Button size="sm" variant="secondary-teal" onClick={draftMore} disabled={drafting} aria-busy={drafting}>
+                  ) : null}
+                </span>
+              </button>
+            </div>
+          )}
+        />
+        <div className="flex flex-wrap gap-2 border-t border-line p-3">
+          <Button size="sm" onClick={() => setNewQuestion("")} disabled={adding} className={cn(LIST_BUTTON, "border-neutral-line!")}>
+            + Add card
+          </Button>
+          <Button size="sm" variant="secondary-teal" onClick={draftMore} disabled={drafting} aria-busy={drafting} className={LIST_BUTTON}>
+            <span aria-hidden="true">✦</span>
             {drafting ? "Drafting…" : "Draft more with AI"}
           </Button>
         </div>
       </section>
 
       {selected ? (
-        <section aria-labelledby="ed-h" className="flex min-w-0 flex-[1_1_400px] flex-col rounded-lg border border-line bg-surface">
-          <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-            <h2 id="ed-h" className="m-0 text-sm leading-5 font-semibold text-ink">Card {index + 1}</h2>
-            {isDraft ? <StatusChip status="ai-draft" /> : null}
-            <span role="status" aria-live="polite" className="ml-auto text-xs text-ink-muted">
-              {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Unsaved changes" : ""}
-              {saveState === "error" && <Button size="sm" onClick={() => { void persist(selected.id).catch(() => {}); }}>Retry save</Button>}
+        <section
+          aria-labelledby="ed-h"
+          className="flex min-w-0 flex-[999_1_440px] flex-col overflow-hidden rounded-panel border border-line bg-surface"
+        >
+          <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+            <span className="flex items-center gap-2">
+              <h2 id="ed-h" className="m-0 text-sm font-semibold text-ink">Card {index + 1}</h2>
+              {isDraft ? <StatusChip status="ai-draft" /> : null}
             </span>
+            <button
+              ref={deleteRef}
+              type="button"
+              onClick={() => setDeleteOpen(true)}
+              disabled={busy}
+              className="relative cursor-pointer rounded-sm text-[13px] font-semibold text-ink-faint transition-colors duration-100 after:absolute after:-inset-2 after:content-[''] hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Delete card
+            </button>
           </div>
-          <div className="flex flex-col gap-4 p-4">
-            <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
-              <legend className="mb-1.5 p-0 text-sm font-semibold text-ink">Category</legend>
+          <div className="flex flex-col gap-[22px] p-5">
+            <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+              <legend className="mb-2 p-0 text-sm font-semibold text-ink">Category</legend>
               <CategoryRadios value={selected.category} onChange={(category) => edit({ category })} />
             </fieldset>
-            <label className="flex flex-col gap-1">
-              <span className="text-sm font-semibold text-ink">Question</span>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="card-question" className="text-sm font-semibold text-ink">
+                Question
+              </label>
               <Textarea
+                id="card-question"
                 ref={questionRef}
                 rows={2}
                 value={selected.question}
+                invalid={questionMissing}
+                aria-describedby={questionMissing ? "card-question-error" : undefined}
                 onChange={(e) => edit({ question: e.target.value })}
                 onBlur={() => { void flush(selected.id).catch(() => {}); }}
+                className="min-h-0! rounded-[9px]! text-[15px]!"
               />
-            </label>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-semibold text-ink">What a strong answer includes</span>
+              {questionMissing ? (
+                <span id="card-question-error" className="text-xs text-improve-text">
+                  Add a question. Candidates see it on the front of the card.
+                </span>
+              ) : null}
+            </div>
+            <div className="flex flex-col gap-2">
+              <span aria-hidden="true" className="text-sm font-semibold text-primary-text">
+                What a strong answer includes
+              </span>
               <BulletListEditor
                 tone="strong"
                 label="What a strong answer includes"
@@ -383,39 +446,31 @@ export function CardsScreen({ roleId }: { roleId: string }) {
                 onChange={(strongAnswerPoints) => edit({ strongAnswerPoints })}
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="card-outline" className="text-sm font-semibold text-ink">
-                Sample answer outline
-              </label>
-              <Textarea
-                id="card-outline"
-                rows={4}
-                value={selected.sampleAnswerOutline ?? ""}
-                maxLength={SAMPLE_OUTLINE_MAX_LENGTH}
-                aria-describedby="card-outline-help card-outline-count"
-                onChange={(e) => edit({ sampleAnswerOutline: e.target.value })}
-                onBlur={() => { void flush(selected.id).catch(() => {}); }}
-              />
-              <div className="flex items-baseline justify-between gap-3 text-xs text-ink-muted">
-                <span id="card-outline-help">Optional. A short outline of a strong answer, shown to candidates after they practise.</span>
-                <span id="card-outline-count" className="shrink-0">
-                  {(selected.sampleAnswerOutline ?? "").length} / {SAMPLE_OUTLINE_MAX_LENGTH}
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-semibold text-ink">Common mistakes</span>
+            <div className="flex flex-col gap-2">
+              <span aria-hidden="true" className="text-sm font-semibold text-improve-text">
+                Common mistakes
+              </span>
               <BulletListEditor
                 tone="mistake"
                 label="Common mistakes"
+                itemLabel="mistake"
+                addLabel="+ Add mistake"
                 items={selected.commonMistakes}
                 onChange={(commonMistakes) => edit({ commonMistakes })}
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="card-tip" className="text-sm font-semibold text-ink">
-                Tip <span className="font-normal text-ink-muted">(one line)</span>
-              </label>
+            <div className="flex flex-col gap-2">
+              <span className="flex items-baseline justify-between gap-3">
+                <label htmlFor="card-tip" className="text-sm font-semibold text-ink">
+                  Tip
+                </label>
+                <span
+                  id="card-tip-count"
+                  className={cn("text-xs", tipLength > TIP_MAX_LENGTH - 10 ? "text-improve-text" : "text-ink-faint")}
+                >
+                  {tipLength} / {TIP_MAX_LENGTH}
+                </span>
+              </span>
               <Input
                 id="card-tip"
                 value={selected.tip}
@@ -423,74 +478,102 @@ export function CardsScreen({ roleId }: { roleId: string }) {
                 aria-describedby="card-tip-count"
                 onChange={(e) => edit({ tip: e.target.value })}
                 onBlur={() => { void flush(selected.id).catch(() => {}); }}
+                className="h-10!"
               />
-              <span id="card-tip-count" className="self-end text-xs text-ink-muted">
-                {selected.tip.length} / {TIP_MAX_LENGTH}
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="flex items-baseline justify-between gap-3">
+                <label htmlFor="card-outline" className="text-sm font-semibold text-ink">
+                  Sample answer outline
+                </label>
+                <span id="card-outline-count" className="text-xs text-ink-faint">
+                  Optional · {outlineLength} / {SAMPLE_OUTLINE_MAX_LENGTH}
+                </span>
               </span>
+              <Textarea
+                id="card-outline"
+                rows={3}
+                value={selected.sampleAnswerOutline ?? ""}
+                maxLength={SAMPLE_OUTLINE_MAX_LENGTH}
+                placeholder="A short outline of a strong answer, shown after the candidate practises"
+                aria-describedby="card-outline-count"
+                onChange={(e) => edit({ sampleAnswerOutline: e.target.value })}
+                onBlur={() => { void flush(selected.id).catch(() => {}); }}
+                className="min-h-0! rounded-[9px]!"
+              />
             </div>
           </div>
-          {isDraft ? (
-            <div className="mt-auto flex flex-wrap items-center gap-2 rounded-b-lg border-t border-line bg-improve-soft px-4 py-3">
-              <span className="mr-auto max-w-[260px] text-xs leading-4 text-ai-text">
-                AI draft from the role description. Candidates won’t see it until you approve it.
-              </span>
-              <button
-                ref={discardRef}
-                type="button"
-                onClick={() => setDiscardOpen(true)}
-                disabled={busy}
-                className="h-9 cursor-pointer rounded-md border border-line bg-surface px-3.5 text-sm font-medium text-error"
-              >
-                Discard
-              </button>
-              <Button variant="primary" onClick={approve} disabled={busy}>Approve card</Button>
-            </div>
-          ) : (
-            <div className="mt-auto border-t border-line px-4 py-3 text-xs leading-4 text-ink-muted">
-              Approved. Changes save automatically and show to candidates once the role is approved.
-            </div>
-          )}
+          <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line px-5 py-3 text-xs text-ink-faint">
+            <span role="status" aria-live="polite" className={cn("mr-auto", saveState === "error" && "text-error")}>
+              {saveState === "saving" ? (
+                "Saving…"
+              ) : saveState === "error" ? (
+                "Changes not saved"
+              ) : (
+                <>
+                  <span aria-hidden="true">✓ </span>Saved automatically ·{" "}
+                  <span className={cn(isDraft && "text-ai-text")}>{liveNote}</span>
+                </>
+              )}
+            </span>
+            {saveState === "error" ? (
+              <Button size="sm" onClick={() => { void persist(selected.id).catch(() => {}); }}>
+                Retry save
+              </Button>
+            ) : null}
+            {isDraft ? (
+              <Button size="sm" variant="primary" onClick={approve} disabled={busy}>
+                Approve card
+              </Button>
+            ) : null}
+          </div>
         </section>
       ) : null}
 
       {selected ? (
-        <section aria-labelledby="pv-h" className="flex max-w-full flex-[0_0_300px] flex-col gap-3">
-          <h2 id="pv-h" className="m-0 text-sm leading-5 font-semibold text-ink">Candidate preview</h2>
-          <div className="text-xs leading-4 text-ink-muted">Front</div>
+        <aside aria-labelledby="pv-h" className="flex max-w-[380px] min-w-0 flex-[1_1_300px] flex-col gap-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="pv-h" className="m-0 text-sm font-semibold text-ink">Candidate preview</h2>
+            <SegmentedControl<PreviewSide>
+              size="sm"
+              label="Preview side"
+              value={previewSide}
+              onChange={setPreviewSide}
+              options={[
+                { value: "front", label: "Front" },
+                { value: "back", label: "Back" },
+              ]}
+            />
+          </div>
           <FlashCardPreview
-            side="front"
+            variant="panel"
+            side={previewSide}
+            onSideChange={setPreviewSide}
             category={CARD_CATEGORY_LABEL[selected.category]}
-            question={selected.question || "Your question appears here"}
-            strong={selected.strongAnswerPoints.filter(Boolean)}
+            question={selected.question.trim() || "Your question appears here"}
+            strong={selected.strongAnswerPoints}
             tip={selected.tip}
-            mistakes={selected.commonMistakes.filter(Boolean)}
+            mistakes={selected.commonMistakes}
+            outline={selected.sampleAnswerOutline}
             index={index + 1}
             total={cards.length}
           />
-          <div className="text-xs leading-4 text-ink-muted">Back</div>
-          <FlashCardPreview
-            side="back"
-            category={CARD_CATEGORY_LABEL[selected.category]}
-            question={selected.question || "Your question appears here"}
-            strong={selected.strongAnswerPoints.filter(Boolean)}
-            tip={selected.tip}
-            mistakes={selected.commonMistakes.filter(Boolean)}
-            outline={selected.sampleAnswerOutline?.trim() || null}
-            index={index + 1}
-            total={cards.length}
-          />
-        </section>
+        </aside>
       ) : null}
 
       <ConfirmDialog
-        open={discardOpen}
-        title="Discard this AI draft?"
-        body="The card is deleted and never shown to candidates. This can’t be undone, but you can draft more with AI later."
-        confirmLabel="Discard card"
+        open={deleteOpen}
+        title={isDraft ? "Discard this AI draft?" : `Delete card ${index + 1}?`}
+        body={
+          isDraft
+            ? "The card is deleted and never shown to candidates. This can’t be undone, but you can draft more with AI later."
+            : "Candidates will no longer see this card. This can’t be undone."
+        }
+        confirmLabel={isDraft ? "Discard card" : "Delete card"}
         tone="destructive"
-        onConfirm={discard}
-        onCancel={() => setDiscardOpen(false)}
-        returnFocusRef={discardRef}
+        onConfirm={remove}
+        onCancel={() => setDeleteOpen(false)}
+        returnFocusRef={deleteRef}
       />
     </div>
   );
@@ -521,8 +604,10 @@ function CategoryRadios({ value, onChange }: { value: CardCategory; onChange: (v
             tabIndex={on ? 0 : -1}
             onClick={() => onChange(k)}
             className={cn(
-              "h-[30px] cursor-pointer rounded-full border px-3 text-[13px] font-medium",
-              on ? "border-primary bg-primary-soft text-primary-text" : "border-line bg-surface text-ink",
+              "cursor-pointer rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors duration-100",
+              on
+                ? "border-primary-line bg-primary-tint text-primary-text"
+                : "border-input-line bg-transparent text-ink-muted hover:border-neutral-line hover:text-ink",
             )}
           >
             {CARD_CATEGORY_LABEL[k]}
@@ -535,10 +620,10 @@ function CategoryRadios({ value, onChange }: { value: CardCategory; onChange: (v
 
 function CardsSkeleton() {
   return (
-    <div className="flex flex-wrap items-start gap-4" aria-busy="true" aria-label="Loading flash cards">
-      <div className="h-[480px] max-w-full flex-[0_0_320px] animate-pulse rounded-lg border border-line bg-neutral-soft" />
-      <div className="h-[480px] min-w-0 flex-[1_1_400px] animate-pulse rounded-lg border border-line bg-neutral-soft" />
-      <div className="h-[480px] max-w-full flex-[0_0_300px] animate-pulse rounded-lg border border-line bg-neutral-soft" />
+    <div className="flex flex-wrap items-start gap-5" aria-busy="true" aria-label="Loading flash cards">
+      <div className="h-[480px] max-w-[380px] min-w-0 flex-[1_1_300px] animate-pulse rounded-panel border border-line bg-neutral-soft" />
+      <div className="h-[640px] min-w-0 flex-[999_1_440px] animate-pulse rounded-panel border border-line bg-neutral-soft" />
+      <div className="h-[380px] max-w-[380px] min-w-0 flex-[1_1_300px] animate-pulse rounded-2xl border border-line bg-neutral-soft" />
     </div>
   );
 }

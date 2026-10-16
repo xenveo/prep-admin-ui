@@ -30,7 +30,7 @@ const MODE_OPTIONS: { value: AnswerMode; label: string }[] = [{ value: "voice", 
 type FeedbackAudio = { waiting: boolean; onCheckAgain: () => void };
 function Feedback({ attempt, audio }: { attempt: PreviewAttempt; audio?: FeedbackAudio }) {
   const voice = attempt.mode === "voice";
-  return <section className="flex flex-col gap-2 rounded-md border border-line bg-surface p-4">
+  return <section className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
     <h4 className="text-sm font-semibold">Try {attempt.attemptNo}{voice ? " · Voice" : ""} · {attempt.feedback.score}/100</h4>
     {voice && <div className="flex flex-col gap-1"><h5 className="text-sm font-semibold">Your recording</h5><AudioPlayer label={`Try ${attempt.attemptNo} answer`} durationSeconds={attempt.durationSec ?? 1} src={attempt.audioUrl ? resolveApiUrl(attempt.audioUrl) : null} /></div>}
     <p className="whitespace-pre-wrap text-sm text-ink-muted">{attempt.transcript}</p>
