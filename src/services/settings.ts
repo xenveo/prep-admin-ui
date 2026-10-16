@@ -12,11 +12,13 @@ export type PrivacyRequest = {
   id: string; userId: string; name: string | null; email: string;
   kind: string; status: string; createdAt: string; completedAt: string | null; completedBy: string | null;
 };
-export type PromptRole = "interviewer" | "evaluator" | "summariser" | "drafter";
+export type PromptRole = "interviewer" | "evaluator" | "evaluator_detail" | "summariser" | "drafter";
+/** null means the model's default thinking level. */
+export type ThinkingLevel = "low" | "medium" | "high";
 export type PromptRoleConfig = {
   role: PromptRole;
-  active: { version: number; model: string; temperature: number; template: string };
-  versions: { version: number; model: string; temperature: number; active: boolean; createdBy: string | null; createdAt: string }[];
+  active: { version: number; model: string; temperature: number; thinkingLevel: ThinkingLevel | null; template: string };
+  versions: { version: number; model: string; temperature: number; thinkingLevel: ThinkingLevel | null; active: boolean; createdBy: string | null; createdAt: string }[];
 };
 export type AiConfig = { roles: PromptRoleConfig[] };
 
@@ -88,6 +90,7 @@ export const listAuditActions = (): Promise<string[]> => request("/admin/audit/a
 export const listPrivacyRequests = (cursor?: string): Promise<CursorPage<PrivacyRequest>> => request(`/admin/privacy/requests${queryString({ cursor, limit: 50 })}`);
 export const completePrivacyRequest = (id: string): Promise<PrivacyRequest> => request(`/admin/privacy/requests/${encodeURIComponent(id)}/complete`, { method: "POST" });
 export const getAiConfig = (): Promise<AiConfig> => request("/admin/ai-config");
-export const saveAiConfig = (input: { role: PromptRole; model: string; temperature: number; template?: string }): Promise<PromptRoleConfig> => request("/admin/ai-config", { method: "PUT", body: JSON.stringify(input) });
+/** Omitting thinkingLevel keeps the active version's level. */
+export const saveAiConfig = (input: { role: PromptRole; model: string; temperature: number; thinkingLevel?: ThinkingLevel; template?: string }): Promise<PromptRoleConfig> => request("/admin/ai-config", { method: "PUT", body: JSON.stringify(input) });
 export const auditWhenLabel = (e: AuditEvent): string => /T\d\d:\d\d/.test(e.at) ? formatDateTime(e.at).replace(/ \d{4},/, ",") : formatShortDate(e.at);
 export const auditAgeDays = (e: AuditEvent): number => daysSince(e.at) ?? 0;

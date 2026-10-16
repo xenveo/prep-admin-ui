@@ -5,7 +5,8 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAsync } from "@/lib/use-async";
-import { getAiConfig, saveAiConfig, voiceSampleUrl, type PromptRoleConfig } from "@/services/settings";
+import { getAiConfig, saveAiConfig, voiceSampleUrl, type PromptRoleConfig, type ThinkingLevel } from "@/services/settings";
+import { ApiError } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Select } from "@/components/ui/select";
@@ -105,15 +106,33 @@ function PromptConfiguration() {
   );
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  interviewer: "Interviewer",
+  evaluator: "Evaluator (scores and written feedback)",
+  evaluator_detail: "Evaluator detail (spoken summary and highlights)",
+  summariser: "Summariser",
+  drafter: "Drafter",
+};
+const roleLabel = (role: string) => ROLE_LABEL[role] ?? `${role[0].toUpperCase()}${role.slice(1)}`;
+
+const THINKING_OPTIONS: { value: ThinkingLevel; label: string }[] = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+];
+const thinkingLabel = (level: ThinkingLevel | null) => THINKING_OPTIONS.find((o) => o.value === level)?.label ?? "Model default";
+
 function PromptEditor({ config, onSaved }: { config: PromptRoleConfig; onSaved: () => void }) {
   const [saved, setSaved] = useState(config.active);
   const [model, setModel] = useState(config.active.model);
   const [temperature, setTemperature] = useState(String(config.active.temperature));
+  const [thinking, setThinking] = useState<ThinkingLevel | null>(config.active.thinkingLevel);
   const [template, setTemplate] = useState(config.active.template);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modelError, setModelError] = useState<string | null>(null);
   const toast = useToast();
-  const dirty = model !== saved.model || temperature !== String(saved.temperature) || template !== saved.template;
+  const dirty = model !== saved.model || temperature !== String(saved.temperature) || thinking !== saved.thinkingLevel || template !== saved.template;
   async function save() {
     if (busy) return;
     const value = Number(temperature);
@@ -121,25 +140,39 @@ function PromptEditor({ config, onSaved }: { config: PromptRoleConfig; onSaved: 
       setError("Enter a model, a prompt and a temperature between 0 and 1.");
       return;
     }
-    setBusy(true); setError(null);
+    setBusy(true); setError(null); setModelError(null);
     try {
-      const next = await saveAiConfig({ role: config.role, model, temperature: value, template });
+      // Null (model default) is never sent; the backend then keeps the active version's level.
+      const next = await saveAiConfig({ role: config.role, model, temperature: value, ...(thinking ? { thinkingLevel: thinking } : {}), template });
       setSaved(next.active);
+      setThinking(next.active.thinkingLevel);
       toast.show({ title: "Prompt version saved" });
       onSaved();
-    } catch (e) { setError(settingsErrorMessage(e, "Couldn’t save AI configuration.")); }
+    } catch (e) {
+      const message = settingsErrorMessage(e, "Couldn’t save AI configuration.");
+      // The backend checks the model id with the provider: "Model <id> is not available".
+      if (e instanceof ApiError && e.code === "validation_failed" && /\bis not available\b/i.test(message)) setModelError(message);
+      else setError(message);
+    }
     finally { setBusy(false); }
   }
   return (
-    <SettingsCard title={`${config.role[0].toUpperCase()}${config.role.slice(1)} configuration`} className="gap-3">
+    <SettingsCard title={`${roleLabel(config.role)} configuration`} className="gap-3">
       <p className="m-0 text-xs text-ink-muted">Active version {saved.version}. Saving creates a new active version.</p>
       {error && <ErrorBanner message={error} />}
-      <Field label="Model">{({ id }) => <Input id={id} value={model} maxLength={200} disabled={busy} onChange={(e) => setModel(e.target.value)} />}</Field>
+      <Field label="Model" helper="Gemini model id, e.g. gemini-3.8-flash. Changes apply to new sessions only." error={modelError}>{({ id, describedBy, invalid }) => <Input id={id} aria-describedby={describedBy} aria-invalid={invalid || undefined} value={model} maxLength={200} disabled={busy} onChange={(e) => { setModel(e.target.value); setModelError(null); }} />}</Field>
       <Field label="Temperature" helper="A number between 0 and 1.">{({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} type="number" min={0} max={1} step={0.01} value={temperature} disabled={busy} onChange={(e) => setTemperature(e.target.value)} />}</Field>
+      <Field label="Thinking" helper="How much the model reasons before answering.">{({ id, describedBy }) => (
+        <Select id={id} aria-describedby={describedBy} className="w-[220px]" value={thinking ?? ""} disabled={busy} onChange={(e) => setThinking((e.target.value || null) as ThinkingLevel | null)}>
+          {/* The API can't reset a level to the model default, so that choice exists only while it is the saved value. */}
+          {saved.thinkingLevel === null && <option value="">Model default</option>}
+          {THINKING_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </Select>
+      )}</Field>
       <Field label="System prompt" helper="Keep required template variables and safety instructions when editing.">{({ id, describedBy }) => <Textarea id={id} aria-describedby={describedBy} rows={8} maxLength={50000} value={template} disabled={busy} onChange={(e) => setTemplate(e.target.value)} />}</Field>
       <div className="self-start"><Button disabled={busy || !dirty} onClick={() => void save()}>{busy ? "Saving…" : "Save prompt version"}</Button></div>
       <details><summary className="cursor-pointer text-sm font-semibold">Version history ({config.versions.length})</summary>
-        <ul className="text-xs text-ink-muted">{config.versions.map((version) => <li key={version.version}>Version {version.version} · {version.model} · temperature {version.temperature} · {new Date(version.createdAt).toLocaleString()}{version.active ? " · active" : ""}</li>)}</ul>
+        <ul className="text-xs text-ink-muted">{config.versions.map((version) => <li key={version.version}>Version {version.version} · {version.model} · temperature {version.temperature} · thinking {thinkingLabel(version.thinkingLevel).toLowerCase()} · {new Date(version.createdAt).toLocaleString()}{version.active ? " · active" : ""}</li>)}</ul>
         {!config.versions.length && <p className="text-xs text-ink-muted">Using the built-in default.</p>}
       </details>
     </SettingsCard>
