@@ -2,8 +2,10 @@
 
 import { AdminsSection } from "./admins-section";
 import { AiSection } from "./ai-section";
+import { AiUsagePanel } from "./ai-usage-panel";
 import { AuditSection } from "./audit-section";
 import { EmailSection } from "./email-section";
+import { LoadingCard } from "./load-state";
 import { PrivacySection } from "./privacy-section";
 import { useSettingsContext } from "./settings-context";
 import type { SectionKey } from "./sections";
@@ -17,12 +19,14 @@ const GATED_COPY: Record<"admins" | "privacy" | "email", string> = {
 
 export function SettingsSection({ section }: { section: SectionKey }) {
   const { admin } = useSettingsContext();
-  if (!admin) return <div aria-busy="true" className="h-40 rounded-md border border-line bg-surface" />;
+  if (!admin) return <LoadingCard />;
   const isSuper = admin.access === "super_admin";
 
   switch (section) {
     case "ai":
       return <AiSection readOnly={!isSuper} />;
+    case "usage":
+      return <AiUsagePanel />;
     case "audit":
       return <AuditSection />;
     case "admins":

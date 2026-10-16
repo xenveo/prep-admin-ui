@@ -6,8 +6,8 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   return (
     <Suspense
       fallback={
-        <PageContainer>
-          <PageHeader title="Settings" />
+        <PageContainer className="!max-w-[1200px]">
+          <PageHeader title="Settings" className="!mb-7" />
         </PageContainer>
       }
     >

@@ -1,28 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTable, type Column } from "@/components/ui/data-table";
-import { EmptyState } from "@/components/ui/empty-state";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
-import { Select } from "@/components/ui/select";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api/client";
+import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/format";
 import { AUDIO_RETENTION_OPTIONS, TRANSCRIPT_RETENTION_LABEL, type TranscriptRetention, type WorkspaceSettings } from "@/lib/types";
 import { exportAllData, getWorkspaceExport, downloadExportFile, listPrivacyRequests, completePrivacyRequest, type WorkspaceExport, type PrivacyRequest } from "@/services/settings";
 import { ErrorBanner, LoadingCard } from "./load-state";
 import { isAccessDenied, settingsErrorMessage } from "./error-copy";
-import { SettingRow, SettingsCard } from "./setting-row";
 import { useSettingsContext } from "./settings-context";
 import { useSaveHeader } from "./save-header";
 import { useSettingsDraft } from "./use-settings-draft";
 
 const EXPORT_UNAVAILABLE = "This export isn’t available. The link may be wrong or the export was removed. Start a new export.";
 const TRANSCRIPT_ORDER: TranscriptRetention[] = ["6m", "12m", "until_removed"];
+
+const EXPORT_STATUS: Record<WorkspaceExport["status"], string> = {
+  queued: "Export queued. CSV files are being prepared.",
+  running: "Export running. CSV files are being prepared.",
+  done: "Export ready. Files are available for 24 hours.",
+  failed: "The export failed. Start a new export.",
+  expired: "Download links expired. Start a new export.",
+};
 
 /** Describes retention periods that got shorter, for the confirmation. */
 function shortenings(saved: WorkspaceSettings, next: WorkspaceSettings): { title: string; body: string }[] {
@@ -42,6 +49,36 @@ function shortenings(saved: WorkspaceSettings, next: WorkspaceSettings): { title
     });
   }
   return out;
+}
+
+/** Card title block: 17px title over a 13px faint line, with an optional action on the right. */
+function CardHeader({ id, title, sub, action, className }: { id: string; title: string; sub: string; action?: ReactNode; className?: string }) {
+  return (
+    <div className={cn("flex flex-wrap items-start justify-between gap-3 px-[22px] py-5", className)}>
+      <div className="flex min-w-0 flex-col gap-1">
+        <h2 id={id} className="m-0 text-[17px] leading-[23px] font-semibold text-ink">
+          {title}
+        </h2>
+        <p className="m-0 text-[13px] leading-5 text-ink-faint">{sub}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+/** Retention row: label + note column, then the option picker. */
+function RetentionRow({ labelId, label, note, children }: { labelId: string; label: string; note: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-1 items-center gap-x-6 gap-y-4 border-b border-line px-[22px] py-[18px] min-[720px]:grid-cols-[minmax(180px,260px)_minmax(0,1fr)]">
+      <div className="flex flex-col gap-[3px]">
+        <span id={labelId} className="text-sm leading-5 font-semibold text-ink">
+          {label}
+        </span>
+        <span className="text-[13px] leading-5 text-ink-faint">{note}</span>
+      </div>
+      <div className="min-w-0 justify-self-start">{children}</div>
+    </div>
+  );
 }
 
 export function PrivacySection() {
@@ -154,63 +191,93 @@ export function PrivacySection() {
   return (
     <>
       {draft.saveError && <ErrorBanner message={draft.saveError} />}
-      <SettingsCard title="Retention">
-        <SettingRow label="Keep audio recordings for" htmlFor="aud" hint="Default 30 days">
-          <span className="flex flex-col gap-1">
-            <Select
-              id="aud"
-              className="w-[200px]"
-              value={String(v.audioRetentionDays)}
-              onChange={(e) => draft.set("audioRetentionDays", Number(e.target.value) as WorkspaceSettings["audioRetentionDays"])}
-              aria-describedby="aud-help"
-            >
-              {AUDIO_RETENTION_OPTIONS.map((d) => (
-                <option key={d} value={d}>
-                  {d} days
-                </option>
-              ))}
-            </Select>
-            <span id="aud-help" className="text-xs leading-4 text-ink-muted">
-              Audio is deleted automatically after this. Transcripts and scores are kept.
-            </span>
-          </span>
-        </SettingRow>
-        <SettingRow label="Keep transcripts for" htmlFor="tr">
-          <Select
-            id="tr"
-            className="w-[260px]"
+      <section aria-labelledby="retention-h" className="rounded-panel border border-line bg-surface">
+        <CardHeader
+          id="retention-h"
+          title="Retention"
+          sub="Data is deleted automatically when it reaches these limits."
+          className="border-b border-line"
+        />
+        <RetentionRow labelId="aud-l" label="Keep audio recordings for" note="Transcripts and scores are kept">
+          <SegmentedControl
+            label="Keep audio recordings for"
+            value={String(v.audioRetentionDays)}
+            options={AUDIO_RETENTION_OPTIONS.map((d) => ({ value: String(d), label: `${d} days` }))}
+            onChange={(d) => draft.set("audioRetentionDays", Number(d) as WorkspaceSettings["audioRetentionDays"])}
+          />
+        </RetentionRow>
+        <RetentionRow labelId="tr-l" label="Keep transcripts for" note="Scores are kept">
+          <SegmentedControl
+            label="Keep transcripts for"
             value={v.transcriptRetention}
-            onChange={(e) => draft.set("transcriptRetention", e.target.value as TranscriptRetention)}
-          >
-            {TRANSCRIPT_ORDER.map((k) => (
-              <option key={k} value={k}>
-                {TRANSCRIPT_RETENTION_LABEL[k]}
-              </option>
-            ))}
-          </Select>
-        </SettingRow>
-        <SettingRow label="Candidates can delete their data" labelId="del-l" hint="Recordings, transcripts and scores, from their account page">
-          <div className="justify-self-start">
-            <Switch
-              label="Candidates can delete their data"
-              checked={v.candidatesCanDeleteData}
-              onChange={(c) => draft.set("candidatesCanDeleteData", c)}
-            />
+            options={TRANSCRIPT_ORDER.map((k) => ({ value: k, label: TRANSCRIPT_RETENTION_LABEL[k] }))}
+            onChange={(k) => draft.set("transcriptRetention", k)}
+          />
+        </RetentionRow>
+        <div className="flex items-center gap-4 px-[22px] py-[18px]">
+          <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+            <span className="text-sm leading-5 font-semibold text-ink">Candidates can delete their data</span>
+            <span className="text-[13px] leading-5 text-ink-faint">Recordings, transcripts and scores, from their account page</span>
           </div>
-        </SettingRow>
-      </SettingsCard>
-      <SettingsCard title="Data export" className="gap-2">
-        <p className="m-0 text-ink">Download every candidate, session and score as CSV files. Audio isn’t included. External storage files may open in your browser.</p>
-        <div className="flex items-center gap-3">
-          <Button onClick={() => void onExport()} disabled={exporting} aria-busy={exporting || undefined}>
+          <Switch
+            label="Candidates can delete their data"
+            checked={v.candidatesCanDeleteData}
+            onChange={(c) => draft.set("candidatesCanDeleteData", c)}
+          />
+        </div>
+      </section>
+      <section aria-labelledby="export-h" className="flex flex-wrap items-center gap-4 rounded-panel border border-line bg-surface px-[22px] py-5">
+        <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
+          <h2 id="export-h" className="m-0 text-[17px] leading-[23px] font-semibold text-ink">
+            Data export
+          </h2>
+          <p className="m-0 text-[13px] leading-[1.5] text-ink-muted">Every candidate, session and score as CSV files. Audio isn’t included.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-[13px] leading-5 text-ink-faint">Last export: {exportedAt ? formatDate(exportedAt) : "never"}</span>
+          <Button
+            iconLeft={exporting ? undefined : "download"}
+            onClick={() => void onExport()}
+            disabled={exporting}
+            aria-busy={exporting || undefined}
+            className="!border-neutral-line hover:!border-ink-faint"
+          >
             {exporting ? "Preparing…" : "Export all data"}
           </Button>
-          <span className="text-xs leading-4 text-ink-muted">Last export: {exportedAt ? formatDate(exportedAt) : "never"}</span>
         </div>
-        {exportView && <p role="status" className="m-0 text-sm">Export: {exportView.status}{exportView.status === "failed" ? ". The export failed. Start a new export." : exportView.status === "expired" ? ". Download links expired. Start a new export." : exportView.status === "done" ? ". Files are available for 24 hours." : ". CSV files are being prepared."}</p>}
-        {exportError && <ErrorBanner message={exportError} onRetry={exportId && !exportGone ? () => { setExporting(true); setPollTick((n) => n + 1); } : undefined} />}
-        {exportView?.status === "done" && <div className="flex flex-wrap gap-2">{exportView.files.map((file) => <Button key={file.name} disabled={downloading !== null} onClick={() => void downloadFile(file.name)}>{downloading === file.name ? "Downloading…" : `Download ${file.name}`}</Button>)}</div>}
-      </SettingsCard>
+        {(exportView || exportError) && (
+          <div className="flex basis-full flex-col gap-3 border-t border-line pt-4">
+            {exportView && (
+              <p role="status" className="m-0 text-[13px] leading-5 text-ink-soft">
+                {EXPORT_STATUS[exportView.status]}
+                {exportView.status === "done" && <span className="text-ink-faint"> External storage files may open in your browser.</span>}
+              </p>
+            )}
+            {exportError && (
+              <ErrorBanner
+                message={exportError}
+                onRetry={exportId && !exportGone ? () => { setExporting(true); setPollTick((n) => n + 1); } : undefined}
+              />
+            )}
+            {exportView?.status === "done" && exportView.files.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {exportView.files.map((file) => (
+                  <Button
+                    key={file.name}
+                    size="sm"
+                    iconLeft="download"
+                    aria-label={`Download ${file.name}`}
+                    disabled={downloading !== null}
+                    onClick={() => void downloadFile(file.name)}
+                  >
+                    {downloading === file.name ? "Downloading…" : file.name}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
       <PrivacyRequests />
       <ConfirmDialog
         open={confirming && Boolean(first)}
@@ -226,6 +293,19 @@ export function PrivacySection() {
         }}
       />
     </>
+  );
+}
+
+function RequestStatus({ status }: { status: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-[7px] py-px text-[11px] leading-4 font-semibold capitalize",
+        status === "pending" ? "bg-improve-soft text-improve-text" : "bg-neutral-soft text-ink-faint",
+      )}
+    >
+      {status}
+    </span>
   );
 }
 
@@ -250,23 +330,85 @@ function PrivacyRequests() {
     finally { setBusy(false); }
   }
   const columns: Column<PrivacyRequest>[] = [
-    { id: "candidate", header: "Candidate", render: (row) => <span className="flex flex-col"><span>{row.name ?? row.email}</span>{row.name && <span className="text-xs text-ink-muted">{row.email}</span>}</span> },
-    { id: "kind", header: "Request", render: (row) => row.kind },
-    { id: "status", header: "Status", render: (row) => row.status },
-    { id: "created", header: "Requested", render: (row) => formatDate(row.createdAt) },
-    { id: "action", header: "Action", render: (row) => row.status === "pending" ? <Button disabled={busy} onClick={() => setSelected(row)}>{row.kind === "deletion" ? "Process deletion" : "Queue export"}</Button> : <span className="text-xs text-ink-muted">{row.completedAt ? formatDate(row.completedAt) : "Handled"}</span> },
+    {
+      id: "candidate",
+      header: "Candidate",
+      width: "minmax(180px,2fr)",
+      render: (row) => (
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate font-semibold text-ink">{row.name ?? row.email}</span>
+          {row.name && <span className="truncate text-[13px] text-ink-faint">{row.email}</span>}
+        </span>
+      ),
+    },
+    { id: "kind", header: "Request", width: "minmax(100px,1fr)", render: (row) => <span className="capitalize text-ink-soft">{row.kind}</span> },
+    { id: "status", header: "Status", width: "minmax(100px,1fr)", render: (row) => <RequestStatus status={row.status} /> },
+    { id: "created", header: "Requested", width: "minmax(110px,1fr)", render: (row) => <span className="text-[13px] text-ink-faint">{formatDate(row.createdAt)}</span> },
+    {
+      id: "action",
+      header: "Action",
+      align: "right",
+      width: "minmax(150px,1fr)",
+      render: (row) =>
+        row.status === "pending" ? (
+          <Button size="sm" variant={row.kind === "deletion" ? "secondary" : "secondary-teal"} disabled={busy} onClick={() => setSelected(row)}>
+            {row.kind === "deletion" ? "Process deletion" : "Queue export"}
+          </Button>
+        ) : (
+          <span className="text-[13px] text-ink-faint">{row.completedAt ? formatDate(row.completedAt) : "Handled"}</span>
+        ),
+    },
   ];
+  const paged = cursors.length > 1 || Boolean(requests.data?.nextCursor);
   return (
     <>
       {(error || requests.error) && <ErrorBanner message={error ?? settingsErrorMessage(requests.error, "Couldn’t load privacy requests.")} onRetry={requests.reload} />}
-      <SettingsCard title="Privacy requests">
-        <p className="m-0 text-xs text-ink-muted">Pending requests and requests from the last 30 days. Completed deletion requests start an erasure job.</p>
-        <DataTable ariaLabel="Privacy requests" columns={columns} rows={requests.error ? [] : requests.data?.rows ?? []} rowId={(row) => row.id} loading={requests.loading} emptyState={<EmptyState icon="search" title="No privacy requests" description="Candidate requests will appear here." />} />
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-ink-muted">Page {cursors.length} · {requests.data?.total ?? 0} requests</span>
-          <div className="flex gap-2"><Button disabled={requests.loading || cursors.length === 1} onClick={() => setCursors((c) => c.slice(0, -1))}>Previous</Button><Button disabled={requests.loading || !requests.data?.nextCursor} onClick={() => { if (requests.data?.nextCursor) setCursors((c) => [...c, requests.data!.nextCursor!]); }}>Next</Button><Button disabled={requests.loading || busy} onClick={requests.reload}>Refresh</Button></div>
-        </div>
-      </SettingsCard>
+      <section aria-labelledby="requests-h" className="overflow-hidden rounded-panel border border-line bg-surface">
+        <CardHeader
+          id="requests-h"
+          title="Privacy requests"
+          sub="Pending requests and those from the last 30 days. Approved deletions start an erasure job."
+          action={
+            <Button
+              variant="ghost"
+              size="sm"
+              iconLeft="refresh"
+              disabled={requests.loading || busy}
+              onClick={requests.reload}
+              className="!px-1 hover:!bg-transparent"
+            >
+              Refresh
+            </Button>
+          }
+        />
+        <DataTable
+          ariaLabel="Privacy requests"
+          className="!rounded-none !border-x-0 !border-b-0 !bg-transparent"
+          columns={columns}
+          rows={requests.error ? [] : requests.data?.rows ?? []}
+          rowId={(row) => row.id}
+          loading={requests.loading}
+          emptyState={
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="text-[15px] leading-6 font-semibold text-ink">No privacy requests</span>
+              <span className="text-[13px] leading-5 text-ink-faint">When a candidate asks to see or delete their data, it appears here.</span>
+            </div>
+          }
+        />
+        {paged && (
+          <div className="flex items-center justify-between gap-2 border-t border-line px-[22px] py-3">
+            <span className="text-[13px] text-ink-faint">Page {cursors.length} · {requests.data?.total ?? 0} requests</span>
+            <div className="flex gap-2">
+              <Button size="sm" disabled={requests.loading || cursors.length === 1} onClick={() => setCursors((c) => c.slice(0, -1))}>
+                Previous
+              </Button>
+              <Button size="sm" disabled={requests.loading || !requests.data?.nextCursor} onClick={() => { if (requests.data?.nextCursor) setCursors((c) => [...c, requests.data!.nextCursor!]); }}>
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
       <ConfirmDialog open={selected !== null} title={selected?.kind === "deletion" ? "Process this deletion request?" : "Queue this candidate export?"} body={selected?.kind === "deletion" ? "This starts erasure of the candidate’s recordings, transcripts and scores and removes their access. The job runs asynchronously. This cannot be undone after erasure." : "The candidate’s personal data will be prepared and a download link emailed to them."} tone={selected?.kind === "deletion" ? "destructive" : "default"} confirmLabel={selected?.kind === "deletion" ? "Process deletion" : "Queue export"} onCancel={() => setSelected(null)} onConfirm={() => void complete()} />
     </>
   );

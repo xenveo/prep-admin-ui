@@ -1,30 +1,31 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { DataTable, type Column } from "@/components/ui/data-table";
 import { Field } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
-import type { MenuItem } from "@/components/ui/menu";
-import { Modal } from "@/components/ui/modal";
+import { Menu, type MenuItem } from "@/components/ui/menu";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { StatusChip } from "@/components/ui/status-chip";
 import { useToast } from "@/components/ui/toast";
+import { cn } from "@/lib/cn";
 import { invitedLabel, relativeTime } from "@/lib/format";
 import { useAsync } from "@/lib/use-async";
 import type { Admin, AdminAccess } from "@/lib/types";
 import { changeAdminAccess, inviteAdmin, listAdmins, removeAdmin, resendAdminInvite } from "@/services/settings";
 import { ErrorBanner } from "./load-state";
 import { settingsErrorMessage } from "./error-copy";
-import { useHeaderAction } from "./settings-context";
 
 const ACCESS_LABEL: Record<AdminAccess, string> = { admin: "Admin", super_admin: "Super admin" };
 const ACCESS_OPTIONS: { value: AdminAccess; label: string }[] = [
   { value: "admin", label: "Admin" },
   { value: "super_admin", label: "Super admin" },
 ];
+const EMAIL_RE = /^\S+@\S+\.\S+$/;
+/** Name · Access · Last active · actions. */
+const COLS = "grid grid-cols-[minmax(0,1fr)_auto_30px] gap-4 min-[720px]:grid-cols-[minmax(220px,2fr)_130px_130px_30px]";
 
 function displayName(a: Admin): string {
   return a.name ?? a.email;
@@ -38,83 +39,70 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
   const [removeFor, setRemoveFor] = useState<Admin | null>(null);
   const [mutating, setMutating] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  const inviteReturn = useRef<HTMLElement | null>(null);
+  const inviteButton = useRef<HTMLButtonElement>(null);
+  const formId = useId();
 
-  useHeaderAction({
-    label: "Invite admin",
-    iconLeft: "plus",
-    loading: mutating,
-    onClick: () => {
-      inviteReturn.current = document.activeElement as HTMLElement | null;
-      setInviteOpen(true);
-    },
-  });
-
-  const columns: Column<Admin>[] = [
-    {
-      id: "name",
-      header: "Name",
-      render: (a) => (
-        <span className="flex min-w-0 items-center gap-2.5">
-          <Avatar name={displayName(a)} size={28} />
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate font-semibold leading-[18px]">
-              {displayName(a)}
-              {a.id === currentAdminId && " (you)"}
-            </span>
-            <span className="truncate text-xs leading-4 text-ink-muted">
-              {a.status === "invite_pending" && a.invitedAt ? invitedLabel(a.invitedAt) : a.email}
-            </span>
-          </span>
-        </span>
-      ),
-    },
-    {
-      id: "access",
-      header: "Access",
-      render: (a) => (
-        <span className="inline-flex items-center gap-2">
-          <span>{ACCESS_LABEL[a.access]}</span>
-          {a.status === "invite_pending" && <StatusChip status="invite-pending" />}
-        </span>
-      ),
-    },
-    {
-      id: "last",
-      header: "Last active",
-      render: (a) =>
-        a.lastActiveAt ? <span>{relativeTime(a.lastActiveAt)}</span> : <span className="text-ink-muted">Not yet</span>,
-    },
-  ];
+  function closeInvite() {
+    setInviteOpen(false);
+    requestAnimationFrame(() => inviteButton.current?.focus());
+  }
 
   function rowActions(a: Admin): MenuItem[] {
-    const self = a.id === currentAdminId;
-    return [
-      { id: "access", label: "Change access", disabled: self || mutating, disabledReason: self ? "You can’t change your own access" : undefined, onSelect: () => setAccessFor(a) },
+    const pending = a.status === "invite_pending";
+    const items: MenuItem[] = [
       {
+        id: "access",
+        label: a.access === "admin" ? "Make super admin" : "Change to admin",
+        disabled: mutating,
+        onSelect: () => setAccessFor(a),
+      },
+    ];
+    if (pending) {
+      items.push({
         id: "resend",
         label: "Resend invite",
-        disabled: mutating || a.status !== "invite_pending",
-        disabledReason: a.status !== "invite_pending" ? "Already active" : undefined,
+        disabled: mutating,
         onSelect: () => {
           setProblem(null);
           setMutating(true);
-          resendAdminInvite(a.id).then(
-            () => { toast.show({ title: `Invite resent to ${a.email}` }); reload(); },
-            (e: unknown) => setProblem(settingsErrorMessage(e, "Couldn't resend the invite.")),
-          ).finally(() => setMutating(false));
+          resendAdminInvite(a.id)
+            .then(
+              () => {
+                toast.show({ title: `Invite resent to ${a.email}` });
+                reload();
+              },
+              (e: unknown) => setProblem(settingsErrorMessage(e, "Couldn't resend the invite.")),
+            )
+            .finally(() => setMutating(false));
         },
-      },
-      {
-        id: "remove",
-        label: "Remove admin",
-        destructive: true,
-        dividerBefore: true,
-        disabled: self || mutating,
-        disabledReason: self ? "You can't remove yourself" : undefined,
-        onSelect: () => setRemoveFor(a),
-      },
-    ];
+      });
+    }
+    items.push({
+      id: "remove",
+      label: pending ? "Cancel invite" : "Remove admin",
+      destructive: true,
+      disabled: mutating,
+      onSelect: () => setRemoveFor(a),
+    });
+    return items;
+  }
+
+  async function confirmAccess() {
+    const a = accessFor;
+    if (!a || mutating) return;
+    const next: AdminAccess = a.access === "admin" ? "super_admin" : "admin";
+    setAccessFor(null);
+    setProblem(null);
+    setMutating(true);
+    try {
+      await changeAdminAccess(a.id, next);
+      toast.show({ title: `${displayName(a)} is now ${ACCESS_LABEL[next]}` });
+      reload();
+    } catch (e) {
+      setProblem(settingsErrorMessage(e, "Couldn't change access."));
+    } finally {
+      setMutating(false);
+    }
   }
 
   async function confirmRemove() {
@@ -125,65 +113,129 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
     setMutating(true);
     try {
       await removeAdmin(a.id);
-      toast.show({ title: `Removed ${displayName(a)}` });
+      toast.show({ title: a.status === "invite_pending" ? `Cancelled the invite to ${a.email}` : `Removed ${displayName(a)}` });
       reload();
     } catch (e) {
       setProblem(settingsErrorMessage(e, "Couldn't remove this admin."));
-    } finally { setMutating(false); }
+    } finally {
+      setMutating(false);
+    }
   }
+
+  const rows = data ?? [];
+  const removingPending = removeFor?.status === "invite_pending";
 
   return (
     <>
       {(error || problem) && (
         <ErrorBanner message={problem ?? "Couldn't load admins. Try again."} onRetry={problem ? undefined : reload} />
       )}
-      <section aria-labelledby="ad-h" className="rounded-md border border-line bg-surface">
-        <div className="px-5 pt-4 pb-3">
-          <h2 id="ad-h" className="m-0 text-base font-semibold leading-6">
-            Admins
-          </h2>
-          <p className="m-0 text-xs leading-4 text-ink-muted">Super admins also manage admins, data and privacy, and email settings.</p>
+      <section aria-labelledby="ad-h" className="rounded-panel border border-line bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-[22px] py-5">
+          <div className="flex min-w-0 flex-col gap-1">
+            <h2 id="ad-h" className="m-0 text-[17px] font-semibold leading-6 text-ink">
+              Admins
+            </h2>
+            <p className="m-0 text-[13px] leading-5 text-ink-faint">
+              Super admins can also manage admins, AI, data and privacy, and email.
+            </p>
+          </div>
+          <Button
+            ref={inviteButton}
+            variant="primary"
+            iconLeft="plus"
+            aria-expanded={inviteOpen}
+            aria-controls={inviteOpen ? formId : undefined}
+            onClick={() => setInviteOpen(true)}
+          >
+            Invite admin
+          </Button>
         </div>
-        <DataTable
-          ariaLabel="Admins"
-          columns={columns}
-          rows={data ?? []}
-          rowId={(a) => a.id}
-          loading={loading && !data}
-          rowActions={rowActions}
-          twoLine
-        />
+
+        {inviteOpen && (
+          <InviteAdminForm
+            id={formId}
+            onCancel={closeInvite}
+            onInvited={(a) => {
+              closeInvite();
+              toast.show({ title: `Invite sent to ${a.email}` });
+              reload();
+            }}
+          />
+        )}
+
+        <div role="table" aria-label="Admins" aria-busy={(loading && !data) || undefined}>
+          <div role="rowgroup">
+            <div
+              role="row"
+              className={cn(COLS, "h-10 items-center border-t border-line px-[22px] text-xs font-semibold leading-4 text-ink-faint")}
+            >
+              <span role="columnheader">Name</span>
+              <span role="columnheader">Access</span>
+              <span role="columnheader" className="hidden text-right min-[720px]:block">
+                Last active
+              </span>
+              <span role="columnheader">
+                <span className="sr-only">Actions</span>
+              </span>
+            </div>
+          </div>
+          <div role="rowgroup">
+            {loading && !data
+              ? [0, 1, 2].map((i) => (
+                  <div key={i} role="row" className={cn(COLS, "min-h-16 items-center border-t border-line px-[22px]")}>
+                    <span role="cell" className="flex items-center gap-3">
+                      <span className="size-[34px] flex-none animate-pulse rounded-full bg-neutral-soft" />
+                      <span className="h-3.5 w-40 animate-pulse rounded bg-neutral-soft" />
+                    </span>
+                    <span role="cell" className="h-5 w-16 animate-pulse rounded-full bg-neutral-soft" />
+                    <span role="cell" className="hidden min-[720px]:block" />
+                    <span role="cell" />
+                  </div>
+                ))
+              : rows.map((a) => (
+                  <AdminRow key={a.id} admin={a} self={a.id === currentAdminId} actions={rowActions(a)} />
+                ))}
+            {!loading && data && rows.length === 0 && (
+              <div role="row" className="border-t border-line px-[22px] py-10 text-center">
+                <span role="cell" className="text-[13px] text-ink-faint">
+                  No admins yet. Invite someone to share the work.
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
-      <InviteAdminModal
-        open={inviteOpen}
-        onClose={() => setInviteOpen(false)}
-        returnFocusRef={inviteReturn}
-        onInvited={(a) => {
-          setInviteOpen(false);
-          toast.show({ title: `Invite sent to ${a.email}` });
-          reload();
-        }}
-      />
-      <ChangeAccessModal
-        admin={accessFor}
-        onClose={() => setAccessFor(null)}
-        onChanged={(a, access) => {
-          setAccessFor(null);
-          toast.show({ title: `${displayName(a)} is now ${ACCESS_LABEL[access]}` });
-          reload();
-        }}
+      <ConfirmDialog
+        open={accessFor !== null}
+        title={
+          accessFor
+            ? accessFor.access === "admin"
+              ? `Make ${displayName(accessFor)} a super admin?`
+              : `Change ${displayName(accessFor)} to admin?`
+            : ""
+        }
+        body={
+          accessFor?.access === "admin"
+            ? "They will also be able to manage admins, AI, data and privacy, and email."
+            : "They will no longer be able to manage admins, AI, data and privacy, or email."
+        }
+        confirmLabel={accessFor?.access === "admin" ? "Make super admin" : "Change to admin"}
+        onCancel={() => setAccessFor(null)}
+        onConfirm={() => void confirmAccess()}
       />
       <ConfirmDialog
         open={removeFor !== null}
         tone="destructive"
-        title={removeFor ? `Remove ${displayName(removeFor)}?` : ""}
+        title={removeFor ? (removingPending ? `Cancel the invite to ${removeFor.email}?` : `Remove ${displayName(removeFor)}?`) : ""}
         body={
-          removeFor?.status === "invite_pending"
+          removingPending
             ? "The invite stops working. You can invite them again later."
             : "They can no longer log in to this console. Their past changes stay in the audit log. You can invite them again later."
         }
-        confirmLabel="Remove admin"
+        confirmLabel={removingPending ? "Cancel invite" : "Remove admin"}
+        cancelLabel={removingPending ? "Keep invite" : "Cancel"}
         onCancel={() => setRemoveFor(null)}
         onConfirm={() => void confirmRemove()}
       />
@@ -191,38 +243,90 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
   );
 }
 
-function InviteAdminModal({
-  open,
-  onClose,
+function AdminRow({ admin: a, self, actions }: { admin: Admin; self: boolean; actions: MenuItem[] }) {
+  const pending = a.status === "invite_pending";
+  const name = displayName(a);
+  const superAdmin = a.access === "super_admin";
+  const last = pending
+    ? { text: a.invitedAt ? invitedLabel(a.invitedAt) : "Invite sent", tone: "text-improve-text" }
+    : a.lastActiveAt
+      ? { text: relativeTime(a.lastActiveAt), tone: "text-ink-soft" }
+      : { text: "Not yet", tone: "text-ink-faint" };
+
+  return (
+    <div role="row" className={cn(COLS, "min-h-16 items-center border-t border-line px-[22px] py-3")}>
+      <div role="cell" className="flex min-w-0 items-center gap-3">
+        <Avatar
+          name={name}
+          size={32}
+          tone={self ? "primary" : "neutral"}
+          className={cn("!size-[34px] !text-xs", pending && "!bg-transparent border border-dashed border-neutral-line")}
+        />
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="flex min-w-0 items-center gap-2 text-sm font-semibold leading-5 text-ink">
+            <span className="truncate">{name}</span>
+            {self && (
+              <span className="flex-none rounded-[5px] border border-neutral-line px-1.5 py-px text-[11px] font-semibold leading-4 text-ink-muted">
+                You
+              </span>
+            )}
+          </span>
+          <span className="truncate text-[13px] leading-[18px] text-ink-faint">{a.email}</span>
+        </div>
+      </div>
+      <span role="cell" className="justify-self-start">
+        <span
+          className={cn(
+            "inline-flex whitespace-nowrap rounded-full px-2.5 py-[3px] text-xs font-semibold leading-4",
+            superAdmin ? "bg-primary-tint text-primary-text" : "bg-neutral-soft text-neutral-text",
+          )}
+        >
+          {ACCESS_LABEL[a.access]}
+        </span>
+      </span>
+      <span role="cell" className={cn("hidden text-right text-[13px] leading-5 min-[720px]:block", last.tone)}>
+        {last.text}
+      </span>
+      <span role="cell" className="justify-self-end">
+        {self ? (
+          <button
+            type="button"
+            aria-disabled="true"
+            aria-label="Admin actions"
+            title="You can’t change your own access"
+            className="inline-flex size-[30px] cursor-not-allowed items-center justify-center rounded-[7px] text-neutral-line"
+          >
+            <Icon name="more" size={16} />
+          </button>
+        ) : (
+          <Menu label={`Actions for ${name}`} items={actions} />
+        )}
+      </span>
+    </div>
+  );
+}
+
+function InviteAdminForm({
+  id,
+  onCancel,
   onInvited,
-  returnFocusRef,
 }: {
-  open: boolean;
-  onClose: () => void;
+  id: string;
+  onCancel: () => void;
   onInvited: (a: Admin) => void;
-  returnFocusRef: React.RefObject<HTMLElement | null>;
 }) {
-  const emailRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [access, setAccess] = useState<AdminAccess>("admin");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  function close() {
-    setEmail("");
-    setAccess("admin");
-    setError(null);
-    onClose();
-  }
+  const valid = EMAIL_RE.test(email.trim());
 
   async function submit() {
-    if (busy) return;
+    if (busy || !valid) return;
     setBusy(true);
     setError(null);
     try {
       const a = await inviteAdmin({ email, access });
-      setEmail("");
-      setAccess("admin");
       onInvited(a);
     } catch (e) {
       setError(settingsErrorMessage(e, "Couldn't send the invite."));
@@ -232,129 +336,60 @@ function InviteAdminModal({
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={close}
-      title="Invite admin"
-      width={480}
-      returnFocusRef={returnFocusRef}
-      initialFocusRef={emailRef}
-      footerNote="They get an email with a link to log in"
-      footer={
-        <>
-          <Button onClick={close}>Cancel</Button>
-          <Button
-            variant="primary"
-            disabled={busy}
-            disabledReason={email.trim() === "" ? "Enter an email address" : undefined}
-            onClick={() => void submit()}
-          >
-            {busy ? "Sending…" : "Send invite"}
-          </Button>
-        </>
-      }
+    <form
+      id={id}
+      aria-label="Invite admin"
+      className="mx-[22px] mb-[18px] flex flex-wrap items-end gap-3 rounded-card border border-primary-soft bg-surface-sunken p-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void submit();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && !busy) {
+          e.stopPropagation();
+          onCancel();
+        }
+      }}
     >
-      <form
-        className="flex flex-col gap-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (email.trim() !== "") void submit();
-        }}
-      >
-        <Field label="Email" error={error}>
-          {({ id, describedBy, invalid }) => (
-            <Input
-              ref={emailRef}
-              id={id}
-              type="email"
-              invalid={invalid}
-              aria-describedby={describedBy}
-              placeholder="name@company.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError(null);
-              }}
-            />
-          )}
-        </Field>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[13px] leading-5 font-semibold text-ink">Access</span>
-          <div className="self-start">
-            <SegmentedControl<AdminAccess> label="Access" options={ACCESS_OPTIONS} value={access} onChange={setAccess} />
-          </div>
-          <p className="m-0 text-xs leading-4 text-ink-muted">Super admins also manage admins, data and privacy, and email settings.</p>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-
-function ChangeAccessModal({
-  admin,
-  onClose,
-  onChanged,
-}: {
-  admin: Admin | null;
-  onClose: () => void;
-  onChanged: (a: Admin, access: AdminAccess) => void;
-}) {
-  const [picked, setPicked] = useState<AdminAccess | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const access = picked ?? admin?.access ?? "admin";
-
-  function close() {
-    setPicked(null);
-    setError(null);
-    onClose();
-  }
-
-  async function submit() {
-    if (!admin || busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await changeAdminAccess(admin.id, access);
-      const a = admin;
-      setPicked(null);
-      onChanged(a, access);
-    } catch (e) {
-      setError(settingsErrorMessage(e, "Couldn't change access."));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <Modal
-      open={admin !== null}
-      onClose={close}
-      title={admin ? `Change access for ${displayName(admin)}` : "Change access"}
-      width={480}
-      footer={
-        <>
-          <Button onClick={close}>Cancel</Button>
-          <Button
-            variant="primary"
-            disabled={busy}
-            disabledReason={admin && access === admin.access ? "Pick a different access level" : undefined}
-            onClick={() => void submit()}
-          >
-            Save access
-          </Button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-1.5">
-        <SegmentedControl<AdminAccess> label="Access" options={ACCESS_OPTIONS} value={access} onChange={setPicked} />
-        <p className="m-0 text-xs leading-4 text-ink-muted">Super admins also manage admins, data and privacy, and email settings.</p>
-        {error && (
-          <p role="alert" className="m-0 text-xs leading-4 font-medium text-improve-text">
-            {error}
-          </p>
+      <Field label="Email" error={error} className="min-w-0 flex-[1_1_240px]">
+        {({ id: inputId, describedBy, invalid }) => (
+          <Input
+            id={inputId}
+            type="email"
+            tone="surface"
+            autoFocus
+            autoComplete="off"
+            invalid={invalid}
+            aria-describedby={describedBy}
+            placeholder="name@company.com"
+            className="!h-10"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError(null);
+            }}
+          />
         )}
+      </Field>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[13px] leading-5 font-semibold text-ink">Access</span>
+        <SegmentedControl<AdminAccess> label="Access" options={ACCESS_OPTIONS} value={access} onChange={setAccess} />
       </div>
-    </Modal>
+      <div className="flex gap-2">
+        <Button className="!border-neutral-line !rounded-[9px] !px-3.5" disabled={busy} onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          className="!rounded-[9px]"
+          disabled={busy}
+          aria-busy={busy || undefined}
+          disabledReason={valid ? undefined : "Enter a valid email address"}
+        >
+          {busy ? "Sending…" : "Send invite"}
+        </Button>
+      </div>
+    </form>
   );
 }
