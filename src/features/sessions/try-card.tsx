@@ -2,6 +2,7 @@ import { SubScoreBars } from "@/components/charts/sub-score-bars";
 import { AudioPlayer } from "@/components/media/audio-waveform";
 import { TranscriptHighlights } from "@/components/media/transcript-highlights";
 import { BandChip } from "@/components/ui/band-chip";
+import { cn } from "@/lib/cn";
 import type { AppliedState, Try } from "@/lib/types";
 
 const MARK: Record<AppliedState, string> = { done: "✓", partial: "–", missed: "–" };
@@ -80,7 +81,7 @@ export function TryCard({ label, data }: { label: "First try" | "Second try"; da
           </tr>
           <tr className="border-t border-line">
             <th scope="row" className="h-8 text-left font-normal text-ink-muted">Longest pause</th>
-            <td className="text-right text-ink">{data.delivery.longestPauseSec} s</td>
+            <td className={cn("text-right", data.delivery.longestPauseSec === null ? "text-ink-muted" : "text-ink")}>{data.delivery.longestPauseSec === null ? "Not measured" : `${data.delivery.longestPauseSec} s`}</td>
           </tr>
         </tbody>
       </table> : <p className="m-0 text-xs text-ink-muted">Delivery metrics are unavailable for this answer.</p>}

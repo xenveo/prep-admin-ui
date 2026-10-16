@@ -425,7 +425,8 @@ export type InviteBatchResult = {
 export type Highlight = { text: string; kind: "match" | "issue"; note: string };
 export type AppliedState = "done" | "partial" | "missed";
 
-export type DeliveryMetrics = { wpm: number; paceLabel?: string; fillerWords: number; longestPauseSec: number };
+/** Voice answers only (typed answers have delivery null). longestPauseSec is null when pauses weren't measured. */
+export type DeliveryMetrics = { wpm: number; paceLabel?: string; fillerWords: number; longestPauseSec: number | null };
 
 export type Try = {
   attempt: 1 | 2;
