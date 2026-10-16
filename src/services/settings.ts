@@ -38,7 +38,7 @@ export type AiUsageQuery = { from: string; to: string; roleId?: string };
 
 export const getWorkspaceSettings = (): Promise<WorkspaceSettings> => request("/admin/settings");
 export function saveWorkspaceSettings(patch: Partial<WorkspaceSettings>): Promise<WorkspaceSettings> {
-  const editable = ["voice", "feedbackLength", "audioRetentionDays", "transcriptRetention", "candidatesCanDeleteData", "senderName", "replyTo", "inviteLinkExpiryDays"] as const;
+  const editable = ["voice", "feedbackLength", "audioRetentionDays", "transcriptRetention", "candidatesCanDeleteData", "senderName", "replyTo", "inviteLinkExpiryDays", "sessionCompleteEmail"] as const;
   const body = Object.fromEntries(editable.filter((key) => patch[key] !== undefined).map((key) => [key, patch[key]]));
   return request("/admin/settings", { method: "PATCH", body: JSON.stringify(body) });
 }

@@ -18,8 +18,10 @@ import { firstName, pluralize } from "@/lib/format";
 import type { CandidateRow, SavedFilter } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
+import { useAdminSession } from "@/components/layout/admin-session";
 import {
   deactivateCandidates,
+  deleteSavedFilter,
   exportCandidatesCsv,
   listCandidates,
   listSavedFilters,
@@ -61,6 +63,7 @@ const STATUS_OPTIONS = [
 export function CandidatesScreen() {
   const url = useUrlState();
   const toast = useToast();
+  const admin = useAdminSession();
   const filters = readFilters(url);
   const sort = readSort(url);
   const candidateId = url.get("candidate");
@@ -163,7 +166,8 @@ export function CandidatesScreen() {
     url.set({ candidate: null });
   }
 
-  const savedItems = savedQ.data?.map((s) => ({ id: s.id, label: s.label })) ?? [];
+  // Only the admin's own filters can be deleted; system filters have adminId null.
+  const savedItems = savedQ.data?.map((s) => ({ id: s.id, label: s.label, removable: Boolean(admin && s.adminId === admin.id && !s.isDefault) })) ?? [];
   // Offer to save only once the list has loaded and the current filters aren't already a saved filter.
   const canSaveCurrent = filtered && savedQ.data !== undefined && activeSaved === null;
 
@@ -175,6 +179,20 @@ export function CandidatesScreen() {
     } catch (error) {
       toast.show({ title: "Something went wrong", detail: error instanceof Error ? error.message : "That didn’t go through. Try again." });
     } finally { mutationBusy.current = false; }
+  }
+
+  async function removeSaved(id: string) {
+    const f = savedQ.data?.find((s) => s.id === id);
+    await guard(async () => {
+      try {
+        await deleteSavedFilter(id);
+      } finally {
+        // A 404 means it is already gone (or not ours); refresh either way so the chips match the server.
+        setSavedVersion((v) => v + 1);
+      }
+      if (activeSaved?.id === id) clearFilters();
+      toast.show({ title: "Saved filter deleted", detail: f?.label });
+    });
   }
 
   async function resend(ids: string[]) {
@@ -300,6 +318,7 @@ export function CandidatesScreen() {
               items={savedItems}
               activeId={activeSaved?.id ?? null}
               onSelect={applySaved}
+              onRemove={(id) => void removeSaved(id)}
               onSaveCurrent={canSaveCurrent ? () => setSaveOpen(true) : undefined}
             />
           )}

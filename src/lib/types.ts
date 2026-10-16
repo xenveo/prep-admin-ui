@@ -74,6 +74,8 @@ export type WorkspaceSettings = {
   senderName: string;
   replyTo: string;
   inviteLinkExpiryDays: number;
+  /** Email candidates a short score note and report link when they complete a session. */
+  sessionCompleteEmail: boolean;
   lastExportAt: string | null;
 };
 
@@ -309,6 +311,8 @@ export type SavedFilter = {
   label: string;
   query: CandidateQuery;
   isDefault?: boolean;
+  /** Owner admin id; null for system filters. Only the owner can delete a filter. */
+  adminId?: string | null;
   source?: Source;
 };
 
@@ -464,7 +468,7 @@ export type SessionQuestion = {
   firstScore: number;
   /** null when there is no second attempt (skipped or absent). */
   secondScore: number | null;
-  /** The candidate chose to skip the retry. Session aggregates still count it as second = first. */
+  /** The candidate chose to skip the retry. It counts as "no change": second = first, learning 50. */
   retrySkipped: boolean;
   /** Present only where the fixtures have full detail (Q2 of Priya's session 3). */
   tries?: Try[];

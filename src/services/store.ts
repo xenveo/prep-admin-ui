@@ -331,7 +331,7 @@ function build(): Store {
   return {
     admins,
     currentAdminId: "adm_arjun",
-    settings: { ...fx.workspaceSettings },
+    settings: { ...fx.workspaceSettings, sessionCompleteEmail: false },
     audit,
     roles,
     cards,

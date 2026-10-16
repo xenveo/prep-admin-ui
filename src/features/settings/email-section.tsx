@@ -2,8 +2,9 @@
 
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { ErrorBanner, LoadingCard } from "./load-state";
-import { SettingsCard } from "./setting-row";
+import { SettingRow, SettingsCard } from "./setting-row";
 import { useSaveHeader } from "./save-header";
 import { useSettingsDraft } from "./use-settings-draft";
 
@@ -40,6 +41,15 @@ export function EmailSection() {
               />
             )}
           </Field>
+          <SettingRow label="Email candidates when they complete a session" labelId="session-email-l" hint="Sends a short note with their score and a link to the report.">
+            <div className="justify-self-start">
+              <Switch
+                label="Email candidates when they complete a session"
+                checked={v.sessionCompleteEmail}
+                onChange={(c) => draft.set("sessionCompleteEmail", c)}
+              />
+            </div>
+          </SettingRow>
         </SettingsCard>
         <section
           aria-label="Invite email preview"

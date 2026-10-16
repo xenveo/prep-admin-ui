@@ -206,7 +206,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                       {cur.tries.map((attempt) => <TryCard key={attempt.attempt} label={attempt.attempt === 1 ? "First try" : "Second try"} data={attempt} />)}
                       {cur.tries.length === 1 && (
                         <p className="text-sm text-ink-muted">
-                          {cur.retrySkipped ? "The candidate skipped the retry." : "No recorded retry."} The first answer is used for the session score.
+                          {cur.retrySkipped ? "The candidate skipped the retry, so it counts as no change: the first answer stands for both tries." : "No recorded retry. The first answer is used for the session score."}
                         </p>
                       )}
                     </div>

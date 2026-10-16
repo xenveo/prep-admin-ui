@@ -22,5 +22,7 @@ export async function exportCandidatesCsv(ids:string[]):Promise<CsvExport> {
 }
 export const listSavedFilters = ():Promise<SavedFilter[]> => request("/admin/saved-filters");
 export const saveFilter = (label:string,query:CandidateQuery):Promise<SavedFilter> => request("/admin/saved-filters",json("POST",{label,query}));
+/** Own filters only; system and other admins' filters answer 404. */
+export const deleteSavedFilter = (filterId:string):Promise<void> => request(`/admin/saved-filters/${id(filterId)}`,json("DELETE"));
 /** Downloadable example format only; never used as application data. */
 export const sampleInviteCsv = () => ({fileName:"invite-template.csv",text:"email,name,roles\ncandidate@example.com,Candidate Name,Approved Role Name\n"});
