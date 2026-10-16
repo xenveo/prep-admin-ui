@@ -6,18 +6,22 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAsync } from "@/lib/use-async";
+import { useUrlState } from "@/lib/use-url-state";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
+import { ApiError } from "@/lib/api/client";
 import { formatDate } from "@/lib/format";
 import { AUDIO_RETENTION_OPTIONS, TRANSCRIPT_RETENTION_LABEL, type TranscriptRetention, type WorkspaceSettings } from "@/lib/types";
 import { exportAllData, getWorkspaceExport, downloadExportFile, listPrivacyRequests, completePrivacyRequest, type WorkspaceExport, type PrivacyRequest } from "@/services/settings";
 import { ErrorBanner, LoadingCard } from "./load-state";
+import { isAccessDenied, settingsErrorMessage } from "./error-copy";
 import { SettingRow, SettingsCard } from "./setting-row";
 import { useSettingsContext } from "./settings-context";
 import { useSaveHeader } from "./save-header";
 import { useSettingsDraft } from "./use-settings-draft";
 
+const EXPORT_UNAVAILABLE = "This export isn’t available. The link may be wrong or the export was removed. Start a new export.";
 const TRANSCRIPT_ORDER: TranscriptRetention[] = ["6m", "12m", "until_removed"];
 
 /** Describes retention periods that got shorter, for the confirmation. */
@@ -46,13 +50,19 @@ export function PrivacySection() {
   const [confirming, setConfirming] = useState(false);
   const { admin } = useSettingsContext();
   const exportKey = `preppilot:workspace-export:${admin?.id ?? ""}`;
-  const [exportId, setExportId] = useState<string | null>(() => {
+  const url = useUrlState();
+  // ?exportId= comes from the export-ready email and wins over this tab's last export.
+  const urlExportId = url.get("exportId");
+  const [dismissedUrlId, setDismissedUrlId] = useState<string | null>(null);
+  const [storedExportId, setStoredExportId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     try { return sessionStorage.getItem(exportKey); } catch { return null; }
   });
+  const exportId = urlExportId && urlExportId !== dismissedUrlId ? urlExportId : storedExportId;
   const [exporting, setExporting] = useState(Boolean(exportId));
   const [exportView, setExportView] = useState<WorkspaceExport | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [exportGone, setExportGone] = useState(false);
   const [pollTick, setPollTick] = useState(0);
   const [downloading, setDownloading] = useState<string | null>(null);
   useEffect(() => {
@@ -67,6 +77,7 @@ export function PrivacySection() {
         if (controller.signal.aborted) return;
         setExportView(result);
         setExportError(null);
+        setExportGone(false);
         if (result.status === "queued" || result.status === "running") {
           if (Date.now() - started > 120000) {
             setExportError("The export is still processing. Check its status again in a moment.");
@@ -74,15 +85,21 @@ export function PrivacySection() {
           } else timer = setTimeout(() => void poll(), Math.min(1000 * ++count, 5000));
         } else setExporting(false);
       } catch (e) {
-        if (!controller.signal.aborted) {
-          setExportError(e instanceof Error ? e.message : "Couldn’t check export status.");
-          setExporting(false);
+        if (controller.signal.aborted) return;
+        // Unknown or malformed ids are final; retrying would only repeat the 404/400.
+        const gone = e instanceof ApiError && (e.status === 404 || e.status === 400);
+        if (gone) {
+          setExportView(null);
+          try { if (sessionStorage.getItem(exportKey) === exportId) sessionStorage.removeItem(exportKey); } catch { /* Nothing stored. */ }
         }
+        setExportGone(gone);
+        setExportError(gone && !isAccessDenied(e) ? EXPORT_UNAVAILABLE : settingsErrorMessage(e, "Couldn’t check export status."));
+        setExporting(false);
       }
     }
     void poll();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [exportId, pollTick]);
+  }, [exportId, exportKey, pollTick]);
   async function downloadFile(name: string) {
     if (!exportId || downloading) return;
     setDownloading(name); setExportError(null);
@@ -92,7 +109,7 @@ export function PrivacySection() {
       const file = current.files.find((f) => f.name === name);
       if (current.status !== "done" || !file) throw new Error("This export is no longer available. Start a new export.");
       await downloadExportFile(file);
-    } catch (e) { setExportError(e instanceof Error ? e.message : "Couldn’t download this file."); }
+    } catch (e) { setExportError(settingsErrorMessage(e, "Couldn’t download this file.")); }
     finally { setDownloading(null); }
   }
   const [lastExport, setLastExport] = useState<string | null | undefined>(undefined);
@@ -109,15 +126,21 @@ export function PrivacySection() {
     if (exporting) return;
     setExporting(true);
     setExportError(null);
+    setExportGone(false);
     try {
       const r = await exportAllData();
       setLastExport(r.lastExportAt);
       setExportView({ status: "queued", files: [] });
-      setExportId(r.exportId);
+      setStoredExportId(r.exportId);
+      if (urlExportId) {
+        // The emailed export no longer applies; useUrlState writes with router.replace.
+        setDismissedUrlId(urlExportId);
+        url.set({ exportId: null });
+      }
       try { sessionStorage.setItem(exportKey, r.exportId); } catch { /* Status remains available in this view. */ }
       toast.show({ title: "Export started", detail: "Candidate, session and score CSV files are being prepared." });
     } catch (e) {
-      setExportError(e instanceof Error ? e.message : "Couldn’t start the export.");
+      setExportError(settingsErrorMessage(e, "Couldn’t start the export."));
       setExporting(false);
     }
   }
@@ -185,7 +208,7 @@ export function PrivacySection() {
           <span className="text-xs leading-4 text-ink-muted">Last export: {exportedAt ? formatDate(exportedAt) : "never"}</span>
         </div>
         {exportView && <p role="status" className="m-0 text-sm">Export: {exportView.status}{exportView.status === "failed" ? ". The export failed. Start a new export." : exportView.status === "expired" ? ". Download links expired. Start a new export." : exportView.status === "done" ? ". Files are available for 24 hours." : ". CSV files are being prepared."}</p>}
-        {exportError && <ErrorBanner message={exportError} onRetry={exportId ? () => { setExporting(true); setPollTick((n) => n + 1); } : undefined} />}
+        {exportError && <ErrorBanner message={exportError} onRetry={exportId && !exportGone ? () => { setExporting(true); setPollTick((n) => n + 1); } : undefined} />}
         {exportView?.status === "done" && <div className="flex flex-wrap gap-2">{exportView.files.map((file) => <Button key={file.name} disabled={downloading !== null} onClick={() => void downloadFile(file.name)}>{downloading === file.name ? "Downloading…" : `Download ${file.name}`}</Button>)}</div>}
       </SettingsCard>
       <PrivacyRequests />
@@ -223,7 +246,7 @@ function PrivacyRequests() {
       await completePrivacyRequest(request.id);
       toast.show({ title: request.kind === "deletion" ? "Deletion processing started" : "Candidate export queued", detail: request.kind === "deletion" ? "The erasure job will process the candidate’s data." : "The candidate will receive their download link by email." });
       requests.reload();
-    } catch (e) { setError(e instanceof Error ? e.message : "Couldn’t complete this request."); }
+    } catch (e) { setError(settingsErrorMessage(e, "Couldn’t complete this request.")); }
     finally { setBusy(false); }
   }
   const columns: Column<PrivacyRequest>[] = [
@@ -235,7 +258,7 @@ function PrivacyRequests() {
   ];
   return (
     <>
-      {(error || requests.error) && <ErrorBanner message={error ?? requests.error!.message} onRetry={requests.reload} />}
+      {(error || requests.error) && <ErrorBanner message={error ?? settingsErrorMessage(requests.error, "Couldn’t load privacy requests.")} onRetry={requests.reload} />}
       <SettingsCard title="Privacy requests">
         <p className="m-0 text-xs text-ink-muted">Pending requests and requests from the last 30 days. Completed deletion requests start an erasure job.</p>
         <DataTable ariaLabel="Privacy requests" columns={columns} rows={requests.error ? [] : requests.data?.rows ?? []} rowId={(row) => row.id} loading={requests.loading} emptyState={<EmptyState icon="search" title="No privacy requests" description="Candidate requests will appear here." />} />

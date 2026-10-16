@@ -1,5 +1,5 @@
 /** Candidate management backed by the admin API. */
-import { download, queryString, request } from "@/lib/api/client";
+import { downloadFile, queryString, request } from "@/lib/api/client";
 import type { CandidateDetail, CandidateList, CandidateQuery, CsvExport, InviteBatchInput, InviteBatchResult, InviteRow, InviteRowInput, InviteSummary, SavedFilter } from "@/lib/types";
 const id = encodeURIComponent;
 const json = (method:string, body?:unknown):RequestInit => ({method,...(body !== undefined ? {body:JSON.stringify(body)} : {})});
@@ -18,7 +18,7 @@ export const reactivateCandidates = (ids:string[]):Promise<{reactivated:number}>
 export const assignRoles = (ids:string[],roleIds:string[]):Promise<{added:number}> => request("/admin/candidates/assign-roles",json("POST",{ids,roleIds}));
 export const removeRole = (candidateId:string,roleId:string):Promise<void> => request(`/admin/candidates/${id(candidateId)}/roles/${id(roleId)}`,json("DELETE"));
 export async function exportCandidatesCsv(ids:string[]):Promise<CsvExport> {
- const file=await download(`/admin/candidates/export.csv${queryString({ids})}`); return {filename:"candidates.csv",csv:await file.text()};
+ const {blob,filename}=await downloadFile("/admin/candidates/export.csv",json("POST",{ids})); return {filename:filename??"candidates.csv",csv:await blob.text()};
 }
 export const listSavedFilters = ():Promise<SavedFilter[]> => request("/admin/saved-filters");
 export const saveFilter = (label:string,query:CandidateQuery):Promise<SavedFilter> => request("/admin/saved-filters",json("POST",{label,query}));

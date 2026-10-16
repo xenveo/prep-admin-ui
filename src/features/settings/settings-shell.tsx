@@ -12,6 +12,7 @@ import { getCurrentAdmin } from "@/services/settings";
 import { SettingsProvider, type HeaderAction } from "./settings-context";
 import { SECTIONS } from "./sections";
 import { ErrorBanner } from "./load-state";
+import { settingsErrorMessage } from "./error-copy";
 
 /** Header + 200px subnav shared by every settings section; sections own the header's primary button. */
 export function SettingsShell({ children }: { children: ReactNode }) {
@@ -68,7 +69,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="flex min-w-0 flex-1 basis-[560px] flex-col gap-4">
-          <SettingsProvider value={ctx}>{error ? <ErrorBanner message={error.message} onRetry={reload} /> : children}</SettingsProvider>
+          <SettingsProvider value={ctx}>{error ? <ErrorBanner message={settingsErrorMessage(error, "Couldn't load settings. Try again.")} onRetry={reload} /> : children}</SettingsProvider>
         </div>
       </div>
     </PageContainer>

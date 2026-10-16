@@ -120,8 +120,9 @@ export function parseDuration(label: string): number {
   return parts.reduce((acc, n) => acc * 60 + n, 0);
 }
 
-/** 24 -> "24 min" */
+/** 24 -> "24 min"; anything under a minute (including 0) -> "<1 min" */
 export function formatMinutes(minutes: number): string {
+  if (minutes < 1) return "<1 min";
   return `${minutes} min`;
 }
 

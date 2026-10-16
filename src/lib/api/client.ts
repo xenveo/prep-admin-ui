@@ -67,3 +67,24 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
 export async function download(path: string, options: RequestInit = {}): Promise<Blob> {
   return (await response(path, options)).blob()
 }
+
+/** Filename from a Content-Disposition header; RFC 5987 `filename*` wins. Path separators are stripped. */
+function dispositionFilename(header: string | null): string | null {
+  if (!header) return null
+  let name: string | null = null
+  const extended = /filename\*\s*=\s*([^']*)'[^']*'([^;]+)/i.exec(header)
+  if (extended) {
+    try { name = decodeURIComponent(extended[2].trim().replace(/^"(.*)"$/, "$1")) } catch { name = null }
+  }
+  if (name === null) {
+    const plain = /(?:^|;)\s*filename\s*=\s*(?:"((?:\\.|[^"\\])*)"|([^;]+))/i.exec(header)
+    if (plain) name = plain[1] !== undefined ? plain[1].replace(/\\(.)/g, "$1") : plain[2].trim()
+  }
+  const safe = name?.split(/[/\\]/).pop()?.replace(/[\u0000-\u001f\u007f]/g, "").trim()
+  return safe && safe !== "." && safe !== ".." ? safe : null
+}
+/** Like `download`, plus the server's Content-Disposition filename (null when absent or not CORS-exposed). */
+export async function downloadFile(path: string, options: RequestInit = {}): Promise<{ blob: Blob; filename: string | null }> {
+  const res = await response(path, options)
+  return { blob: await res.blob(), filename: dispositionFilename(res.headers.get("Content-Disposition")) }
+}

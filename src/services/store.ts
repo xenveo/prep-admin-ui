@@ -268,7 +268,7 @@ function build(): Store {
   const csaQuestions = questions.filter((q) => q.roleId === rv.role);
   const reviewQuestions = rv.questions.map((q) => {
     const match = csaQuestions.find((x) => x.text === q.text);
-    const base = { n: q.n, text: q.text, category: match?.category, firstScore: q.first, secondScore: q.second };
+    const base = { n: q.n, text: q.text, category: match?.category, firstScore: q.first, secondScore: q.second, retrySkipped: false };
     return q.n === 2 ? { ...base, tries: rv.question2.tries.map(seedTry) as [Try, Try] } : base;
   });
   const reviews: Record<string, SessionReview> = {

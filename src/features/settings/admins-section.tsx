@@ -17,6 +17,7 @@ import { useAsync } from "@/lib/use-async";
 import type { Admin, AdminAccess } from "@/lib/types";
 import { changeAdminAccess, inviteAdmin, listAdmins, removeAdmin, resendAdminInvite } from "@/services/settings";
 import { ErrorBanner } from "./load-state";
+import { settingsErrorMessage } from "./error-copy";
 import { useHeaderAction } from "./settings-context";
 
 const ACCESS_LABEL: Record<AdminAccess, string> = { admin: "Admin", super_admin: "Super admin" };
@@ -100,7 +101,7 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
           setMutating(true);
           resendAdminInvite(a.id).then(
             () => { toast.show({ title: `Invite resent to ${a.email}` }); reload(); },
-            (e: unknown) => setProblem(e instanceof Error ? e.message : "Couldn't resend the invite."),
+            (e: unknown) => setProblem(settingsErrorMessage(e, "Couldn't resend the invite.")),
           ).finally(() => setMutating(false));
         },
       },
@@ -127,7 +128,7 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
       toast.show({ title: `Removed ${displayName(a)}` });
       reload();
     } catch (e) {
-      setProblem(e instanceof Error ? e.message : "Couldn't remove this admin.");
+      setProblem(settingsErrorMessage(e, "Couldn't remove this admin."));
     } finally { setMutating(false); }
   }
 
@@ -224,7 +225,7 @@ function InviteAdminModal({
       setAccess("admin");
       onInvited(a);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't send the invite.");
+      setError(settingsErrorMessage(e, "Couldn't send the invite."));
     } finally {
       setBusy(false);
     }
@@ -319,7 +320,7 @@ function ChangeAccessModal({
       setPicked(null);
       onChanged(a, access);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't change access.");
+      setError(settingsErrorMessage(e, "Couldn't change access."));
     } finally {
       setBusy(false);
     }
