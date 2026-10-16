@@ -11,7 +11,8 @@ type IdentityState = { kind: "authenticated"; admin: Admin } | { kind: "session"
 export const adminIdentity = cache(async (): Promise<IdentityState> => {
   const cookie = (await headers()).get("cookie") ?? "";
   try {
-    const admin = await request<Admin>("/admin/me", { headers: { Cookie: cookie }, cache: "no-store" });
+    // Server rendering sends no Origin, so name the app: the API keeps a separate admin login cookie.
+    const admin = await request<Admin>("/admin/me", { headers: { Cookie: cookie, "X-PrepPilot-App": "admin" }, cache: "no-store" });
     return { kind: "authenticated", admin };
   } catch (error) {
     if (error instanceof ApiError) {
