@@ -184,13 +184,19 @@ export function toCsv(rows: (string | number | null | undefined)[][]): string {
 
 /** Browser-only helper: download text as a file. No-op on the server. */
 export function downloadTextFile(filename: string, text: string, mime = "text/csv;charset=utf-8"): void {
+  downloadBlobFile(filename, new Blob([text], { type: mime }));
+}
+
+/** Browser-only helper: save a Blob (e.g. a PDF from the API) as a file. No-op on the server. */
+export function downloadBlobFile(filename: string, blob: Blob): void {
   if (typeof document === "undefined") return;
-  const url = URL.createObjectURL(new Blob([text], { type: mime }));
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  // Revoking immediately can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

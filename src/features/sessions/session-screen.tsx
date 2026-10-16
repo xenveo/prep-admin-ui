@@ -1,18 +1,20 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { ScoreRing } from "@/components/charts/score-ring";
 import { BandChip } from "@/components/ui/band-chip";
 import { Button } from "@/components/ui/button";
 import { ChangeValue } from "@/components/ui/change-value";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
+import { downloadBlobFile } from "@/lib/csv";
 import { formatDateTime, formatMinutes } from "@/lib/format";
 import type { SessionQuestion, SessionReview } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
-import { getSessionReview, listFlags } from "@/services/sessions";
+import { exportSessionPdf, getSessionReview, listFlags } from "@/services/sessions";
 import { FlagRail, type QuestionMode } from "./flag-rail";
 import { SessionSkeleton } from "./session-skeleton";
 import { TryCard, tryMode } from "./try-card";
@@ -116,6 +118,21 @@ function ScoreFormula({ r }: { r: SessionReview }) {
 export function SessionScreen({ candidateId, sessionId }: { candidateId: string; sessionId: string }) {
   const url = useUrlState();
   const review = useAsync(() => getSessionReview(candidateId, sessionId), [candidateId, sessionId]);
+  const toast = useToast();
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  async function exportPdf() {
+    if (exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const { blob, filename } = await exportSessionPdf(candidateId, sessionId);
+      downloadBlobFile(filename, blob);
+    } catch (error) {
+      toast.show({ title: "Couldn’t export the PDF", detail: error instanceof Error ? error.message : "Try again." });
+    } finally {
+      setExportingPdf(false);
+    }
+  }
   const flags = useAsync(() => listFlags(sessionId), [sessionId]);
   const listRef = useRef<HTMLOListElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -207,13 +224,14 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
           </>
         }
         secondaryActions={
-          // Outline look per the design, not faded: the tooltip says why it does nothing yet.
           <Button
             iconLeft="download"
-            disabledReason="PDF export isn’t available yet."
-            className="border-neutral-line! hover:border-ink-faint! aria-disabled:opacity-100!"
+            disabled={exportingPdf}
+            aria-busy={exportingPdf || undefined}
+            onClick={() => void exportPdf()}
+            className="border-neutral-line! hover:border-ink-faint!"
           >
-            Export PDF
+            {exportingPdf ? "Exporting…" : "Export PDF"}
           </Button>
         }
       />
@@ -353,7 +371,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                     </div>
                     {!secondTry && (
                       <p className="m-0 text-[13px] text-ink-muted">
-                        {cur.retrySkipped ? "The candidate skipped the retry." : "No recorded retry."} The first answer is used for the session score.
+                        {cur.retrySkipped ? "The candidate skipped the retry, so it counts as no change: the first answer stands for both tries." : "No recorded retry. The first answer is used for the session score."}
                       </p>
                     )}
                   </>
