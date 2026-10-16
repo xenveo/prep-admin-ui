@@ -126,7 +126,7 @@ export function ReportBody({
       <div className="grid items-start gap-6 min-[1200px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Section id="hq-h" title="Hardest questions" sub="Lowest average first-try score">
           {report.hardestQuestions.length === 0 ? (
-            <p className="m-0 text-sm text-ink-muted">No questions have been asked in this range.</p>
+            <p className="m-0 text-sm text-ink-muted">Not enough answers yet to rank questions. A question needs at least 3 answers in this range.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] border-collapse text-left">

@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAsync } from "@/lib/use-async";
 import type { WorkspaceSettings } from "@/lib/types";
 import { getWorkspaceSettings, saveWorkspaceSettings } from "@/services/settings";
+import { settingsErrorMessage } from "./error-copy";
 
 /** Loads workspace settings, tracks unsaved edits, and saves only the changed fields. */
 export function useSettingsDraft() {
@@ -41,7 +42,7 @@ export function useSettingsDraft() {
       toast.show({ title: "Settings saved" });
       return true;
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : "Couldn't save. Try again.");
+      setSaveError(settingsErrorMessage(e, "Couldn't save. Try again."));
       return false;
     } finally {
       setSaving(false);

@@ -13,6 +13,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useToast } from "@/components/ui/toast";
 import { VOICE_OPTIONS, type FeedbackLength } from "@/lib/types";
 import { ErrorBanner, LoadingCard } from "./load-state";
+import { settingsErrorMessage } from "./error-copy";
 import { SettingRow, SettingsCard } from "./setting-row";
 import { useSaveHeader } from "./save-header";
 import { useSettingsDraft } from "./use-settings-draft";
@@ -97,7 +98,7 @@ function PromptConfiguration() {
   const config = useAsync(getAiConfig, []);
   return (
     <>
-      {config.error && <ErrorBanner message={config.error.message} onRetry={config.reload} />}
+      {config.error && <ErrorBanner message={settingsErrorMessage(config.error, "Couldn’t load AI configuration.")} onRetry={config.reload} />}
       {!config.data && config.loading && <LoadingCard />}
       {config.data?.roles.map((role) => <PromptEditor key={`${role.role}:${role.active.version}`} config={role} onSaved={config.reload} />)}
     </>
@@ -126,7 +127,7 @@ function PromptEditor({ config, onSaved }: { config: PromptRoleConfig; onSaved: 
       setSaved(next.active);
       toast.show({ title: "Prompt version saved" });
       onSaved();
-    } catch (e) { setError(e instanceof Error ? e.message : "Couldn’t save AI configuration."); }
+    } catch (e) { setError(settingsErrorMessage(e, "Couldn’t save AI configuration.")); }
     finally { setBusy(false); }
   }
   return (

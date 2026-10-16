@@ -15,7 +15,7 @@ import { useToast } from "@/components/ui/toast";
 import { BANDS } from "@/lib/bands";
 import { downloadTextFile } from "@/lib/csv";
 import { firstName, pluralize } from "@/lib/format";
-import type { CandidateRow } from "@/lib/types";
+import type { CandidateRow, SavedFilter } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
 import {
@@ -36,13 +36,16 @@ import { CandidatePanel } from "./candidate-panel";
 import { confirmCopy, type ConfirmState } from "./confirm-copy";
 import { InviteModal, type InviteSent, type InviteTab } from "./invite-modal";
 import {
+  activeSavedFilter,
   buildQuery,
   CLEAR_FILTER_UPDATES,
+  findSavedFilterByQuery,
   hasFilters,
   LAST_ACTIVE_OPTIONS,
   readFilters,
   readSort,
   savedFilterUpdates,
+  savedParam,
   SORT_LABEL,
 } from "./url-query";
 
@@ -52,6 +55,7 @@ const STATUS_OPTIONS = [
   { value: "invite_pending", label: "Invite pending" },
   { value: "active", label: "Active" },
   { value: "deactivated", label: "Deactivated" },
+  { value: "revoked", label: "Revoked" },
 ];
 
 export function CandidatesScreen() {
@@ -74,6 +78,7 @@ export function CandidatesScreen() {
   const rows = useMemo(() => listQ.data?.rows ?? [], [listQ.data]);
   const firstUse = listQ.data?.totalUnfiltered === 0 && !listQ.error;
   const filtered = hasFilters(filters);
+  const activeSaved = activeSavedFilter(filters, savedQ.data);
 
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const selectedRows = useMemo(() => rows.filter((r) => selection.has(r.id)), [rows, selection]);
@@ -129,11 +134,24 @@ export function CandidatesScreen() {
     url.set(CLEAR_FILTER_UPDATES);
   }
 
+  function applySavedFilter(f: SavedFilter) {
+    setSearchText(f.isDefault ? "" : (f.query.search?.trim() ?? ""));
+    url.set(savedFilterUpdates(f));
+  }
+
   function applySaved(id: string) {
     const f = savedQ.data?.find((s) => s.id === id);
-    const q = f?.query ?? (id === "invite_pending" ? { statuses: ["invite_pending" as const] } : {});
-    setSearchText(q.search ?? "");
-    url.set(savedFilterUpdates(id, q));
+    if (f) applySavedFilter(f);
+  }
+
+  function showInvitePending() {
+    const f = findSavedFilterByQuery(savedQ.data, { statuses: ["invite_pending"] });
+    if (f) {
+      applySavedFilter(f);
+      return;
+    }
+    setSearchText("");
+    url.set({ ...CLEAR_FILTER_UPDATES, status: ["invite_pending"] });
   }
 
   function openRow(r: CandidateRow) {
@@ -145,9 +163,9 @@ export function CandidatesScreen() {
     url.set({ candidate: null });
   }
 
-  const savedItems = savedQ.data?.map((s) => ({ id: s.id, label: s.label })) ?? [
-    { id: "all", label: "All candidates" },
-  ];
+  const savedItems = savedQ.data?.map((s) => ({ id: s.id, label: s.label })) ?? [];
+  // Offer to save only once the list has loaded and the current filters aren't already a saved filter.
+  const canSaveCurrent = filtered && savedQ.data !== undefined && activeSaved === null;
 
   async function guard(fn: () => Promise<void>) {
     if (mutationBusy.current) return;
@@ -219,7 +237,7 @@ export function CandidatesScreen() {
     toast.show({
       title: `${pluralize(r.sent, "invite")} sent`,
       detail: `Each person gets an email with a login link.${r.skipped > 0 ? ` ${pluralize(r.skipped, "row")} ${r.skipped === 1 ? "was" : "were"} skipped.` : ""}`,
-      action: { label: "Show invite pending", onClick: () => applySaved("invite_pending") },
+      action: { label: "Show invite pending", onClick: showInvitePending },
     });
   }
 
@@ -227,7 +245,7 @@ export function CandidatesScreen() {
     await guard(async () => {
       const f = await saveFilter(name, query);
       setSavedVersion((v) => v + 1);
-      url.set({ saved: f.id });
+      url.set({ saved: savedParam(f) });
       setSaveOpen(false);
     });
   }
@@ -277,12 +295,14 @@ export function CandidatesScreen() {
             onChange={onFilterChange}
             onClearAll={clearFilters}
           />
-          <SavedFilterChips
-            items={savedItems}
-            activeId={filters.saved ?? (filtered ? null : "all")}
-            onSelect={applySaved}
-            onSaveCurrent={filtered ? () => setSaveOpen(true) : undefined}
-          />
+          {(savedItems.length > 0 || canSaveCurrent) && (
+            <SavedFilterChips
+              items={savedItems}
+              activeId={activeSaved?.id ?? null}
+              onSelect={applySaved}
+              onSaveCurrent={canSaveCurrent ? () => setSaveOpen(true) : undefined}
+            />
+          )}
 
           {listQ.error && (
             <div

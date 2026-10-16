@@ -32,9 +32,16 @@ export function bandForScore(score: number): Band {
 
 /** Sample data uses "not_ready" in some places and may use other ids; normalise here. */
 export function toBand(id: string): Band {
+  const band = parseBand(id);
+  if (band === null) throw new Error(`Unknown band id: ${id}`);
+  return band;
+}
+
+/** Like toBand, but returns null for unknown ids (for untrusted input such as URL params). */
+export function parseBand(id: string): Band | null {
   if (id === "ready" || id === "nearly" || id === "developing" || id === "not_ready") return id;
   if (id === "not-ready" || id === "notready") return "not_ready";
-  throw new Error(`Unknown band id: ${id}`);
+  return null;
 }
 
 /** Change since baseline, or null when there are fewer than 2 sessions. */

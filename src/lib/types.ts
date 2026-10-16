@@ -451,7 +451,10 @@ export type SessionQuestion = {
   text: string;
   category?: string;
   firstScore: number;
-  secondScore: number;
+  /** null when there is no second attempt (skipped or absent). */
+  secondScore: number | null;
+  /** The candidate chose to skip the retry. Session aggregates still count it as second = first. */
+  retrySkipped: boolean;
   /** Present only where the fixtures have full detail (Q2 of Priya's session 3). */
   tries?: Try[];
 };

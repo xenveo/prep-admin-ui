@@ -10,12 +10,39 @@ import { ChangeValue } from "@/components/ui/change-value";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatStrip } from "@/components/ui/stat-strip";
 import { cn } from "@/lib/cn";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatMinutes } from "@/lib/format";
+import type { SessionQuestion } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
 import { getSessionReview, listFlags } from "@/services/sessions";
 import { FlagRail } from "./flag-rail";
 import { TryCard } from "./try-card";
+
+/** "49 → 52", "49 · retry skipped", or "49 → —" when no second try was recorded. */
+function ScorePair({ q }: { q: SessionQuestion }) {
+  if (q.retrySkipped) return <>{q.firstScore} · retry skipped</>;
+  if (q.secondScore === null) {
+    return (
+      <>
+        {q.firstScore} <span aria-hidden="true">→ —</span>
+        <span className="sr-only">, no second try</span>
+      </>
+    );
+  }
+  return (
+    <>
+      {q.firstScore} <span aria-hidden="true">→</span>
+      <span className="sr-only">to</span> {q.secondScore}
+    </>
+  );
+}
+
+function scoresOnlyDescription(q: SessionQuestion): string {
+  const first = `Only the scores are available: ${q.firstScore} on the first try`;
+  if (q.retrySkipped) return `${first}; the retry was skipped.`;
+  if (q.secondScore === null) return `${first}; no second try was recorded.`;
+  return `${first}, ${q.secondScore} on the second.`;
+}
 
 export function SessionScreen({ candidateId, sessionId }: { candidateId: string; sessionId: string }) {
   const url = useUrlState();
@@ -83,7 +110,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
               </p>
             )}
             <p className="m-0">
-              {r.roleTitle} · {formatDateTime(r.date)} · {r.durationMin} min
+              {r.roleTitle} · {formatDateTime(r.date)} · {formatMinutes(r.durationMin)}
             </p>
           </>
         }
@@ -111,7 +138,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
           <EmptyState
             icon="file"
             title="No answer-level detail for this session"
-            description={`Only the summary is available: score ${r.score}, ${r.durationMin} min. Transcripts and per-answer scores aren’t stored for this session.`}
+            description={`Only the summary is available: score ${r.score}, ${formatMinutes(r.durationMin)}. Transcripts and per-answer scores aren’t stored for this session.`}
             helper={r.formulaText}
           />
         </div>
@@ -140,8 +167,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                       <span className="flex min-w-0 flex-col">
                         <span className={cn("text-[13px] leading-5 text-ink", on ? "font-semibold" : "font-medium")}>{q.text}</span>
                         <span className="text-xs text-ink-muted">
-                          {q.firstScore} <span aria-hidden="true">→</span>
-                          <span className="sr-only">to</span> {q.secondScore}
+                          <ScorePair q={q} />
                         </span>
                       </span>
                     </button>
@@ -157,7 +183,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                 <div>
                   <span className="text-xs text-ink-muted">
                     Question {cur.n} of {r.questions.length}
-                    {cur.category ? ` · ${cur.category}` : ""} · {cur.firstScore} → {cur.secondScore}
+                    {cur.category ? ` · ${cur.category}` : ""} · <ScorePair q={cur} />
                   </span>
                   <h2 id="q-title" className="m-0 text-lg font-semibold leading-7 text-ink">
                     {cur.text}
@@ -168,7 +194,11 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                     <HighlightLegend />
                     <div className="grid items-start gap-4 min-[1360px]:grid-cols-2">
                       {cur.tries.map((attempt) => <TryCard key={attempt.attempt} label={attempt.attempt === 1 ? "First try" : "Second try"} data={attempt} />)}
-                      {cur.tries.length === 1 && <p className="text-sm text-ink-muted">No recorded retry. The first answer is used for the session score.</p>}
+                      {cur.tries.length === 1 && (
+                        <p className="text-sm text-ink-muted">
+                          {cur.retrySkipped ? "The candidate skipped the retry." : "No recorded retry."} The first answer is used for the session score.
+                        </p>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -176,7 +206,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                     <EmptyState
                       icon="file"
                       title="No transcript for this question"
-                      description={`Only the scores are available: ${cur.firstScore} on the first try, ${cur.secondScore} on the second.`}
+                      description={scoresOnlyDescription(cur)}
                     />
                   </div>
                 )}
