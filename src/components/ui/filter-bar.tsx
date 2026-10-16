@@ -177,7 +177,7 @@ export function FilterBar({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <label className="flex h-[38px] min-w-[240px] max-w-[360px] flex-1 cursor-text items-center gap-2.5 rounded-[9px] border border-input-line bg-surface px-3 focus-within:[outline:var(--focus-ring)] focus-within:[outline-offset:var(--focus-offset)]">
-        <Icon name="search" size={15} className="shrink-0 text-ink-faint" />
+        <Icon name="search" size={14} className="shrink-0 text-ink-faint" />
         <input
           type="search"
           value={search}

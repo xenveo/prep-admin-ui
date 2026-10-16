@@ -61,8 +61,7 @@ export function TryCard({ label, data, className }: { label: "First try" | "Seco
           </span>
         </div>
         {mode === "voice" && <AudioPlayer label={label} durationSeconds={data.audioSeconds} src={data.audioUrl} />}
-        {/* TranscriptHighlights owns the 15px / 1.75 ink-soft type. */}
-        <TranscriptHighlights className="text-pretty" transcript={data.transcript} highlights={data.highlights} />
+        <TranscriptHighlights transcript={data.transcript} highlights={data.highlights} />
       </section>
 
       <section aria-label="Dimension scores" className="border-t border-line px-6 py-5">

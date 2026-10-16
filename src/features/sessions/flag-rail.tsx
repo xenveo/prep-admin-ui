@@ -19,9 +19,6 @@ import { cn } from "@/lib/cn";
 import { resolveFlag, submitFlag } from "@/services/sessions";
 
 const EYEBROW = "m-0 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-faint";
-/** Sunken inputs per the design; descendant selectors because Select/Textarea own their control classes. */
-const SUNKEN_FIELD =
-  "[&_select]:h-[38px] [&_select]:rounded-lg [&_select]:bg-surface-sunken [&_textarea]:rounded-lg [&_textarea]:bg-surface-sunken [&_textarea]:placeholder:text-ink-faint";
 
 const DIMENSIONS: FlagDimension[] = ["structure", "content", "delivery", "relevance", "overall", "feedback"];
 const DIMENSION_OPTION: Record<FlagDimension, string> = {
@@ -132,7 +129,7 @@ export function FlagRail({
             If the AI scored question {questionNumber} wrongly, tell us. The score stays as is until someone reviews it.
           </p>
         </div>
-        <Field label="Dimension" className={SUNKEN_FIELD}>
+        <Field label="Dimension">
           {({ id, describedBy }) => (
             <Select id={id} aria-describedby={describedBy} value={dimension} onChange={(e) => setDimension(e.target.value as FlagDimension)}>
               {DIMENSIONS.map((d) => (
@@ -174,7 +171,7 @@ export function FlagRail({
             })}
           </div>
         </div>
-        <Field label="Note" optional error={error || undefined} className={SUNKEN_FIELD}>
+        <Field label="Note" optional error={error || undefined}>
           {({ id, describedBy, invalid }) => (
             <Textarea
               id={id}
@@ -238,7 +235,7 @@ export function FlagRail({
                   </div>
                   {detail && <p className="m-0 text-[13px] leading-normal text-ink-muted">{detail}</p>}
                   {f.status === "open" && (
-                    <div className={cn("mt-1 flex flex-col gap-2", SUNKEN_FIELD)}>
+                    <div className="mt-1 flex flex-col gap-2">
                       <label className="flex flex-col gap-1 text-xs text-ink-muted">
                         Resolution
                         <Textarea
