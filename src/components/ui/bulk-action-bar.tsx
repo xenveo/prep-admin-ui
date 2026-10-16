@@ -3,7 +3,7 @@
 import { cn } from "@/lib/cn";
 
 const btn =
-  "h-8 cursor-pointer rounded-md border border-line bg-surface px-3 text-[13px] font-medium text-ink aria-disabled:cursor-not-allowed aria-disabled:text-ink-muted";
+  "cursor-pointer rounded-lg border border-primary-line bg-transparent px-3 py-[7px] text-[13px] leading-5 font-semibold whitespace-nowrap text-ink hover:border-primary aria-disabled:cursor-not-allowed aria-disabled:border-line aria-disabled:text-ink-faint";
 
 export function BulkActionBar({
   count,
@@ -20,19 +20,12 @@ export function BulkActionBar({
     <div
       role="toolbar"
       aria-label="Bulk actions"
-      className="flex h-11 items-center gap-1 rounded-t-md border-b border-primary bg-primary-tint pr-2 pl-4"
+      className="flex flex-wrap items-center gap-3 rounded-[10px] border border-primary-line bg-primary-tint px-3.5 py-2.5 text-sm"
     >
-      <span className="mr-2 font-semibold text-primary-text" aria-live="polite">
+      <span className="font-semibold text-ink" aria-live="polite">
         {count} selected
       </span>
-      <button
-        type="button"
-        onClick={onClear}
-        className="h-8 cursor-pointer px-2 text-[13px] font-medium text-primary-text underline"
-      >
-        Clear
-      </button>
-      <span aria-hidden="true" className="mx-2 h-5 w-px bg-primary" />
+      <span aria-hidden="true" className="flex-1" />
       {actions.map((a) => {
         const disabled = a.disabled || a.count === 0;
         return (
@@ -51,14 +44,17 @@ export function BulkActionBar({
         );
       })}
       {destructive && (
-        <button
-          type="button"
-          onClick={destructive.onClick}
-          className={cn(btn, "ml-auto text-error")}
-        >
+        <button type="button" onClick={destructive.onClick} className={cn(btn, "text-error hover:border-error")}>
           {destructive.label}
         </button>
       )}
+      <button
+        type="button"
+        onClick={onClear}
+        className="cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-ink-muted hover:text-ink"
+      >
+        Clear
+      </button>
     </div>
   );
 }

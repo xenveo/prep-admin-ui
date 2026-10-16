@@ -95,7 +95,7 @@ export function Tooltip({
                 visibility: visible ? "visible" : "hidden",
               }}
               className={cn(
-                "pointer-events-none z-[80] max-w-[260px] rounded-sm bg-ink px-2 py-1 text-xs leading-4 text-bg",
+                "pointer-events-none z-[80] max-w-[260px] rounded-md bg-ink px-2.5 py-1.5 text-xs leading-4 font-medium text-bg shadow-[var(--shadow-menu)]",
               )}
             >
               {content}

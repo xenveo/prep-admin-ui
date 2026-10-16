@@ -14,9 +14,10 @@ import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
 import { getSessionReview, listFlags } from "@/services/sessions";
 import { FlagRail, type QuestionMode } from "./flag-rail";
+import { SessionSkeleton } from "./session-skeleton";
 import { TryCard, tryMode } from "./try-card";
 
-const EYEBROW = "m-0 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-muted";
+const EYEBROW = "m-0 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-faint";
 
 /** "49 → 52", "49 · retry skipped", or "49 → —" when no second try was recorded. */
 function ScorePair({ q }: { q: SessionQuestion }) {
@@ -72,15 +73,15 @@ function ScoreFormula({ r }: { r: SessionReview }) {
   return (
     <section
       aria-label={`Session score formula: ${r.formulaText}`}
-      className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-[14px] border border-line bg-surface px-[22px] py-[18px]"
+      className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-panel border border-line bg-surface px-[22px] py-[18px]"
     >
-      <h2 className={EYEBROW}>Session score</h2>
+      <h2 className={cn(EYEBROW, "mr-1")}>Session score</h2>
       {terms.map((t) => (
-        <div key={t.label} className="flex items-center gap-5">
-          <div className="flex flex-col">
-            <span className="text-xs text-ink-muted">
+        <div key={t.label} className="flex items-center gap-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-ink-faint">
               {t.label}
-              <span aria-hidden="true" className="opacity-70"> × {t.weight}%</span>
+              <span aria-hidden="true" className="opacity-75"> × {t.weight}%</span>
               <span className="sr-only">, weighted {t.weight}%:</span>
             </span>
             <span className="text-xl font-semibold leading-7 text-ink">
@@ -92,14 +93,14 @@ function ScoreFormula({ r }: { r: SessionReview }) {
               )}
             </span>
           </div>
-          <span aria-hidden="true" className="text-lg text-ink-muted">
+          <span aria-hidden="true" className="text-lg text-ink-faint">
             {t.op}
           </span>
         </div>
       ))}
       <div
         className={cn(
-          "flex flex-col rounded-[10px] px-3.5 py-1.5",
+          "flex flex-col gap-0.5 rounded-[10px] px-3.5 py-1.5",
           r.score < 50 ? "bg-improve-soft text-improve-text" : "bg-primary-soft text-primary-text",
         )}
       >
@@ -134,13 +135,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
     );
   }
   if (!r) {
-    return (
-      <div aria-busy="true">
-        <PageHeader title="Session review" breadcrumb={[{ label: "Candidates", href: "/candidates" }, { label: "Loading" }]} />
-        <div className="h-16 animate-pulse rounded-md bg-neutral-soft" />
-        <p role="status" className="sr-only">Loading session</p>
-      </div>
-    );
+    return <SessionSkeleton />;
   }
 
   const qn = Math.min(Math.max(Number(url.get("q")) || 1, 1), Math.max(r.questions.length, 1));
@@ -182,8 +177,8 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
   const tabClass = (on: boolean, disabled = false) =>
     cn(
       "inline-flex items-center gap-2 rounded-[7px] px-3.5 py-2 text-[13px] font-semibold",
-      on ? "bg-surface text-ink shadow-[0_1px_2px_var(--line)]" : "text-ink-muted",
-      disabled ? "cursor-not-allowed opacity-60" : !on && "cursor-pointer hover:text-ink",
+      on ? "bg-selected text-ink" : disabled ? "text-ink-faint" : "text-ink-muted",
+      disabled ? "cursor-not-allowed" : !on && "cursor-pointer hover:text-ink",
     );
 
   return (
@@ -212,7 +207,12 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
           </>
         }
         secondaryActions={
-          <Button iconLeft="download" disabledReason="PDF export isn’t available yet.">
+          // Outline look per the design, not faded: the tooltip says why it does nothing yet.
+          <Button
+            iconLeft="download"
+            disabledReason="PDF export isn’t available yet."
+            className="border-neutral-line! hover:border-ink-faint! aria-disabled:opacity-100!"
+          >
             Export PDF
           </Button>
         }
@@ -221,7 +221,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
       {r.hasDetail ? <ScoreFormula r={r} /> : null}
 
       {!r.hasDetail ? (
-        <div className="rounded-lg border border-line bg-surface">
+        <div className="rounded-panel border border-line bg-surface">
           <EmptyState
             icon="file"
             title="No answer-level detail for this session"
@@ -231,11 +231,11 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
         </div>
       ) : (
         <div className="grid items-start gap-6 min-[1025px]:grid-cols-[240px_minmax(0,1fr)_280px]">
-          <nav aria-labelledby="questions-heading" className="flex min-w-0 flex-col gap-2">
+          <nav aria-labelledby="questions-heading" className="flex min-w-0 flex-col gap-2.5">
             <h2 id="questions-heading" className={EYEBROW}>
               Questions
             </h2>
-            <ol ref={listRef} className="m-0 list-none overflow-hidden rounded-[14px] border border-line bg-surface p-0">
+            <ol ref={listRef} className="m-0 list-none overflow-hidden rounded-card border border-line bg-surface p-0">
               {r.questions.map((q, i) => {
                 const on = q.n === qn;
                 return (
@@ -249,12 +249,14 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                       onKeyDown={(e) => onListKey(e, q.n)}
                       className={cn(
                         "focus-inset grid w-full cursor-pointer grid-cols-[20px_minmax(0,1fr)] gap-2.5 py-3.5 pr-3.5 pl-3 text-left",
-                        on ? "bg-primary-tint shadow-[inset_3px_0_0_var(--primary)]" : "bg-surface hover:bg-row-hover",
+                        on ? "bg-row-hover shadow-[inset_3px_0_0_var(--primary)]" : "bg-surface hover:bg-row-hover",
                       )}
                     >
-                      <span className="pt-0.5 font-mono text-xs text-ink-muted">{q.n}</span>
-                      <span className="flex min-w-0 flex-col gap-1">
-                        <span className={cn("text-[13px] leading-snug text-ink", on ? "font-semibold" : "font-medium")}>{q.text}</span>
+                      <span className="pt-0.5 font-mono text-xs text-ink-faint">{q.n}</span>
+                      <span className="flex min-w-0 flex-col gap-1.5">
+                        <span className={cn("text-[13px] leading-[1.4] text-pretty text-ink", on ? "font-semibold" : "font-medium")}>
+                          {q.text}
+                        </span>
                         <span className="text-xs text-ink-muted">
                           <ScorePair q={q} />
                         </span>
@@ -266,15 +268,15 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
             </ol>
           </nav>
 
-          <section aria-labelledby="q-title" className="flex min-w-0 flex-col gap-4">
+          <section aria-labelledby="q-title" className="flex min-w-0 flex-col gap-[18px]">
             {cur && (
               <>
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[13px] text-ink-muted">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[13px] text-ink-faint">
                     Question {cur.n} of {r.questions.length}
                     {cur.category ? ` · ${cur.category}` : ""}
                   </span>
-                  <h2 id="q-title" className="m-0 text-[22px] font-semibold leading-[1.3] tracking-tight text-balance text-ink">
+                  <h2 id="q-title" className="m-0 text-[22px] font-semibold leading-[1.3] tracking-[-0.015em] text-balance text-ink">
                     {cur.text}
                   </h2>
                 </div>
@@ -286,7 +288,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                         role="tablist"
                         aria-label="Attempt"
                         onKeyDown={onTabKey}
-                        className="flex gap-1 rounded-[10px] border border-line bg-bg p-[3px]"
+                        className="flex gap-1 rounded-[10px] border border-line bg-surface-sunken p-[3px]"
                       >
                         <button
                           type="button"
@@ -341,7 +343,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                       id="try-panel"
                       aria-labelledby={showSecond ? "try-tab-2" : "try-tab-1"}
                       tabIndex={0}
-                      className="rounded-[14px]"
+                      className="rounded-panel"
                     >
                       <TryCard
                         key={`${cur.n}-${selectedTry.attempt}`}
@@ -356,12 +358,9 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
                     )}
                   </>
                 ) : (
-                  <EmptyState
-                    icon="file"
-                    title="No transcript for this question"
-                    description={scoresOnlyDescription(cur)}
-                    className="rounded-[14px] border border-dashed border-line bg-surface text-sm text-ink-muted"
-                  />
+                  <p className="m-0 rounded-panel border border-dashed border-line bg-surface px-6 py-10 text-center text-sm text-pretty text-ink-faint">
+                    No transcript for this question. {scoresOnlyDescription(cur)}
+                  </p>
                 )}
               </>
             )}

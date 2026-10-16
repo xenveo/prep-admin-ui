@@ -8,6 +8,15 @@ function initialsOf(name: string): string {
   return (first + last).toUpperCase();
 }
 
+export type AvatarSize = 28 | 32 | 40 | 44;
+
+const SIZE: Record<AvatarSize, string> = {
+  28: "size-7 text-[11px] leading-4",
+  32: "size-8 text-xs leading-4",
+  40: "size-10 text-[13px] leading-5",
+  44: "size-11 text-sm leading-5",
+};
+
 export function Avatar({
   name,
   size = 28,
@@ -15,7 +24,8 @@ export function Avatar({
   className,
 }: {
   name: string;
-  size?: 28 | 40;
+  size?: AvatarSize;
+  /** primary = the signed-in admin (sidebar). */
   tone?: "neutral" | "primary";
   className?: string;
 }) {
@@ -23,8 +33,8 @@ export function Avatar({
     <span
       aria-hidden="true"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold select-none",
-        size === 28 ? "h-7 w-7 text-[11px] leading-4" : "h-10 w-10 text-sm",
+        "inline-flex shrink-0 items-center justify-center rounded-full font-bold select-none",
+        SIZE[size],
         tone === "primary" ? "bg-primary-soft text-primary-text" : "bg-neutral-soft text-neutral-text",
         className,
       )}

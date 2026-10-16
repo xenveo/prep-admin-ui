@@ -4,8 +4,10 @@ import { cn } from "@/lib/cn";
 /** Ring with --line track and band-coloured arc. Consumers always pair it with a BandChip. */
 export function ScoreRing({ score, size = 72, className }: { score: number; size?: 64 | 72; className?: string }) {
   const band = bandForScore(score);
-  const stroke = 7;
-  const r = (size - stroke) / 2 - 1;
+  // Design geometry at 72px: r 31, stroke 6. 64px scales proportionally.
+  const scale = size / 72;
+  const stroke = 6 * scale;
+  const r = 31 * scale;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(100, score)) / 100;
   const mid = size / 2;
@@ -16,7 +18,7 @@ export function ScoreRing({ score, size = 72, className }: { score: number; size
       className={cn("relative shrink-0", className)}
       style={{ width: size, height: size }}
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" className="block">
         <circle cx={mid} cy={mid} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
         <circle
           cx={mid}
@@ -32,8 +34,10 @@ export function ScoreRing({ score, size = 72, className }: { score: number; size
       </svg>
       <span
         aria-hidden="true"
-        className="absolute inset-0 flex items-center justify-center font-bold text-ink"
-        style={{ fontSize: size === 72 ? 22 : 20 }}
+        className={cn(
+          "absolute inset-0 flex items-center justify-center font-bold leading-none text-ink",
+          size === 72 ? "text-2xl" : "text-xl",
+        )}
       >
         {score}
       </span>

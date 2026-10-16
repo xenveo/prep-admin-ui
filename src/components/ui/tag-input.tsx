@@ -39,12 +39,12 @@ export function TagInput({
       role="group"
       aria-label={label}
       onClick={() => ref.current?.focus()}
-      className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border border-input-line bg-surface px-2 py-1.5"
+      className="flex min-h-[38px] flex-wrap items-center gap-1.5 rounded-lg border border-input-line bg-surface-sunken px-2 py-[5px] transition-colors duration-100 focus-within:border-primary-line focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
     >
       {tags.map((t) => (
         <span
           key={t}
-          className="inline-flex h-[26px] items-center gap-1 rounded-full bg-neutral-soft pr-1 pl-2.5 text-[13px] text-ink"
+          className="inline-flex h-[26px] items-center gap-1 rounded-full bg-neutral-soft pr-1 pl-2.5 text-[13px] font-semibold text-ink-soft"
         >
           {t}
           <button
@@ -54,7 +54,7 @@ export function TagInput({
               e.stopPropagation();
               remove(t);
             }}
-            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-full text-ink-muted"
+            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-full text-ink-faint hover:bg-row-hover hover:text-ink"
           >
             <Icon name="close" size={14} />
           </button>
@@ -78,7 +78,7 @@ export function TagInput({
             setAnnounce(`${last} removed`);
           }
         }}
-        className="min-w-[120px] flex-1 border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-muted focus-visible:outline-none"
+        className="min-w-[120px] flex-1 border-0 bg-transparent px-1 text-sm text-ink outline-none placeholder:text-ink-faint focus-visible:outline-none"
       />
       <span role="status" aria-live="polite" className="sr-only">
         {announce}

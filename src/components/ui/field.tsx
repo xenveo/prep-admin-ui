@@ -31,7 +31,7 @@ export function Field({
     <div className={cn("flex flex-col gap-1.5", className)}>
       <label htmlFor={id} className="text-[13px] leading-5 font-semibold text-ink">
         {label}
-        {optional && <span className="ml-1 font-normal text-ink-muted">(optional)</span>}
+        {optional && <span className="ml-1 font-normal text-ink-faint">(optional)</span>}
       </label>
       {children({ id, describedBy, invalid })}
       {error && (
@@ -40,7 +40,7 @@ export function Field({
         </p>
       )}
       {helper && (
-        <p id={helperId} className="text-xs leading-4 text-ink-muted">
+        <p id={helperId} className="text-xs leading-[1.5] text-ink-faint">
           {helper}
         </p>
       )}

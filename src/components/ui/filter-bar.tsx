@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/cn";
 
 export type FilterOption = { value: string; label: string };
@@ -31,9 +30,9 @@ function FilterButton({
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  const summary = selected.length
-    ? selected.map((v) => def.options.find((o) => o.value === v)?.label ?? v).join(", ")
-    : null;
+  const labels = selected.map((v) => def.options.find((o) => o.value === v)?.label ?? v);
+  const summary = labels.length ? labels.join(", ") : null;
+  const shown = labels.length === 0 ? "Any" : labels.length === 1 ? labels[0] : `${labels.length} selected`;
 
   return (
     <div
@@ -54,19 +53,28 @@ function FilterButton({
         aria-expanded={open}
         aria-controls={open ? popId : undefined}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-line bg-surface pr-2.5 pl-3 text-sm font-medium text-ink"
+        className={cn(
+          "inline-flex h-[38px] cursor-pointer items-center gap-1.5 rounded-[9px] border bg-transparent px-3 text-[13px] whitespace-nowrap text-ink-muted hover:border-neutral-line hover:text-ink",
+          summary ? "border-primary-line" : "border-input-line",
+          open && "border-neutral-line text-ink",
+        )}
       >
-        {summary ? def.label : <span className="font-normal text-ink-muted">{def.label}:</span>}
-        {!summary && " Any"}
-        {summary && <span className="sr-only">: {summary}</span>}
-        <Icon name="chevron-down" size={14} className="text-ink-muted" />
+        {def.label}
+        <span title={labels.length > 1 ? (summary ?? undefined) : undefined} className="max-w-[160px] truncate font-semibold text-ink">
+          <span className="sr-only">: </span>
+          {shown}
+        </span>
+        {labels.length > 1 && <span className="sr-only">: {summary}</span>}
+        <span aria-hidden="true" className="text-[10px]">
+          ▾
+        </span>
       </button>
       {open && (
         <div
           id={popId}
           role="group"
           aria-label={`${def.label} filter`}
-          className="absolute top-full left-0 z-30 mt-1 flex min-w-[200px] flex-col rounded-md border border-line bg-surface p-1 shadow-[var(--shadow-menu)]"
+          className="absolute top-full left-0 z-30 mt-1 flex min-w-[200px] flex-col rounded-[10px] border border-line bg-surface p-1 shadow-[var(--shadow-menu)]"
         >
           {!def.multi && (
             <OptionRow
@@ -100,6 +108,19 @@ function FilterButton({
               />
             );
           })}
+          {def.multi && selected.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange([]);
+                setOpen(false);
+                btnRef.current?.focus();
+              }}
+              className="mt-1 flex h-9 cursor-pointer items-center rounded-sm border-t border-line px-2 text-left text-[13px] font-semibold text-primary-text hover:bg-row-hover"
+            >
+              Clear {def.label.toLowerCase()} filter
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -155,15 +176,17 @@ export function FilterBar({
   const active = filters.filter((f) => (values[f.id] ?? []).length > 0);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Input
-        type="search"
-        iconLeft="search"
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        placeholder={searchPlaceholder}
-        aria-label={searchLabel}
-        className="w-[280px] max-w-full"
-      />
+      <label className="flex h-[38px] min-w-[240px] max-w-[360px] flex-1 cursor-text items-center gap-2.5 rounded-[9px] border border-input-line bg-surface px-3 focus-within:[outline:var(--focus-ring)] focus-within:[outline-offset:var(--focus-offset)]">
+        <Icon name="search" size={15} className="shrink-0 text-ink-faint" />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder={searchPlaceholder}
+          aria-label={searchLabel}
+          className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-ink-faint focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+        />
+      </label>
       {filters.map((f) => (
         <FilterButton
           key={f.id}
@@ -172,34 +195,11 @@ export function FilterBar({
           onChange={(v) => onChange(f.id, v)}
         />
       ))}
-      {active.map((f) => {
-        const text = (values[f.id] ?? [])
-          .map((v) => f.options.find((o) => o.value === v)?.label ?? v)
-          .join(", ");
-        return (
-          <span
-            key={f.id}
-            className={cn(
-              "inline-flex h-9 items-center gap-1 rounded-md border border-primary bg-primary-tint pr-1.5 pl-3 text-sm font-medium text-primary-text",
-            )}
-          >
-            {f.label}: {text}
-            <button
-              type="button"
-              aria-label={`Remove ${f.label.toLowerCase()} filter`}
-              onClick={() => onChange(f.id, [])}
-              className="inline-flex size-6 cursor-pointer items-center justify-center rounded-sm text-primary-text"
-            >
-              <Icon name="close" size={14} />
-            </button>
-          </span>
-        );
-      })}
       {active.length > 0 && (
         <button
           type="button"
           onClick={onClearAll}
-          className="h-9 cursor-pointer px-2 text-sm font-semibold text-primary-text"
+          className="h-[38px] cursor-pointer rounded-[9px] px-2 text-[13px] font-semibold whitespace-nowrap text-primary-text hover:underline"
         >
           Clear filters
         </button>

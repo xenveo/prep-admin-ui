@@ -23,7 +23,7 @@ const MAX_PIPS = 10;
 
 function SectionTitle({ children, id }: { children: React.ReactNode; id?: string }) {
   return (
-    <h3 id={id} className="m-0 font-mono text-xs leading-4 font-medium tracking-[0.08em] text-ink-muted uppercase">
+    <h3 id={id} className="m-0 font-mono text-xs leading-4 font-medium tracking-[0.08em] text-ink-faint uppercase">
       {children}
     </h3>
   );
@@ -87,22 +87,22 @@ export function CandidatePanel({
       onClose={onClose}
       titleId={titleId}
       header={
-        <div className="flex items-center gap-3">
-          <Avatar name={name} size={40} />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 id={titleId} className="m-0 truncate text-[18px] leading-7 font-semibold tracking-tight text-ink">
+        <div className="flex items-center gap-3.5">
+          <Avatar name={name} size={44} />
+          <div className="flex min-w-0 flex-col gap-[3px]">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 id={titleId} className="m-0 truncate text-[18px] leading-6 font-semibold tracking-[-0.01em] text-ink">
                 {name}
               </h2>
-              {d && <StatusChip status={STATUS_CHIP[d.status]} />}
+              {d && <StatusChip status={STATUS_CHIP[d.status]} size="sm" />}
             </div>
-            <p className="m-0 truncate text-[13px] leading-5 text-ink-muted">
+            <p className="m-0 truncate text-[13px] leading-5 text-ink-faint">
               {d ? `${d.email}${d.lastActiveAt ? ` · last active ${relativeDay(d.lastActiveAt)}` : ""}` : " "}
             </p>
           </div>
         </div>
       }
-      headerActions={d ? <Menu label="Candidate actions" items={menuItems} /> : undefined}
+      headerActions={d ? <Menu label="Candidate actions" items={menuItems} triggerVariant="outline" /> : undefined}
     >
       {error && !d && (
         <div role="alert" className="flex items-center justify-between gap-3 rounded-md border border-error px-3 py-2 text-sm text-error">
@@ -137,7 +137,7 @@ export function CandidatePanel({
             </div>
             <div className="rounded-card border border-line bg-surface">
               {d.assignments.length === 0 ? (
-                <p className="m-0 px-4 py-3.5 text-sm text-ink-muted">No roles assigned yet.</p>
+                <p className="m-0 px-4 py-3.5 text-sm text-ink-faint">No roles assigned yet.</p>
               ) : (
                 <ul className="m-0 list-none p-0">
                   {d.assignments.map((a) => (
@@ -189,15 +189,15 @@ export function CandidatePanel({
               className="flex flex-col gap-2.5 rounded-card border border-line bg-surface px-4 pt-4 pb-3"
             >
               {!progressRole ? (
-                <p className="m-0 py-6 text-center text-sm text-ink-muted">
+                <p className="m-0 py-6 text-center text-sm text-ink-faint">
                   {d.sessions.length === 0
                     ? "No sessions yet. Scores and the progress chart appear after the first mock interview."
                     : "No roles assigned yet."}
                 </p>
               ) : rolePoints.length === 0 ? (
-                <p className="m-0 py-6 text-center text-sm text-ink-muted">No sessions for this role yet.</p>
+                <p className="m-0 py-6 text-center text-sm text-ink-faint">No sessions for this role yet.</p>
               ) : asTable ? (
-                <table className="w-full border-collapse text-left text-[13px] leading-5">
+                <table className="w-full border-collapse text-left text-sm leading-5">
                   <caption className="sr-only">{progressRole.roleTitle} session scores, oldest first</caption>
                   <thead className="sr-only">
                     <tr>
@@ -211,7 +211,7 @@ export function CandidatePanel({
                         <th scope="row" className="py-1.5 font-normal text-ink-muted">
                           {p.label} · {formatShortDate(p.date)}
                         </th>
-                        <td className="py-1.5 text-right font-semibold text-ink">{p.score}</td>
+                        <td className="py-1.5 text-right font-bold text-ink">{p.score}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -220,12 +220,12 @@ export function CandidatePanel({
                 <ProgressLineChart
                   points={rolePoints}
                   label={`${progressRole.roleTitle} progress`}
-                  caption={`${progressRole.roleTitle} · session scores`}
+                  caption=""
                   hideTableToggle
                 />
               )}
               {progressRole && (
-                <p className="m-0 border-t border-line pt-2.5 text-[13px] leading-5 text-ink-muted">
+                <p className="m-0 border-t border-line pt-2.5 text-[13px] leading-5 text-ink-faint">
                   {progressNote(rolePoints.length, roleChange, asTable)}
                 </p>
               )}
@@ -236,18 +236,18 @@ export function CandidatePanel({
             <SectionTitle id={`${titleId}-sessions`}>Sessions</SectionTitle>
             <div className="overflow-hidden rounded-card border border-line bg-surface">
               {d.sessions.length === 0 ? (
-                <p className="m-0 p-6 text-center text-sm text-ink-muted">No sessions yet.</p>
+                <p className="m-0 p-6 text-center text-sm text-ink-faint">No sessions yet.</p>
               ) : (
                 <ul className="m-0 list-none p-0">
                   {d.sessions.map((s) => (
                     <li key={s.id} className="border-t border-line first:border-t-0">
                       <Link
                         href={`/candidates/${d.id}/sessions/${s.id}`}
-                        className="grid grid-cols-[minmax(0,1fr)_44px_auto_16px] items-center gap-3.5 px-4 py-3.5 text-ink no-underline hover:bg-row-hover"
+                        className="focus-inset grid grid-cols-[minmax(0,1fr)_44px_120px_16px] items-center gap-3.5 px-4 py-3.5 text-ink no-underline hover:bg-row-hover hover:no-underline"
                       >
-                        <span className="flex min-w-0 flex-col">
+                        <span className="flex min-w-0 flex-col gap-[3px]">
                           <span className="truncate text-sm leading-5 font-semibold">{s.roleTitle}</span>
-                          <span className="truncate text-xs leading-4 text-ink-muted">
+                          <span className="truncate text-xs leading-4 text-ink-faint">
                             {formatShortDateTime(s.date)} · {formatMinutes(s.durationMin)} · session {s.number}
                           </span>
                         </span>
@@ -255,8 +255,8 @@ export function CandidatePanel({
                           <span className="sr-only">, score </span>
                           {s.score}
                         </span>
-                        <BandChip band={s.band} />
-                        <span className="text-ink-muted">
+                        <BandChip band={s.band} className="justify-self-start" />
+                        <span className="text-ink-faint">
                           <Icon name="chevron-right" size={16} />
                           <span className="sr-only">, open session</span>
                         </span>
@@ -271,7 +271,7 @@ export function CandidatePanel({
           <section aria-labelledby={`${titleId}-activity`} className="flex flex-col gap-3">
             <SectionTitle id={`${titleId}-activity`}>Activity</SectionTitle>
             {d.activity.length === 0 ? (
-              <p className="m-0 text-sm text-ink-muted">No activity yet.</p>
+              <p className="m-0 text-sm text-ink-faint">No activity yet.</p>
             ) : (
               <ol className="m-0 flex list-none flex-col p-0">
                 {d.activity.map((a, i) => {
@@ -282,10 +282,10 @@ export function CandidatePanel({
                         <span
                           className={cn("mt-[5px] h-[9px] w-[9px] shrink-0 rounded-full", i === 0 ? "bg-primary" : "bg-neutral-line")}
                         />
-                        <span className={cn("mt-1 w-px flex-1", last ? "bg-transparent" : "bg-line")} />
+                        <span className={cn("mt-1 w-px flex-1", last ? "bg-transparent" : "bg-input-line")} />
                       </span>
                       <span className="pb-4 text-sm leading-normal text-ink">{a.text}</span>
-                      <span className="pt-[3px] font-mono text-[11px] whitespace-nowrap text-ink-muted">
+                      <span className="pt-[3px] font-mono text-[11px] whitespace-nowrap text-ink-faint">
                         {formatShortDateTime(a.at)}
                       </span>
                     </li>
@@ -310,8 +310,8 @@ function RoleRow({ assignment: a, onRemove }: { assignment: RoleAssignment; onRe
       : 0;
 
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_120px_auto] items-center gap-4 border-t border-line px-4 py-3.5 first:border-t-0">
-      <div className="flex min-w-0 flex-col gap-1">
+    <li className="grid grid-cols-[minmax(0,1fr)_120px_64px] items-center gap-4 border-t border-line px-4 py-3.5 first:border-t-0">
+      <div className="flex min-w-0 flex-col gap-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm leading-5 font-semibold text-ink">{a.roleTitle}</span>
           {draft && <StatusChip status="draft" />}
@@ -324,21 +324,24 @@ function RoleRow({ assignment: a, onRemove }: { assignment: RoleAssignment; onRe
             </>
           ) : (
             <>
-              <span className="text-sm leading-5 font-semibold text-ink-muted">—</span>
-              <span className="inline-flex h-6 items-center rounded-full bg-neutral-soft px-2 text-xs font-semibold whitespace-nowrap text-ink-muted">
+              <span className="text-sm leading-5 font-semibold text-ink-faint">
+                <span aria-hidden="true">—</span>
+                <span className="sr-only">No score</span>
+              </span>
+              <span className="inline-flex items-center rounded-full bg-neutral-soft px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-ink-faint">
                 No sessions yet
               </span>
             </>
           )}
         </div>
         {draft && (
-          <p className="m-0 text-xs leading-4 text-ink-muted">
+          <p className="m-0 text-xs leading-4 text-ink-faint">
             Not visible to the candidate until you approve this role.
           </p>
         )}
       </div>
       <div className="flex flex-col gap-1.5">
-        <span className="text-xs leading-4 text-ink-muted">
+        <span className="text-xs leading-4 text-ink-faint">
           {a.maxSessions != null ? `Sessions ${a.sessionsUsed} of ${a.maxSessions}` : `${a.sessionsUsed} sessions`}
         </span>
         {pips > 0 && (
@@ -353,7 +356,7 @@ function RoleRow({ assignment: a, onRemove }: { assignment: RoleAssignment; onRe
         type="button"
         onClick={onRemove}
         aria-label={`Remove ${a.roleTitle}`}
-        className="relative cursor-pointer text-[13px] leading-5 font-semibold text-ink-muted hover:text-error after:absolute after:-inset-2 after:content-['']"
+        className="relative cursor-pointer justify-self-end text-[13px] leading-5 font-semibold text-ink-faint hover:text-error after:absolute after:-inset-2 after:content-['']"
       >
         Remove
       </button>
@@ -408,7 +411,7 @@ function RolePicker({
             onClick={() => onChange(o.roleId)}
             className={cn(
               "flex-1 cursor-pointer rounded-md px-2.5 py-[7px] text-xs leading-4 font-semibold whitespace-nowrap",
-              selected ? "bg-surface text-ink" : "text-ink-muted hover:text-ink",
+              selected ? "bg-selected text-ink" : "text-ink-faint hover:text-ink",
             )}
           >
             {o.roleTitle}

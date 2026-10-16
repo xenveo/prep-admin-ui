@@ -3,12 +3,12 @@ import { TranscriptHighlights } from "@/components/media/transcript-highlights";
 import { cn } from "@/lib/cn";
 import { answerDimensionLabel, DIMENSION_IDS, type AnswerMode, type AppliedState, type Try } from "@/lib/types";
 
-const EYEBROW = "m-0 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-muted";
+const EYEBROW = "m-0 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-faint";
 
 const STATE_LABEL: Record<AppliedState, string> = { done: "Done", partial: "Partly", missed: "Not yet" };
 const STATE_PILL: Record<AppliedState, string> = {
-  done: "bg-primary-soft text-primary-text",
-  partial: "bg-primary-soft text-primary-text",
+  done: "bg-primary-tint text-primary-text",
+  partial: "bg-primary-tint text-primary-text",
   missed: "bg-improve-soft text-improve-text",
 };
 
@@ -49,23 +49,24 @@ export function TryCard({ label, data, className }: { label: "First try" | "Seco
   return (
     <article
       aria-label={`${label}, score ${data.score}`}
-      className={cn("flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface", className)}
+      className={cn("flex min-w-0 flex-col overflow-hidden rounded-panel border border-line bg-surface", className)}
     >
       <section className="flex flex-col gap-3 px-6 py-[22px]">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <h3 className={EYEBROW}>Transcript</h3>
-          <span className="text-xs text-ink-muted">
+          <span className="text-xs text-ink-faint">
             {mode === "typed"
               ? "Typed answer · no recording or voice delivery metrics"
               : `Voice answer${data.audioLabel ? ` · ${data.audioLabel}` : ""}`}
           </span>
         </div>
         {mode === "voice" && <AudioPlayer label={label} durationSeconds={data.audioSeconds} src={data.audioUrl} />}
-        <TranscriptHighlights className="text-[15px] leading-[1.75]" transcript={data.transcript} highlights={data.highlights} />
+        {/* TranscriptHighlights owns the 15px / 1.75 ink-soft type. */}
+        <TranscriptHighlights className="text-pretty" transcript={data.transcript} highlights={data.highlights} />
       </section>
 
       <section aria-label="Dimension scores" className="border-t border-line px-6 py-5">
-        <ul className="m-0 grid list-none grid-cols-2 gap-3 min-[1280px]:grid-cols-4 p-0">
+        <ul className="m-0 grid list-none grid-cols-2 gap-3 p-0 min-[1280px]:grid-cols-4">
           {DIMENSION_IDS.map((id) => (
             <DimensionMeter key={id} label={answerDimensionLabel(id, mode)} value={sub[id]} />
           ))}
@@ -79,13 +80,13 @@ export function TryCard({ label, data, className }: { label: "First try" | "Seco
           <h3 className="m-0 text-[13px] font-bold text-primary-text">
             <span aria-hidden="true">✓ </span>What worked
           </h3>
-          <p className="m-0 text-sm leading-relaxed text-ink">{data.worked}</p>
+          <p className="m-0 text-sm leading-[1.6] text-ink-soft">{data.worked}</p>
         </section>
         <section className="flex flex-col gap-2 border-t border-l border-line px-6 py-5">
           <h3 className="m-0 text-[13px] font-bold text-improve-text">
             <span aria-hidden="true">! </span>What to improve
           </h3>
-          <p className="m-0 text-sm leading-relaxed text-ink">{data.improve}</p>
+          <p className="m-0 text-sm leading-[1.6] text-ink-soft">{data.improve}</p>
         </section>
       </div>
 
@@ -99,9 +100,9 @@ export function TryCard({ label, data, className }: { label: "First try" | "Seco
                   {STATE_LABEL[a.state]}
                   <span className="sr-only">:</span>
                 </span>
-                <div className="flex min-w-0 flex-col gap-0.5">
+                <div className="flex min-w-0 flex-col gap-[3px]">
                   <span className="text-sm font-semibold text-ink">{a.text}</span>
-                  {a.detail && <p className="m-0 text-sm leading-normal text-ink-muted">{a.detail}</p>}
+                  {a.detail && <p className="m-0 text-sm leading-[1.55] text-ink-muted">{a.detail}</p>}
                 </div>
               </li>
             ))}
@@ -139,7 +140,7 @@ export function TryCard({ label, data, className }: { label: "First try" | "Seco
               </tbody>
             </table>
           ) : (
-            <p className="m-0 text-xs text-ink-muted">Delivery metrics are unavailable for this answer.</p>
+            <p className="m-0 text-xs text-ink-faint">Delivery metrics are unavailable for this answer.</p>
           )}
         </section>
       )}

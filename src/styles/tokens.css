@@ -1,59 +1,71 @@
-/* PrepPilot admin console — design tokens (v0.1, 15 Oct 2026)
+/* PrepPilot admin console — design tokens (v0.2, 16 Oct 2026)
+   Dark values follow the Claude Design "PrepPilot Admin" files; light is an
+   adapted palette in the same mint/amber family.
    Light is the default. Dark applies with prefers-color-scheme unless the
    app forces a theme via [data-theme="light"|"dark"] on <html>. */
 
 
 :root {
   /* Colour */
-  --bg: #FAFAF7;
+  --bg: #F6F8F7;
   --surface: #FFFFFF;
-  --ink: #1F2937;
-  --ink-muted: #6B7280;
-  --line: #E5E7EB;
-  --input-line: #D1D5DB;
+  --surface-sunken: #EEF2F1;      /* segmented tracks, inputs, sidebar */
+  --selected: #E3EFEC;            /* selected segment / tab */
+  --ink: #17201E;
+  --ink-soft: #2F3B38;            /* long-form body copy (transcripts, feedback) */
+  --ink-muted: #5B6764;
+  --ink-faint: #6F7B77;           /* eyebrows, meta, placeholders */
+  --line: #E1E7E5;
+  --input-line: #CDD6D3;
   --primary: #0F766E;
   --on-primary: #FFFFFF;
   --primary-text: #0F766E;
-  --primary-soft: #CCFBF1;
-  --primary-tint: #F0FDFA;
+  --primary-soft: #CCF3EA;
+  --primary-tint: #EEFAF7;
+  --primary-line: #5EB8A6;        /* border of selected pills */
   --improve: #B45309;
-  --improve-text: #B45309;
-  --improve-soft: #FEF3C7;
+  --improve-text: #9A4A07;
+  --improve-soft: #FDF0D5;
   --ai-text: #92400E;
   --error: #B91C1C;
   --on-error: #FFFFFF;
-  --neutral-soft: #F3F4F6;
-  --neutral-text: #4B5563;
-  --neutral-line: #D1D5DB;
-  --row-hover: #F9FAFB;
-  --scrim-panel: rgba(31, 41, 55, 0.24);
-  --scrim-modal: rgba(31, 41, 55, 0.40);
-  --toast-bg: #1F2937;
+  --neutral-soft: #EEF2F1;
+  --neutral-text: #4B5754;
+  --neutral-line: #B9C4C0;
+  --row-hover: #F3F7F6;
+  --scrim-panel: rgba(23, 32, 30, 0.24);
+  --scrim-modal: rgba(23, 32, 30, 0.40);
+  --toast-bg: #17201E;
   --toast-text: #FFFFFF;
-  --toast-icon: #5EEAD4;
+  --toast-icon: #5EE6C8;
 
   /* Readiness bands */
   --band-ready: #0F766E;          /* Interview ready 85–100 */
-  --band-nearly: #5EAAA8;         /* Nearly ready 70–84 */
-  --band-developing: #D9A35B;     /* Developing 50–69 */
+  --band-nearly: #3F9C8E;         /* Nearly ready 70–84 */
+  --band-developing: #C8892B;     /* Developing 50–69 */
   --band-not-ready: #B45309;      /* Not ready yet 0–49 */
-  --band-ready-tint: #E0F0EE;
-  --band-nearly-tint: #E3F1F1;
-  --band-developing-tint: #F8EEDF;
-  --band-not-ready-tint: #FEF3C7;
+  --band-ready-tint: #DDF2EC;
+  --band-nearly-tint: #E3F2EF;
+  --band-developing-tint: #F8EEDB;
+  --band-not-ready-tint: #FDF0D5;
+  --band-ready-text: #0F766E;     /* chip text on the tint */
+  --band-nearly-text: #2F7F73;
+  --band-developing-text: #8A5A12;
+  --band-not-ready-text: #9A4A07;
   --band-ready-on: #FFFFFF;       /* text inside chart segments */
-  --band-nearly-on: #1F2937;
-  --band-developing-on: #1F2937;
+  --band-nearly-on: #FFFFFF;
+  --band-developing-on: #17201E;
   --band-not-ready-on: #FFFFFF;
 
   /* Weight bar (role settings) */
   --weight-1: #134E4A; --weight-1-on: #FFFFFF;
   --weight-2: #0F766E; --weight-2-on: #FFFFFF;
-  --weight-3: #5EAAA8; --weight-3-on: #1F2937;
-  --weight-4: #CCFBF1; --weight-4-on: #1F2937;
+  --weight-3: #5EAAA8; --weight-3-on: #17201E;
+  --weight-4: #CCF3EA; --weight-4-on: #17201E;
 
   /* Type */
-  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), "Manrope", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
   --text-title: 600 20px/28px var(--font-sans);
   --text-section: 600 16px/24px var(--font-sans);
   --text-body: 400 14px/22px var(--font-sans);
@@ -74,7 +86,7 @@
   /* Layout */
   --sidebar-width: 240px;
   --sidebar-width-collapsed: 64px;
-  --panel-width: 560px;
+  --panel-width: 600px;
   --modal-width: 640px;
   --dialog-width: 460px;
   --row-height: 44px;
@@ -90,11 +102,12 @@
   --radius-sm: 6px;
   --radius-chip: 999px;
   --radius-card: 12px;
+  --radius-panel: 14px;
   --border: 1px solid var(--line);
 
   /* Elevation: panels, modals, menus, toasts only */
-  --shadow-panel: 0 12px 32px rgba(31, 41, 55, 0.16);
-  --shadow-menu: 0 8px 24px rgba(31, 41, 55, 0.12);
+  --shadow-panel: -24px 0 64px rgba(23, 32, 30, 0.16);
+  --shadow-menu: 0 8px 24px rgba(23, 32, 30, 0.12);
 
   /* Focus */
   --focus-ring: 2px solid var(--primary);
@@ -105,102 +118,121 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #141615;
-    --surface: #1B1D1C;
-    --ink: #E7E5E0;
-    --ink-muted: #9CA3AF;
-    --line: #2E3230;
-    --input-line: #3F4441;
-    --primary: #2DD4BF;
-    --on-primary: #0B1F1D;
-    --primary-text: #5EEAD4;
-    --primary-soft: #134E4A;
-    --primary-tint: #16302D;
-    --improve: #F59E0B;
-    --improve-text: #FBBF24;
-    --improve-soft: #451A03;
-    --ai-text: #FCD34D;
-    --error: #F87171;
-    --on-error: #1B1D1C;
-    --neutral-soft: #2E3230;
-    --neutral-text: #D1D5DB;
-    --neutral-line: #4B5563;
-    --row-hover: #222524;
-    --scrim-panel: rgba(0, 0, 0, 0.40);
-    --scrim-modal: rgba(0, 0, 0, 0.55);
-    --toast-bg: #E7E5E0;
-    --toast-text: #141615;
+    --bg: #0F1312;
+    --surface: #151B1A;
+    --surface-sunken: #111614;
+    --selected: #1F2A27;
+    --ink: #E8EEEC;
+    --ink-soft: #D0D8D5;
+    --ink-muted: #9AA6A2;
+    --ink-faint: #7D8985;
+    --line: #222A28;
+    --input-line: #252C2A;
+    --primary: #5EE6C8;
+    --on-primary: #06201A;
+    --primary-text: #5EE6C8;
+    --primary-soft: #173A33;
+    --primary-tint: #152A26;
+    --primary-line: #2F7D6C;
+    --improve: #F0C46B;
+    --improve-text: #F0C46B;
+    --improve-soft: #2E2414;
+    --ai-text: #F0C46B;
+    --error: #FF8A7A;
+    --on-error: #0F1312;
+    --neutral-soft: #1D2422;
+    --neutral-text: #B4BFBB;
+    --neutral-line: #33403C;
+    --row-hover: #18201E;
+    --scrim-panel: rgba(6, 9, 8, 0.55);
+    --scrim-modal: rgba(6, 9, 8, 0.65);
+    --toast-bg: #E8EEEC;
+    --toast-text: #0F1312;
     --toast-icon: #0F766E;
-    --band-ready: #5EEAD4;
-    --band-nearly: #5EAAA8;
-    --band-developing: #D9A35B;
-    --band-not-ready: #FBBF24;
-    --band-ready-tint: #183B37;
-    --band-nearly-tint: #1F3533;
-    --band-developing-tint: #3A2F1E;
-    --band-not-ready-tint: #3D2E0A;
-    --band-ready-on: #141615;
-    --band-nearly-on: #141615;
-    --band-developing-on: #141615;
-    --band-not-ready-on: #141615;
-    --weight-1: #5EEAD4; --weight-1-on: #0B1F1D;
-    --weight-2: #2DD4BF; --weight-2-on: #0B1F1D;
-    --weight-3: #134E4A; --weight-3-on: #E7E5E0;
-    --weight-4: #2E3230; --weight-4-on: #E7E5E0;
-    --shadow-panel: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --band-ready: #5EE6C8;
+    --band-nearly: #8CCFBE;
+    --band-developing: #E0B25C;
+    --band-not-ready: #F0C46B;
+    --band-ready-tint: #173A33;
+    --band-nearly-tint: #1A2F2A;
+    --band-developing-tint: #2A2416;
+    --band-not-ready-tint: #2E2414;
+    --band-ready-text: #5EE6C8;
+    --band-nearly-text: #8CCFBE;
+    --band-developing-text: #E0B25C;
+    --band-not-ready-text: #F0C46B;
+    --band-ready-on: #06201A;
+    --band-nearly-on: #06201A;
+    --band-developing-on: #0F1312;
+    --band-not-ready-on: #0F1312;
+    --weight-1: #5EE6C8; --weight-1-on: #06201A;
+    --weight-2: #3FBFA3; --weight-2-on: #06201A;
+    --weight-3: #1F5A4F; --weight-3-on: #E8EEEC;
+    --weight-4: #222A28; --weight-4-on: #E8EEEC;
+    --shadow-panel: -24px 0 64px rgba(0, 0, 0, 0.4);
     --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #141615;
-  --surface: #1B1D1C;
-  --ink: #E7E5E0;
-  --ink-muted: #9CA3AF;
-  --line: #2E3230;
-  --input-line: #3F4441;
-  --primary: #2DD4BF;
-  --on-primary: #0B1F1D;
-  --primary-text: #5EEAD4;
-  --primary-soft: #134E4A;
-  --primary-tint: #16302D;
-  --improve: #F59E0B;
-  --improve-text: #FBBF24;
-  --improve-soft: #451A03;
-  --ai-text: #FCD34D;
-  --error: #F87171;
-  --on-error: #1B1D1C;
-  --neutral-soft: #2E3230;
-  --neutral-text: #D1D5DB;
-  --neutral-line: #4B5563;
-  --row-hover: #222524;
-  --scrim-panel: rgba(0, 0, 0, 0.40);
-  --scrim-modal: rgba(0, 0, 0, 0.55);
-  --toast-bg: #E7E5E0;
-  --toast-text: #141615;
+  --bg: #0F1312;
+  --surface: #151B1A;
+  --surface-sunken: #111614;
+  --selected: #1F2A27;
+  --ink: #E8EEEC;
+  --ink-soft: #D0D8D5;
+  --ink-muted: #9AA6A2;
+  --ink-faint: #7D8985;
+  --line: #222A28;
+  --input-line: #252C2A;
+  --primary: #5EE6C8;
+  --on-primary: #06201A;
+  --primary-text: #5EE6C8;
+  --primary-soft: #173A33;
+  --primary-tint: #152A26;
+  --primary-line: #2F7D6C;
+  --improve: #F0C46B;
+  --improve-text: #F0C46B;
+  --improve-soft: #2E2414;
+  --ai-text: #F0C46B;
+  --error: #FF8A7A;
+  --on-error: #0F1312;
+  --neutral-soft: #1D2422;
+  --neutral-text: #B4BFBB;
+  --neutral-line: #33403C;
+  --row-hover: #18201E;
+  --scrim-panel: rgba(6, 9, 8, 0.55);
+  --scrim-modal: rgba(6, 9, 8, 0.65);
+  --toast-bg: #E8EEEC;
+  --toast-text: #0F1312;
   --toast-icon: #0F766E;
-  --band-ready: #5EEAD4;
-  --band-nearly: #5EAAA8;
-  --band-developing: #D9A35B;
-  --band-not-ready: #FBBF24;
-  --band-ready-tint: #183B37;
-  --band-nearly-tint: #1F3533;
-  --band-developing-tint: #3A2F1E;
-  --band-not-ready-tint: #3D2E0A;
-  --band-ready-on: #141615;
-  --band-nearly-on: #141615;
-  --band-developing-on: #141615;
-  --band-not-ready-on: #141615;
-  --weight-1: #5EEAD4; --weight-1-on: #0B1F1D;
-  --weight-2: #2DD4BF; --weight-2-on: #0B1F1D;
-  --weight-3: #134E4A; --weight-3-on: #E7E5E0;
-  --weight-4: #2E3230; --weight-4-on: #E7E5E0;
-  --shadow-panel: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --band-ready: #5EE6C8;
+  --band-nearly: #8CCFBE;
+  --band-developing: #E0B25C;
+  --band-not-ready: #F0C46B;
+  --band-ready-tint: #173A33;
+  --band-nearly-tint: #1A2F2A;
+  --band-developing-tint: #2A2416;
+  --band-not-ready-tint: #2E2414;
+  --band-ready-text: #5EE6C8;
+  --band-nearly-text: #8CCFBE;
+  --band-developing-text: #E0B25C;
+  --band-not-ready-text: #F0C46B;
+  --band-ready-on: #06201A;
+  --band-nearly-on: #06201A;
+  --band-developing-on: #0F1312;
+  --band-not-ready-on: #0F1312;
+  --weight-1: #5EE6C8; --weight-1-on: #06201A;
+  --weight-2: #3FBFA3; --weight-2-on: #06201A;
+  --weight-3: #1F5A4F; --weight-3-on: #E8EEEC;
+  --weight-4: #222A28; --weight-4-on: #E8EEEC;
+  --shadow-panel: -24px 0 64px rgba(0, 0, 0, 0.4);
   --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
 }
 
 /* Base */
-html { background: var(--bg); color: var(--ink); font: var(--text-body); font-variant-numeric: tabular-nums; }
+html { background: var(--bg); color: var(--ink); font: var(--text-body); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+::placeholder { color: var(--ink-faint); }

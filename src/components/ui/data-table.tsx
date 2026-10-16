@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Icon } from "@/components/ui/icon";
 import { Menu, type MenuItem } from "@/components/ui/menu";
 import { cn } from "@/lib/cn";
 
@@ -39,17 +38,36 @@ export type DataTableProps<T> = {
 };
 
 const SKELETON_ROWS = 5;
-const SELECT_W = 44;
-const ACTIONS_W = 48;
+const SELECT_W = 20;
+const ACTIONS_W = 30;
+/** Column gap (gap-4) and the row's horizontal padding (px-4 on each side), in px. */
+const COL_GAP = 16;
+const ROW_PAD_X = 32;
+const DEFAULT_COL_MIN = 140;
+
+/** Smallest width a column track can shrink to: numbers, "Npx" and "minmax(Npx, …)". */
+function minTrackWidth(width: Column<unknown>["width"]): number {
+  if (typeof width === "number") return width;
+  const m = width?.match(/^\s*(?:minmax\(\s*)?(\d+(?:\.\d+)?)px/);
+  return m ? Number(m[1]) : DEFAULT_COL_MIN;
+}
 
 function headerText<T>(c: Column<T>): string {
   return typeof c.header === "string" ? c.header : c.id;
 }
 
 function cellAlign(align: Column<unknown>["align"]) {
-  if (align === "right") return "justify-end pr-4 text-right";
+  if (align === "right") return "justify-end text-right";
   if (align === "center") return "justify-center text-center";
-  return "pr-3";
+  return "justify-start";
+}
+
+function SortArrow({ sorted }: { sorted: SortState["direction"] | null }) {
+  return (
+    <span aria-hidden="true" className="text-[10px] leading-none">
+      {sorted === "asc" ? "↑" : sorted === "desc" ? "↓" : "↕"}
+    </span>
+  );
 }
 
 export function DataTable<T>({
@@ -175,17 +193,21 @@ export function DataTable<T>({
   ]
     .filter(Boolean)
     .join(" ");
+  const colCount = columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0);
   const minWidth =
     (selectable ? SELECT_W : 0) +
     (rowActions ? ACTIONS_W : 0) +
-    columns.reduce((a, c) => a + (typeof c.width === "number" ? c.width : 140), 0);
-  const colCount = columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0);
-  const rowH = twoLine ? "h-[52px]" : "h-11";
+    columns.reduce((a, c) => a + minTrackWidth(c.width), 0) +
+    COL_GAP * Math.max(0, colCount - 1) +
+    ROW_PAD_X;
+  // Every table uses the design's 64px rows; two-line content fits inside them.
+  const rowH = twoLine ? "min-h-16 py-2" : "min-h-16";
+  const rowGrid = "grid items-center gap-4 px-4";
   const showEmpty = !loading && rows.length === 0;
   const firstDataCol = columns[0]?.id;
 
   return (
-    <div className={cn("rounded-md border border-line bg-surface", className)}>
+    <div className={cn("overflow-hidden rounded-panel border border-line bg-surface", className)}>
       <div className="overflow-x-auto">
         <div
           role="grid"
@@ -200,10 +222,10 @@ export function DataTable<T>({
             role="row"
             aria-rowindex={1}
             style={{ gridTemplateColumns: template }}
-            className="grid h-10 items-center border-b border-line text-xs leading-4 font-semibold text-ink-muted"
+            className={cn(rowGrid, "h-11 border-b border-line text-xs leading-4 font-semibold text-ink-faint")}
           >
             {selectable && (
-              <div role="columnheader" className="flex justify-center">
+              <div role="columnheader" className="flex items-center">
                 <Checkbox
                   checked={headerChecked}
                   onChange={toggleAll}
@@ -235,19 +257,17 @@ export function DataTable<T>({
                       title={c.headerTooltip}
                       onClick={() => sortBy(c)}
                       className={cn(
-                        "inline-flex cursor-pointer items-center gap-1 rounded-sm",
+                        "inline-flex min-w-0 cursor-pointer items-center gap-1 rounded-sm border-0 bg-transparent p-0 text-xs leading-4 font-semibold whitespace-nowrap hover:text-ink",
                         sorted ? "text-ink" : "text-inherit",
                       )}
                     >
                       {c.header}
-                      <Icon
-                        name={sorted === "asc" ? "arrow-up" : sorted === "desc" ? "arrow-down" : "sort"}
-                        size={14}
-                        className={sorted ? "text-primary" : "text-ink-muted"}
-                      />
+                      <SortArrow sorted={sorted} />
                     </button>
                   ) : (
-                    <span title={c.headerTooltip}>{c.header}</span>
+                    <span title={c.headerTooltip} className="truncate">
+                      {c.header}
+                    </span>
                   )}
                 </div>
               );
@@ -266,10 +286,10 @@ export function DataTable<T>({
                 role="row"
                 aria-hidden="true"
                 style={{ gridTemplateColumns: template }}
-                className={cn("grid items-center border-b border-line", rowH)}
+                className={cn(rowGrid, "border-b border-line last:border-b-0", rowH)}
               >
                 {selectable && (
-                  <div role="gridcell" className="flex justify-center">
+                  <div role="gridcell" className="flex items-center">
                     <span className="size-[18px] rounded-[4px] bg-line" />
                   </div>
                 )}
@@ -290,7 +310,7 @@ export function DataTable<T>({
               <div
                 role="gridcell"
                 aria-colspan={colCount}
-                className="sticky left-0 flex w-full items-center justify-center px-6 py-10 text-center"
+                className="sticky left-0 flex w-full items-center justify-center px-6 py-14 text-center"
               >
                 {emptyState}
               </div>
@@ -322,17 +342,19 @@ export function DataTable<T>({
                   onKeyDown={(e) => onRowKeyDown(e, index)}
                   style={{ gridTemplateColumns: template }}
                   className={cn(
-                    "group focus-inset grid items-center border-b border-line last:border-b-0",
+                    "group focus-inset border-b border-line last:border-b-0",
+                    rowGrid,
                     rowH,
                     onOpenRow && "cursor-pointer",
-                    isSelected || isActive ? "bg-primary-tint" : "hover:bg-row-hover",
+                    isSelected ? "bg-primary-tint" : "hover:bg-row-hover",
+                    isActive && "shadow-[inset_3px_0_0_var(--primary)]",
                     rowClassName?.(row),
                   )}
                 >
                   {selectable && (
                     <div
                       role="gridcell"
-                      className="flex justify-center"
+                      className="flex items-center"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Checkbox
@@ -359,10 +381,7 @@ export function DataTable<T>({
                   {rowActions && (
                     <div
                       role="gridcell"
-                      className={cn(
-                        "flex justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 has-[[aria-expanded=true]]:opacity-100",
-                        (isSelected || isActive) && "opacity-100",
-                      )}
+                      className="flex justify-end"
                       onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => e.stopPropagation()}
                     >

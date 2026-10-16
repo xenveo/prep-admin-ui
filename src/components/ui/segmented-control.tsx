@@ -37,7 +37,7 @@ export function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className="inline-flex gap-0.5 rounded-md bg-bg p-0.5"
+      className="inline-flex max-w-full gap-1 overflow-x-auto rounded-[9px] border border-line bg-surface-sunken p-[3px]"
     >
       {options.map((o, i) => {
         const selected = i === activeIndex;
@@ -50,11 +50,9 @@ export function SegmentedControl<T extends string>({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(o.value)}
             className={cn(
-              "inline-flex items-center justify-center whitespace-nowrap rounded-sm border px-3 font-medium",
-              size === "md" ? "h-8 text-sm" : "h-7 text-[13px]",
-              selected
-                ? "border-line bg-surface text-ink shadow-none"
-                : "border-transparent text-ink-muted hover:text-ink",
+              "focus-inset inline-flex items-center justify-center whitespace-nowrap rounded-md font-semibold transition-colors duration-100",
+              size === "md" ? "h-8 px-3.5 text-[13px]" : "h-7 px-2.5 text-xs",
+              selected ? "bg-selected text-ink" : "bg-transparent text-ink-faint hover:text-ink",
             )}
           >
             {o.label}

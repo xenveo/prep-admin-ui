@@ -17,40 +17,34 @@ export const STATUS_CHIP: Record<CandidateStatus, ChipStatus> = {
   revoked: "revoked",
 };
 
-const roleChip = "inline-flex h-6 max-w-[200px] items-center rounded-full border px-2.5 text-xs font-medium whitespace-nowrap";
-
-function RoleChip({ role }: { role: RoleRef }) {
+function RoleName({ role }: { role: RoleRef }) {
   if (role.status === "draft") {
     return (
       <Tooltip content="This role is still a draft, so the candidate cannot see it yet">
-        <span className={cn(roleChip, "border-improve bg-surface text-improve-text")}>
-          <span className="truncate">{role.title}</span>
-          <span className="shrink-0">&nbsp;· Draft</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-[13px] text-ink-soft">{role.title}</span>
+          <span className="shrink-0 text-xs font-semibold text-improve-text">Draft</span>
         </span>
       </Tooltip>
     );
   }
-  return (
-    <span className={cn(roleChip, "border-neutral-soft bg-neutral-soft text-neutral-text")}>
-      <span className="truncate">{role.title}</span>
-    </span>
-  );
+  return <span className="truncate text-[13px] text-ink-soft">{role.title}</span>;
 }
 
 export function candidateColumns(): Column<CandidateRow>[] {
   return [
     {
       id: "name",
-      header: "Name",
-      width: "minmax(220px, 2fr)",
+      header: "Candidate",
+      width: "minmax(240px, 2.2fr)",
       sortable: true,
       skeletonWidth: 150,
       render: (r) => (
         <span className="flex min-w-0 items-center gap-3">
-          <Avatar name={r.name} size={28} />
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate font-semibold text-ink">{r.name}</span>
-            <span className="truncate text-xs leading-4 text-ink-muted">{r.email}</span>
+          <Avatar name={r.name} size={32} />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate text-sm leading-5 font-semibold text-ink">{r.name}</span>
+            <span className="truncate text-[13px] leading-[18px] text-ink-faint">{r.email}</span>
           </span>
         </span>
       ),
@@ -58,19 +52,16 @@ export function candidateColumns(): Column<CandidateRow>[] {
     {
       id: "roles",
       header: "Roles",
-      width: "minmax(170px, 1.4fr)",
+      width: "minmax(200px, 1.6fr)",
       skeletonWidth: 120,
       render: (r) => {
-        if (r.roles.length === 0) return <span className="text-ink-muted">–</span>;
+        if (r.roles.length === 0) return <span className="text-[13px] text-ink-faint">—</span>;
         const rest = r.roles.slice(1);
         return (
-          <span className="flex min-w-0 items-center gap-1.5">
-            <RoleChip role={r.roles[0]} />
+          <span title={r.roles.map((x) => x.title).join(", ")} className="flex min-w-0 items-center gap-1.5">
+            <RoleName role={r.roles[0]} />
             {rest.length > 0 && (
-              <span
-                title={rest.map((x) => x.title).join(", ")}
-                className={cn(roleChip, "shrink-0 border-neutral-soft bg-neutral-soft text-neutral-text")}
-              >
+              <span className="flex-none rounded-md bg-neutral-soft px-1.5 py-0.5 text-xs leading-4 text-ink-muted">
                 +{rest.length}
                 <span className="sr-only"> more: {rest.map((x) => x.title).join(", ")}</span>
               </span>
@@ -82,48 +73,57 @@ export function candidateColumns(): Column<CandidateRow>[] {
     {
       id: "status",
       header: "Status",
-      width: 128,
+      width: 90,
       sortable: true,
-      skeletonWidth: 80,
-      render: (r) => <StatusChip status={STATUS_CHIP[r.status]} />,
+      skeletonWidth: 60,
+      // 90px column (design); "Invite pending" wraps rather than spilling into the next column.
+      render: (r) => <StatusChip status={STATUS_CHIP[r.status]} className="min-w-0 whitespace-normal" />,
     },
     {
       id: "sessions",
       header: "Sessions",
-      width: 84,
+      width: 72,
       align: "right",
       sortable: true,
       skeletonWidth: 20,
-      render: (r) => <span>{r.sessions}</span>,
+      render: (r) => (
+        <span className={cn("font-mono text-[13px]", r.sessions === 0 ? "text-ink-faint" : "text-ink")}>{r.sessions}</span>
+      ),
     },
     {
       id: "score",
       header: "Latest score",
-      width: 188,
+      width: "minmax(180px, 1.3fr)",
       sortable: true,
       skeletonWidth: 110,
-      render: (r) => <ScoreCell score={r.latestScore} band={r.band ?? undefined} />,
+      render: (r) => (
+        <ScoreCell score={r.latestScore} band={r.band ?? undefined} emptyLabel={r.sessions === 0 ? "No sessions yet" : undefined} />
+      ),
     },
     {
       id: "change",
       header: "Since baseline",
       headerTooltip: "Change since baseline",
-      width: 120,
-      align: "right",
+      width: 110,
       sortable: true,
       skeletonWidth: 30,
-      render: (r) => <ChangeValue value={r.change} />,
+      render: (r) => (
+        <span className="text-[13px] text-ink-faint">
+          <ChangeValue value={r.change} />
+        </span>
+      ),
     },
     {
       id: "lastActive",
       header: "Last active",
-      width: 132,
+      width: 100,
+      align: "right",
       sortable: true,
-      skeletonWidth: 80,
+      skeletonWidth: 70,
       render: (r) => (
-        <span className="flex min-w-0 flex-col">
-          <span className="truncate">{r.lastActiveLabel}</span>
-          {r.lastActiveNote && <span className="truncate text-xs leading-4 text-ink-muted">{r.lastActiveNote}</span>}
+        <span className="flex min-w-0 flex-col items-end">
+          <span className="max-w-full truncate text-[13px] text-ink-soft">{r.lastActiveLabel}</span>
+          {r.lastActiveNote && <span className="max-w-full truncate text-xs leading-4 text-ink-faint">{r.lastActiveNote}</span>}
         </span>
       ),
     },

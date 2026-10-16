@@ -47,7 +47,7 @@ export function Tabs({
       role="tablist"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className={cn("flex gap-6 border-b border-line", className)}
+      className={cn("flex gap-1 border-b border-line", className)}
     >
       {items.map((item) => {
         const selected = item.id === activeId;
@@ -58,16 +58,23 @@ export function Tabs({
           "aria-controls": panelId,
           tabIndex: selected ? 0 : -1,
           className: cn(
-            "-mb-px inline-flex h-10 items-center gap-1.5 whitespace-nowrap border-b-2 text-sm",
-            selected
-              ? "border-primary font-semibold text-primary-text"
-              : "border-transparent font-medium text-ink-muted hover:text-ink",
+            "focus-inset -mb-px inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm leading-5 font-semibold transition-colors duration-100",
+            selected ? "border-primary text-ink" : "border-transparent text-ink-faint hover:text-ink",
           ),
         };
         const inner = (
           <>
             {item.label}
-            {item.count != null ? <span className="font-medium text-ink-muted">{item.count}</span> : null}
+            {item.count != null ? (
+              <span
+                className={cn(
+                  "rounded-full px-[7px] py-px text-xs leading-4",
+                  selected ? "bg-primary-soft text-primary-text" : "bg-neutral-soft text-ink-faint",
+                )}
+              >
+                {item.count}
+              </span>
+            ) : null}
             {item.badge}
           </>
         );

@@ -13,6 +13,7 @@ export function ChartFrame({
   children,
   className,
   toggleLabel = "Show as table",
+  chartLabel = "Show as chart",
   hideToggle = false,
 }: {
   title?: ReactNode;
@@ -21,39 +22,40 @@ export function ChartFrame({
   children: ReactNode;
   className?: string;
   toggleLabel?: string;
+  /** Toggle label while the table is showing. */
+  chartLabel?: string;
   /** Hide the built-in table toggle when the consumer renders its own. */
   hideToggle?: boolean;
 }) {
   const [asTable, setAsTable] = useState(false);
   const regionId = useId();
+  const hasHead = Boolean(title || caption || !hideToggle);
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          {title ? <h3 className="m-0 text-[16px] font-semibold leading-6 text-ink">{title}</h3> : null}
-          {caption ? <p className="m-0 text-[12px] leading-4 text-ink-muted">{caption}</p> : null}
+      {hasHead && (
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            {title ? <h3 className="m-0 text-base font-semibold leading-6 text-ink">{title}</h3> : null}
+            {caption ? <p className="m-0 text-xs leading-4 text-ink-faint">{caption}</p> : null}
+          </div>
+          {!hideToggle && (
+            <button
+              type="button"
+              aria-controls={regionId}
+              onClick={() => setAsTable((v) => !v)}
+              className="shrink-0 cursor-pointer rounded-sm text-[13px] font-semibold leading-5 text-ink-muted hover:text-ink"
+            >
+              {asTable ? chartLabel : toggleLabel}
+            </button>
+          )}
         </div>
-        {!hideToggle && (
-          <button
-            type="button"
-            aria-pressed={asTable}
-            aria-controls={regionId}
-            onClick={() => setAsTable((v) => !v)}
-            className={cn(
-              "inline-flex h-[30px] shrink-0 cursor-pointer items-center rounded-md border px-2.5 text-[13px] font-medium text-ink",
-              asTable ? "border-primary bg-primary-tint" : "border-line bg-surface",
-            )}
-          >
-            {toggleLabel}
-          </button>
-        )}
-      </div>
+      )}
       <div id={regionId}>
         {asTable && !hideToggle ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-[13px] text-ink">
-              <caption className="pb-2 text-left text-[12px] text-ink-muted">{table.caption}</caption>
+              <caption className="pb-2 text-left text-xs text-ink-faint">{table.caption}</caption>
               <thead>
                 <tr>
                   {table.columns.map((c, i) => (
@@ -61,7 +63,7 @@ export function ChartFrame({
                       key={c}
                       scope="col"
                       className={cn(
-                        "h-9 border-b border-line px-3 text-[12px] font-semibold text-ink-muted",
+                        "h-9 border-b border-line px-3 text-xs font-semibold text-ink-faint first:pl-0 last:pr-0",
                         i > 0 && typeof table.rows[0]?.[i] === "number" && "text-right",
                       )}
                     >
@@ -75,15 +77,15 @@ export function ChartFrame({
                   <tr key={ri}>
                     {r.map((cell, ci) =>
                       ci === 0 ? (
-                        <th key={ci} scope="row" className="h-9 border-b border-line px-3 font-medium">
+                        <th key={ci} scope="row" className="h-9 border-b border-line px-3 pl-0 font-normal text-ink-muted">
                           {cell}
                         </th>
                       ) : (
                         <td
                           key={ci}
                           className={cn(
-                            "h-9 border-b border-line px-3",
-                            typeof cell === "number" && "text-right",
+                            "h-9 border-b border-line px-3 last:pr-0",
+                            typeof cell === "number" && "text-right font-semibold",
                           )}
                         >
                           {cell}

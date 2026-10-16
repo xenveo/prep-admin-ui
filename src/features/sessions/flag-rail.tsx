@@ -18,7 +18,10 @@ import {
 import { cn } from "@/lib/cn";
 import { resolveFlag, submitFlag } from "@/services/sessions";
 
-const EYEBROW = "m-0 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-muted";
+const EYEBROW = "m-0 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-faint";
+/** Sunken inputs per the design; descendant selectors because Select/Textarea own their control classes. */
+const SUNKEN_FIELD =
+  "[&_select]:h-[38px] [&_select]:rounded-lg [&_select]:bg-surface-sunken [&_textarea]:rounded-lg [&_textarea]:bg-surface-sunken [&_textarea]:placeholder:text-ink-faint";
 
 const DIMENSIONS: FlagDimension[] = ["structure", "content", "delivery", "relevance", "overall", "feedback"];
 const DIMENSION_OPTION: Record<FlagDimension, string> = {
@@ -121,15 +124,15 @@ export function FlagRail({
   }
 
   return (
-    <aside aria-label="Flag this evaluation" className="flex min-w-0 flex-col gap-6">
-      <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
-        <div className="flex flex-col gap-1">
+    <aside aria-label="Flag this evaluation" className="flex min-w-0 flex-col gap-4">
+      <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-panel border border-line bg-surface p-5">
+        <div className="flex flex-col gap-1.5">
           <h2 className="m-0 text-base font-semibold text-ink">Flag this evaluation</h2>
-          <p className="m-0 text-[13px] leading-normal text-ink-muted">
+          <p className="m-0 text-[13px] leading-normal text-ink-faint">
             If the AI scored question {questionNumber} wrongly, tell us. The score stays as is until someone reviews it.
           </p>
         </div>
-        <Field label="Dimension">
+        <Field label="Dimension" className={SUNKEN_FIELD}>
           {({ id, describedBy }) => (
             <Select id={id} aria-describedby={describedBy} value={dimension} onChange={(e) => setDimension(e.target.value as FlagDimension)}>
               {DIMENSIONS.map((d) => (
@@ -160,7 +163,9 @@ export function FlagRail({
                   onKeyDown={(e) => onIssueKey(e, index)}
                   className={cn(
                     "cursor-pointer rounded-full border px-[11px] py-1.5 text-xs font-semibold",
-                    on ? "border-primary bg-primary-tint text-primary-text" : "border-line text-ink-muted hover:bg-row-hover hover:text-ink",
+                    on
+                      ? "border-primary-line bg-primary-tint text-primary-text"
+                      : "border-input-line text-ink-muted hover:bg-row-hover hover:text-ink",
                   )}
                 >
                   {FLAG_ISSUE_LABEL[i]}
@@ -169,7 +174,7 @@ export function FlagRail({
             })}
           </div>
         </div>
-        <Field label="Note" optional error={error || undefined}>
+        <Field label="Note" optional error={error || undefined} className={SUNKEN_FIELD}>
           {({ id, describedBy, invalid }) => (
             <Textarea
               id={id}
@@ -188,7 +193,7 @@ export function FlagRail({
           className={cn(
             "w-full rounded-[10px] py-3 text-sm font-bold transition-[filter] duration-100",
             busy || !issue
-              ? "cursor-not-allowed bg-neutral-soft text-ink-muted"
+              ? "cursor-not-allowed bg-neutral-soft text-ink-faint"
               : "cursor-pointer bg-primary text-on-primary hover:brightness-95",
           )}
         >
@@ -199,7 +204,7 @@ export function FlagRail({
         </p>
       </form>
 
-      <section aria-labelledby="flag-history" className="flex flex-col gap-2">
+      <section aria-labelledby="flag-history" className="flex flex-col gap-2.5">
         {resolveError && (
           <p role="alert" className="m-0 text-sm text-improve-text">
             {resolveError}
@@ -209,13 +214,13 @@ export function FlagRail({
           Flag history
         </h2>
         {flagsError ? (
-          <p className="m-0 text-[13px] text-ink-muted">Flag history didn’t load. Reload the page to try again.</p>
+          <p className="m-0 text-[13px] text-ink-faint">Flag history didn’t load. Reload the page to try again.</p>
         ) : flags === undefined ? (
           <div className="h-16 animate-pulse rounded-[10px] bg-neutral-soft" />
         ) : flags.length === 0 ? (
-          <p className="m-0 text-[13px] text-ink-muted">No flags on this session yet.</p>
+          <p className="m-0 text-[13px] text-ink-faint">No flags on this session yet.</p>
         ) : (
-          <ul className="m-0 flex list-none flex-col gap-2 p-0">
+          <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
             {flags.map((f) => {
               const detail = [f.issue ? FLAG_ISSUE_LABEL[f.issue] : "", f.note].filter(Boolean).join(" · ");
               return (
@@ -233,7 +238,7 @@ export function FlagRail({
                   </div>
                   {detail && <p className="m-0 text-[13px] leading-normal text-ink-muted">{detail}</p>}
                   {f.status === "open" && (
-                    <div className="mt-1 flex flex-col gap-2">
+                    <div className={cn("mt-1 flex flex-col gap-2", SUNKEN_FIELD)}>
                       <label className="flex flex-col gap-1 text-xs text-ink-muted">
                         Resolution
                         <Textarea
@@ -248,7 +253,7 @@ export function FlagRail({
                     </div>
                   )}
                   {f.resolution && <span className="text-xs text-ink-muted">{f.resolution}</span>}
-                  <span className="text-xs text-ink-muted">
+                  <span className="text-xs text-ink-faint">
                     {f.createdByName} · {formatDate(f.createdAt)}
                   </span>
                 </li>

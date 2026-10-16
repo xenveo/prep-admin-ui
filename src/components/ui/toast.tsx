@@ -36,7 +36,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="pointer-events-auto flex w-[380px] max-w-full items-start gap-2.5 rounded-md bg-toast px-4 py-3 text-toast-text shadow-[var(--shadow-panel)]"
+      className="pointer-events-auto flex w-[380px] max-w-full items-start gap-2.5 rounded-card bg-toast px-4 py-3.5 text-toast-text shadow-[var(--shadow-panel)]"
     >
       <Icon name="check-circle" size={18} className="mt-0.5 text-toast-icon" />
       <div className="flex min-w-0 flex-1 flex-col text-sm leading-5">
@@ -56,7 +56,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
         type="button"
         aria-label="Dismiss notification"
         onClick={() => onDismiss(toast.id)}
-        className="-mr-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-toast-text opacity-80 hover:opacity-100"
+        className="-mr-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-toast-text opacity-80 hover:opacity-100"
       >
         <Icon name="close" size={14} />
       </button>

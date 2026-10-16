@@ -32,12 +32,15 @@ export function Menu({
   trigger,
   align = "end",
   triggerClassName,
+  triggerVariant = "ghost",
 }: {
   label: string;
   items: MenuItem[];
   trigger?: ReactNode;
   align?: "start" | "end";
   triggerClassName?: string;
+  /** ghost = borderless 30px ⋯ (table rows); outline = 34px bordered square (panel/page headers). */
+  triggerVariant?: "ghost" | "outline";
 }) {
   const { open, setOpen } = useMenu();
   const [pos, setPos] = useState<Pos>({ left: 0, top: 0 });
@@ -142,9 +145,16 @@ export function Menu({
         }}
         onKeyDown={onTriggerKeyDown}
         className={cn(
-          "relative inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-md text-ink-muted hover:bg-neutral-soft hover:text-ink",
-          "after:absolute after:-inset-y-1.5 after:inset-x-0 after:content-['']",
-          open && "bg-neutral-soft text-ink",
+          "relative inline-flex shrink-0 items-center justify-center transition-colors duration-100 after:absolute after:inset-x-0 after:content-['']",
+          triggerVariant === "outline"
+            ? cn(
+                "h-[34px] min-w-[34px] rounded-lg border after:-inset-y-[5px] hover:border-neutral-line hover:text-ink",
+                open ? "border-neutral-line text-ink" : "border-input-line text-ink-muted",
+              )
+            : cn(
+                "h-[30px] min-w-[30px] rounded-[7px] after:-inset-y-[7px] hover:bg-row-hover hover:text-ink",
+                open ? "bg-row-hover text-ink" : "text-ink-faint",
+              ),
           triggerClassName,
         )}
       >
@@ -161,12 +171,11 @@ export function Menu({
               onKeyDown={onMenuKeyDown}
               onClick={(e) => e.stopPropagation()}
               style={{ position: "fixed", width: WIDTH, left: pos.left, top: pos.top, bottom: pos.bottom }}
-              className="z-[70] rounded-md border border-line bg-surface p-1 shadow-[var(--shadow-menu)]"
+              className="z-[70] rounded-lg border border-line bg-surface p-1 shadow-[var(--shadow-menu)]"
             >
               {items.map((item) => (
                 <div key={item.id}>
-                  {item.dividerBefore ? <div role="separator" className="-mx-1 my-1 h-px bg-line" /> : null}
-                  <button
+                  {item.dividerBefore ? <div role="separator" className="-mx-1 my-1 h-px bg-line" /> : null}                  <button
                     type="button"
                     role="menuitem"
                     tabIndex={-1}
@@ -178,10 +187,10 @@ export function Menu({
                       item.onSelect();
                     }}
                     className={cn(
-                      "focus-inset flex h-9 w-full items-center rounded-sm px-3 text-left text-sm",
+                      "focus-inset flex h-9 w-full items-center rounded-md px-3 text-left text-sm font-medium",
                       item.disabled
-                        ? "cursor-not-allowed text-ink-muted"
-                        : cn("hover:bg-neutral-soft focus:bg-neutral-soft", item.destructive ? "text-error" : "text-ink"),
+                        ? "cursor-not-allowed text-ink-faint"
+                        : cn("hover:bg-row-hover focus:bg-row-hover", item.destructive ? "text-error" : "text-ink"),
                     )}
                   >
                     {item.label}
