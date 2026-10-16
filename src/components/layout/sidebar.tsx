@@ -54,6 +54,7 @@ export function Sidebar({
             <Icon name="logo-mark" size={14} />
           </span>
           {!collapsed && <span className="text-base font-bold">PrepPilot</span>}
+          {!collapsed && <span className="rounded-[4px] border border-line px-1.5 py-0.5 font-mono text-[10px] tracking-[0.06em] text-ink-muted">ADMIN</span>}
         </div>
         {!collapsed && (
           <button
@@ -125,7 +126,7 @@ export function Sidebar({
 
         <ThemeToggle collapsed={collapsed} className={collapsed ? undefined : "mx-2.5 my-1"} />
 
-        <div className={cn("flex items-center gap-2.5 py-2", collapsed ? "justify-center" : "px-2.5")}>
+        <div className={cn("flex items-center gap-2.5 rounded-lg py-2", collapsed ? "justify-center" : "border border-line bg-bg px-2")}>
           <span
             title={name}
             aria-hidden={collapsed ? undefined : true}

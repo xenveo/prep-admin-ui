@@ -2,20 +2,23 @@
 
 import { cn } from "@/lib/cn";
 
+/** Saved filters rendered as an underlined tab strip (design: Admin Candidates). */
 export function SavedFilterChips({
   items,
   activeId,
+  activeCount,
   onSelect,
   onSaveCurrent,
 }: {
   items: { id: string; label: string }[];
   activeId: string | null;
+  /** Result count shown on the active tab, when known. */
+  activeCount?: number;
   onSelect: (id: string) => void;
   onSaveCurrent?: () => void;
 }) {
   return (
-    <div role="group" aria-label="Saved filters" className="flex flex-wrap items-center gap-2">
-      <span className="mr-1 text-xs leading-4 text-ink-muted">Saved filters</span>
+    <div role="group" aria-label="Saved filters" className="flex items-center gap-1 overflow-x-auto border-b border-line">
       {items.map((it) => {
         const active = it.id === activeId;
         return (
@@ -25,13 +28,14 @@ export function SavedFilterChips({
             aria-pressed={active}
             onClick={() => onSelect(it.id)}
             className={cn(
-              "h-7 cursor-pointer rounded-full border px-3 text-xs font-medium",
-              active
-                ? "border-primary bg-primary-soft text-primary-text"
-                : "border-line bg-surface text-ink",
+              "-mb-px flex flex-none cursor-pointer items-center gap-2 border-b-2 bg-transparent px-3 py-2.5 text-sm font-semibold whitespace-nowrap",
+              active ? "border-primary text-ink" : "border-transparent text-ink-muted hover:text-ink",
             )}
           >
             {it.label}
+            {active && activeCount !== undefined && (
+              <span className="rounded-full bg-primary-soft px-[7px] py-px text-xs text-primary-text">{activeCount}</span>
+            )}
           </button>
         );
       })}
@@ -39,7 +43,7 @@ export function SavedFilterChips({
         <button
           type="button"
           onClick={onSaveCurrent}
-          className="h-7 cursor-pointer px-2 text-xs font-medium text-ink-muted"
+          className="ml-auto flex-none cursor-pointer px-2 py-2.5 text-xs font-medium whitespace-nowrap text-ink-muted hover:text-ink"
         >
           + Save current filters
         </button>

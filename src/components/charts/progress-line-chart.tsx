@@ -23,11 +23,14 @@ export function ProgressLineChart({
   points,
   caption,
   label,
+  hideTableToggle,
 }: {
   points: { label: string; date: string; score: number }[];
   caption: string;
   /** Names the chart for screen readers, e.g. "Junior Data Analyst progress". */
   label?: string;
+  /** Hide ChartFrame's own table toggle when the consumer provides one. */
+  hideTableToggle?: boolean;
 }) {
   const n = points.length;
   const xs = points.map((_, i) =>
@@ -38,6 +41,7 @@ export function ProgressLineChart({
   return (
     <ChartFrame
       caption={caption}
+      hideToggle={hideTableToggle}
       table={{
         caption,
         columns: ["Session", "Date", "Score", "Band"],

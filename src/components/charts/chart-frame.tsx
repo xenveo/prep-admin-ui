@@ -13,6 +13,7 @@ export function ChartFrame({
   children,
   className,
   toggleLabel = "Show as table",
+  hideToggle = false,
 }: {
   title?: ReactNode;
   caption?: ReactNode;
@@ -20,6 +21,8 @@ export function ChartFrame({
   children: ReactNode;
   className?: string;
   toggleLabel?: string;
+  /** Hide the built-in table toggle when the consumer renders its own. */
+  hideToggle?: boolean;
 }) {
   const [asTable, setAsTable] = useState(false);
   const regionId = useId();
@@ -31,21 +34,23 @@ export function ChartFrame({
           {title ? <h3 className="m-0 text-[16px] font-semibold leading-6 text-ink">{title}</h3> : null}
           {caption ? <p className="m-0 text-[12px] leading-4 text-ink-muted">{caption}</p> : null}
         </div>
-        <button
-          type="button"
-          aria-pressed={asTable}
-          aria-controls={regionId}
-          onClick={() => setAsTable((v) => !v)}
-          className={cn(
-            "inline-flex h-[30px] shrink-0 cursor-pointer items-center rounded-md border px-2.5 text-[13px] font-medium text-ink",
-            asTable ? "border-primary bg-primary-tint" : "border-line bg-surface",
-          )}
-        >
-          {toggleLabel}
-        </button>
+        {!hideToggle && (
+          <button
+            type="button"
+            aria-pressed={asTable}
+            aria-controls={regionId}
+            onClick={() => setAsTable((v) => !v)}
+            className={cn(
+              "inline-flex h-[30px] shrink-0 cursor-pointer items-center rounded-md border px-2.5 text-[13px] font-medium text-ink",
+              asTable ? "border-primary bg-primary-tint" : "border-line bg-surface",
+            )}
+          >
+            {toggleLabel}
+          </button>
+        )}
       </div>
       <div id={regionId}>
-        {asTable ? (
+        {asTable && !hideToggle ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-[13px] text-ink">
               <caption className="pb-2 text-left text-[12px] text-ink-muted">{table.caption}</caption>

@@ -284,7 +284,16 @@ export function CandidatesScreen() {
           />
         </section>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
+          {(savedItems.length > 0 || canSaveCurrent) && (
+            <SavedFilterChips
+              items={savedItems}
+              activeId={activeSaved?.id ?? null}
+              activeCount={listQ.data ? count : undefined}
+              onSelect={applySaved}
+              onSaveCurrent={canSaveCurrent ? () => setSaveOpen(true) : undefined}
+            />
+          )}
           <FilterBar
             search={searchText}
             onSearchChange={setSearchText}
@@ -295,14 +304,6 @@ export function CandidatesScreen() {
             onChange={onFilterChange}
             onClearAll={clearFilters}
           />
-          {(savedItems.length > 0 || canSaveCurrent) && (
-            <SavedFilterChips
-              items={savedItems}
-              activeId={activeSaved?.id ?? null}
-              onSelect={applySaved}
-              onSaveCurrent={canSaveCurrent ? () => setSaveOpen(true) : undefined}
-            />
-          )}
 
           {listQ.error && (
             <div
@@ -317,9 +318,9 @@ export function CandidatesScreen() {
           )}
 
           {!(listQ.error && !listQ.data) && (
-            <div>
-              {selectedRows.length > 0 ? (
-                <div className="rounded-t-md border border-b-0 border-primary bg-surface">
+            <div className="flex flex-col gap-4">
+              {selectedRows.length > 0 && (
+                <div className="rounded-md border border-primary bg-primary-soft">
                   <BulkActionBar
                     count={selectedRows.length}
                     onClear={() => setSelection(new Set())}
@@ -351,14 +352,8 @@ export function CandidatesScreen() {
                     }}
                   />
                 </div>
-              ) : (
-                <div className="flex h-11 items-center justify-between rounded-t-md border border-b-0 border-line bg-surface px-4 text-[13px] text-ink-muted">
-                  <span aria-live="polite">{listQ.data ? pluralize(count, "candidate") : "Loading candidates"}</span>
-                  <span>Sorted by {SORT_LABEL[sort.columnId]}</span>
-                </div>
               )}
               <DataTable
-                className="rounded-t-none"
                 ariaLabel="Candidates"
                 columns={columns}
                 rows={rows}
@@ -394,6 +389,11 @@ export function CandidatesScreen() {
                   })
                 }
               />
+              <span aria-live="polite" className="text-[13px] text-ink-muted">
+                {listQ.data
+                  ? `Showing ${count} of ${pluralize(listQ.data.totalUnfiltered, "candidate")} · Sorted by ${SORT_LABEL[sort.columnId]}`
+                  : "Loading candidates"}
+              </span>
             </div>
           )}
         </div>
