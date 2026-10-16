@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { HighlightLegend } from "@/components/media/transcript-highlights";
 import { ScoreRing } from "@/components/charts/score-ring";
@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { ChangeValue } from "@/components/ui/change-value";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatStrip } from "@/components/ui/stat-strip";
+import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
+import { downloadBlobFile } from "@/lib/csv";
 import { formatDateTime, formatMinutes } from "@/lib/format";
 import type { SessionQuestion } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
-import { getSessionReview, listFlags } from "@/services/sessions";
+import { exportSessionPdf, getSessionReview, listFlags } from "@/services/sessions";
 import { FlagRail, type QuestionMode } from "./flag-rail";
 import { TryCard, tryMode } from "./try-card";
 
@@ -57,6 +59,21 @@ function questionModes(questions: SessionQuestion[]): Partial<Record<number, Que
 export function SessionScreen({ candidateId, sessionId }: { candidateId: string; sessionId: string }) {
   const url = useUrlState();
   const review = useAsync(() => getSessionReview(candidateId, sessionId), [candidateId, sessionId]);
+  const toast = useToast();
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  async function exportPdf() {
+    if (exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const { blob, filename } = await exportSessionPdf(candidateId, sessionId);
+      downloadBlobFile(filename, blob);
+    } catch (error) {
+      toast.show({ title: "Couldn’t export the PDF", detail: error instanceof Error ? error.message : "Try again." });
+    } finally {
+      setExportingPdf(false);
+    }
+  }
   const flags = useAsync(() => listFlags(sessionId), [sessionId]);
   const listRef = useRef<HTMLOListElement>(null);
 
@@ -125,8 +142,8 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
           </>
         }
         secondaryActions={
-          <Button iconLeft="download" disabledReason="PDF export isn’t available yet.">
-            Export PDF
+          <Button iconLeft="download" disabled={exportingPdf} aria-busy={exportingPdf || undefined} onClick={() => void exportPdf()}>
+            {exportingPdf ? "Exporting…" : "Export PDF"}
           </Button>
         }
       />
