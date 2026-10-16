@@ -14,9 +14,7 @@ import { SidePanel } from "@/components/ui/side-panel";
 import { StatusChip } from "@/components/ui/status-chip";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { BandChip } from "@/components/ui/band-chip";
-import { SubScoreBars } from "@/components/charts/sub-score-bars";
-import { HighlightLegend, TranscriptHighlights, type Highlight } from "@/components/media/transcript-highlights";
+import { BAND_LABEL } from "@/lib/bands";
 import { cn } from "@/lib/cn";
 import { emitRoleChanged } from "@/lib/role-events";
 import { deleteQuestion, draftQuestionsWithAI, evaluateSampleAnswer, getRole, listFlashCards, listQuestions, saveQuestion } from "@/services/roles";
@@ -56,13 +54,16 @@ function formOf(q: Question): Form {
   return { cardId: q.cardId, text: q.text, category: q.category, difficulty: q.difficulty, rubric: q.rubric };
 }
 
+/** Three rising bars (6/9/12px), filled up to the difficulty level. */
+const DIFFICULTY_BARS = ["h-1.5", "h-[9px]", "h-3"] as const;
+
 function DifficultyGlyph({ difficulty }: { difficulty: Difficulty }) {
   const level = DIFFICULTY_LEVEL[difficulty];
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <span aria-hidden="true" className="inline-flex gap-0.5">
-        {[1, 2, 3].map((n) => (
-          <span key={n} className={cn("h-3 w-1 rounded-[1px]", n <= level ? "bg-ink-soft" : "bg-line")} />
+    <span className="inline-flex items-center gap-2 text-[13px] leading-5 text-ink-soft">
+      <span aria-hidden="true" className="inline-flex items-end gap-0.5">
+        {DIFFICULTY_BARS.map((h, i) => (
+          <span key={h} className={cn("w-1 rounded-[1px]", h, i < level ? "bg-primary" : "bg-line")} />
         ))}
       </span>
       {DIFFICULTY_LABEL[difficulty]}
@@ -70,54 +71,76 @@ function DifficultyGlyph({ difficulty }: { difficulty: Difficulty }) {
   );
 }
 
-const MISSING = <span className="text-ink-muted">–</span>;
+/** "39 → 52"; a skipped or unscored second try shows as —. Mint when the second try improved. */
+function AvgCell({ first, second }: { first: number | null; second: number | null }) {
+  if (first == null) return <span className="font-mono text-[13px] leading-5 text-ink-faint">—</span>;
+  const improved = second != null && second > first;
+  return (
+    <span
+      className={cn(
+        "font-mono text-[13px] leading-5 whitespace-nowrap",
+        improved ? "text-primary-text" : second == null ? "text-ink-faint" : "text-ink-soft",
+      )}
+    >
+      {first} → {second ?? "—"}
+    </span>
+  );
+}
 
 const COLUMNS: Column<Question>[] = [
   {
     id: "question",
     header: "Question",
-    width: "minmax(320px, 1fr)",
-    render: (q) => <span className="block truncate">{q.text}</span>,
+    width: "minmax(280px, 3fr)",
+    render: (q) => (
+      <span className="min-w-0 text-sm leading-[1.45] font-medium text-ink">
+        {q.text || "Untitled question"}
+        {q.status === "ai_draft" ? (
+          <span className="ml-2 inline-flex h-5 items-center rounded-full bg-improve-soft px-2 align-[1px] text-[11px] leading-none font-semibold whitespace-nowrap text-improve-text">
+            AI draft
+          </span>
+        ) : null}
+      </span>
+    ),
   },
-  { id: "category", header: "Category", width: 140, render: (q) => CARD_CATEGORY_LABEL[q.category] },
-  { id: "difficulty", header: "Difficulty", width: 108, render: (q) => <DifficultyGlyph difficulty={q.difficulty} /> },
   {
-    id: "status",
-    header: "Status",
-    width: 112,
-    render: (q) => <StatusChip status={q.status === "ai_draft" ? "ai-draft" : "approved"} />,
+    id: "category",
+    header: "Category",
+    width: 120,
+    render: (q) => <span className="text-[13px] leading-5 text-ink-soft">{CARD_CATEGORY_LABEL[q.category]}</span>,
   },
+  { id: "difficulty", header: "Difficulty", width: 110, render: (q) => <DifficultyGlyph difficulty={q.difficulty} /> },
   {
     id: "asked",
     header: "Times asked",
     align: "right",
-    width: 112,
-    render: (q) => (q.timesAsked > 0 ? q.timesAsked : MISSING),
+    width: 90,
+    render: (q) => <span className="font-mono text-[13px] leading-5">{q.timesAsked}</span>,
   },
   {
     id: "avg",
-    header: "Avg first → second",
+    header: "Avg 1st → 2nd",
     headerTooltip: "Average score, first try to second try",
     align: "right",
-    width: 176,
+    width: 110,
     sortable: true,
-    render: (q) =>
-      q.avgFirstTry == null || q.avgSecondTry == null ? (
-        MISSING
-      ) : (
-        <span className="whitespace-nowrap">
-          {q.avgFirstTry}
-          <span className="text-ink-muted"> → </span>
-          <span className="font-semibold">{q.avgSecondTry}</span>
-        </span>
-      ),
+    render: (q) => <AvgCell first={q.avgFirstTry} second={q.avgSecondTry} />,
+  },
+  {
+    id: "open",
+    header: <span className="sr-only">Open</span>,
+    align: "right",
+    width: 16,
+    render: () => (
+      <span aria-hidden="true" className="text-ink-faint">
+        <Icon name="chevron-right" size={14} />
+      </span>
+    ),
+    skeletonWidth: 8,
   },
 ];
 
-/** Only highlight evaluator evidence that occurs verbatim in the answer. */
-function highlightsFor(ev: TestEvaluation): Highlight[] {
-  return ev.matched.filter((text) => ev.answer.includes(text)).map((text) => ({text, kind: "match", note: "Matches a rubric key point"}));
-}
+const SCORE_OK = 70;
 
 export function QuestionsScreen({ roleId }: { roleId: string }) {
   const toast = useToast();
@@ -188,6 +211,19 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
     const id = lastRowRef.current;
     setOpenId(null);
     if (id) setTimeout(() => focusRow.current?.(id), 0);
+  }
+
+  /** Cancel throws away unsaved edits; closing with ✕ or Esc keeps them for next time. */
+  function cancel() {
+    const id = openId;
+    if (id) {
+      setDrafts((d) => {
+        const next = { ...d };
+        delete next[id];
+        return next;
+      });
+    }
+    close();
   }
 
   function setForm(patch: Partial<Form>) {
@@ -306,17 +342,30 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
 
   const count = questions?.length ?? 0;
   const toolbarText =
-    questions === null ? "Loading questions…" : `${count} ${count === 1 ? "question" : "questions"} · ${perSession ?? "–"} asked per session · showing ${rows.length}`;
+    questions === null
+      ? "Loading questions…"
+      : `${count} ${count === 1 ? "question" : "questions"} in the bank · ${perSession ?? "–"} asked per session`;
+  const toolbarButton = "h-[34px]! rounded-[9px]! px-3.5!";
+  const testReady = !isNew && test.answer.trim() !== "";
 
   return (
     <>
-      <section className="rounded-lg border border-line bg-surface">
-        <div className="flex h-[52px] items-center justify-between gap-2 border-b border-line pr-3 pl-4">
-          <span className="text-xs leading-4 text-ink-muted">{toolbarText}</span>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm leading-5 text-ink-muted">{toolbarText}</span>
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => setOpenId(NEW_ID)}>+ Add question</Button>
-            <Button size="sm" variant="secondary-teal" onClick={draftMore} disabled={drafting} aria-busy={drafting}>
-              {drafting ? "Drafting…" : "Draft more with AI"}
+            <Button size="sm" variant="outline" className={cn(toolbarButton, "border-neutral-line!")} onClick={() => setOpenId(NEW_ID)}>
+              + Add question
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary-teal"
+              className={toolbarButton}
+              onClick={draftMore}
+              disabled={drafting}
+              aria-busy={drafting}
+            >
+              {drafting ? "Drafting…" : "✦ Draft more with AI"}
             </Button>
           </div>
         </div>
@@ -331,6 +380,8 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
           activeRowId={openQuestion?.id ?? null}
           loading={questions === null}
           focusRowIdRef={focusRow}
+          className="[&_[role=row]]:px-5"
+          rowClassName={(q) => cn("min-h-14!", q.id === openQuestion?.id && "bg-row-hover")}
           emptyState={
             <EmptyState
               icon="file"
@@ -341,67 +392,101 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
             />
           }
         />
-      </section>
-      <p className="mt-4 mb-0 text-xs leading-4 text-ink-muted">↑ ↓ to move, Enter to open, Esc to close the editor.</p>
+        <p className="m-0 text-xs leading-4 text-ink-faint">Averages only count scored attempts. Skipped second tries show as —.</p>
+      </div>
 
       <SidePanel
         open={panelOpen}
         onClose={close}
         titleId="qe-title"
         header={
-          <div className="flex items-center gap-2">
-            <h2 id="qe-title" className="m-0 text-base leading-6 font-semibold text-ink">
-              {isNew ? "New question" : `Question ${openIndex + 1}`}
-            </h2>
-            {openQuestion ? <StatusChip status={openQuestion.status === "ai_draft" ? "ai-draft" : "approved"} /> : null}
-          </div>
+          <h2 id="qe-title" className="m-0 truncate text-[17px] leading-6 font-semibold text-ink">
+            {isNew ? "New question" : `Question ${openIndex + 1}`}
+          </h2>
+        }
+        headerActions={
+          openQuestion ? (
+            <StatusChip status={openQuestion.status === "ai_draft" ? "ai-draft" : "approved"} appearance="pill" />
+          ) : null
         }
         footer={
-          <div className="flex items-center justify-end gap-2 px-6 py-3">
+          <div className="flex items-center gap-2 py-0.5">
+            {openQuestion ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => setDeleting(true)}
+                className="cursor-pointer border-0 bg-transparent px-0 py-2 text-sm font-semibold text-ink-muted hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {openQuestion.status === "ai_draft" ? "Discard draft" : "Remove question"}
+              </button>
+            ) : null}
+            <span className="flex-1" />
             {openQuestion?.status === "ai_draft" ? (
-              <Button variant="secondary-teal" onClick={() => save(true)} disabled={saving} className="mr-auto">
+              <Button variant="secondary-teal" onClick={() => save(true)} disabled={saving}>
                 Approve question
               </Button>
             ) : null}
-            {openQuestion && <Button disabled={saving} onClick={()=>setDeleting(true)}>{openQuestion.status === "ai_draft" ? "Discard draft" : "Remove question"}</Button>}
-            <Button onClick={close}>Close</Button>
-            <Button variant="primary" onClick={() => save()} disabled={saving}>
+            <Button variant="outline" className="border-neutral-line!" onClick={cancel}>
+              Cancel
+            </Button>
+            <Button variant="primary" className="px-[18px]!" onClick={() => save()} disabled={saving}>
               {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
         }
       >
         {form ? (
-          <div className="flex flex-col gap-6 text-sm">
+          <div className="flex flex-col gap-[22px]">
             {openQuestion?.status === "ai_draft" ? (
-              <p className="m-0 rounded-md bg-improve-soft p-3 text-xs leading-4 text-ai-text">
+              <p className="m-0 rounded-[10px] bg-improve-soft px-3.5 py-3 text-[13px] leading-5 text-ai-text">
                 AI draft. Candidates won’t see this question until you approve it.
               </p>
             ) : null}
-            <div className="flex flex-col gap-3">
-              <label className="flex flex-col gap-1">
-                <span className="font-semibold text-ink">Question</span>
-                <Textarea rows={2} value={form.text} onChange={(e) => setForm({ text: e.target.value })} />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="font-semibold text-ink">Linked flash card</span>
-                <Select value={form.cardId ?? ""} onChange={(e) => setForm({cardId: e.target.value || null})}>
-                  <option value="">No linked card</option>
-                  {cards.map((card) => <option key={card.id} value={card.id}>{card.position}. {card.question}{card.status === "ai_draft" ? " (AI draft)" : ""}</option>)}
+            <label className="flex flex-col gap-2">
+              <span className="text-sm leading-5 font-semibold text-ink">Question</span>
+              <Textarea
+                rows={2}
+                value={form.text}
+                onChange={(e) => setForm({ text: e.target.value })}
+                className="rounded-[9px]! text-[15px]!"
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="text-sm leading-5 font-semibold text-ink">Linked flash card</span>
+              <Select
+                value={form.cardId ?? ""}
+                onChange={(e) => setForm({ cardId: e.target.value || null })}
+                className="[&_select]:h-10"
+              >
+                <option value="">No linked card</option>
+                {cards.map((card) => (
+                  <option key={card.id} value={card.id}>
+                    {card.position}. {card.question}
+                    {card.status === "ai_draft" ? " (AI draft)" : ""}
+                  </option>
+                ))}
+              </Select>
+              <span className="text-xs leading-4 text-ink-faint">
+                Required to approve the role. Candidates study this card before being asked.
+              </span>
+            </label>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+              <label className="flex flex-col gap-2">
+                <span className="text-sm leading-5 font-semibold text-ink">Category</span>
+                <Select
+                  value={form.category}
+                  onChange={(e) => setForm({ category: e.target.value as CardCategory })}
+                  className="[&_select]:h-10"
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{CARD_CATEGORY_LABEL[c]}</option>
+                  ))}
                 </Select>
-                <span className="text-xs text-ink-muted">Role approval requires questions linked to approved flash cards.</span>
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="flex flex-col gap-1">
-                  <span className="font-semibold text-ink">Category</span>
-                  <Select value={form.category} onChange={(e) => setForm({ category: e.target.value as CardCategory })}>
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>{CARD_CATEGORY_LABEL[c]}</option>
-                    ))}
-                  </Select>
-                </label>
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-ink">Difficulty</span>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm leading-5 font-semibold text-ink">Difficulty</span>
+                <div className="[&_[role=radio]]:h-auto [&_[role=radio]]:flex-1 [&_[role=radio]]:py-2 [&>[role=radiogroup]]:flex [&>[role=radiogroup]]:w-full">
                   <SegmentedControl<Difficulty>
                     label="Difficulty"
                     value={form.difficulty}
@@ -412,40 +497,48 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
               </div>
             </div>
 
-            <section aria-labelledby="rb-h" className="flex flex-col gap-3">
-              <h3 id="rb-h" className="m-0 text-base leading-6 font-semibold text-ink">Rubric</h3>
-              <div className="flex flex-col gap-1">
-                <span className="text-[13px] font-semibold text-ink">Key points</span>
-                <ol className="m-0 list-none rounded-md border border-line p-0">
+            <section aria-labelledby="rb-h" className="flex flex-col gap-4 border-t border-line pt-5">
+              <div className="flex flex-col gap-[3px]">
+                <h3 id="rb-h" className="m-0 text-base leading-6 font-semibold text-ink">Rubric</h3>
+                <span className="text-[13px] leading-5 text-ink-faint">What the AI looks for when scoring this question.</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm leading-5 font-semibold text-primary-text">Key points</span>
+                <ol className="m-0 flex list-none flex-col gap-2 p-0">
                   {form.rubric.keyPoints.map((k, i) => (
-                    <li key={i} className={cn("flex items-start gap-2 px-3 py-2.5", i > 0 && "border-t border-line")}>
+                    <li key={i} className="flex items-start gap-2 rounded-[10px] border border-line bg-surface p-2.5">
+                      <span
+                        aria-hidden="true"
+                        className="mt-[9px] inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[11px] leading-none font-bold text-primary-text"
+                      >
+                        {i + 1}
+                      </span>
                       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                         <Input
                           aria-label={`Key point ${i + 1}`}
                           value={k.point}
-                          placeholder="What a strong answer includes"
+                          placeholder="What should the answer include?"
                           onChange={(e) =>
                             setRubric({ keyPoints: form.rubric.keyPoints.map((x, j) => (j === i ? { ...x, point: e.target.value } : x)) })
                           }
-                          className="h-8 text-[13px] font-medium"
                         />
                         <Input
                           aria-label={`Example for key point ${i + 1}`}
                           value={k.example}
-                          placeholder="Example"
+                          placeholder="Example phrase that shows this (optional)"
                           onChange={(e) =>
                             setRubric({ keyPoints: form.rubric.keyPoints.map((x, j) => (j === i ? { ...x, example: e.target.value } : x)) })
                           }
-                          className="h-8 text-xs"
+                          className="h-[34px]! border-dashed! border-line! bg-transparent! text-[13px]! text-neutral-text! focus:border-primary-line!"
                         />
                       </div>
                       <button
                         type="button"
                         aria-label={`Remove key point ${i + 1}`}
                         onClick={() => setRubric({ keyPoints: form.rubric.keyPoints.filter((_, j) => j !== i) })}
-                        className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-muted"
+                        className="mt-1 inline-flex size-[30px] shrink-0 cursor-pointer items-center justify-center rounded-[7px] border-0 bg-transparent text-ink-faint hover:bg-row-hover hover:text-ink"
                       >
-                        <Icon name="close" size={16} />
+                        <Icon name="close" size={14} />
                       </button>
                     </li>
                   ))}
@@ -453,13 +546,13 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
                 <button
                   type="button"
                   onClick={() => setRubric({ keyPoints: [...form.rubric.keyPoints, { point: "", example: "" }] })}
-                  className="h-7 cursor-pointer self-start px-1.5 text-[13px] font-semibold text-primary-text"
+                  className="cursor-pointer self-start border-0 bg-transparent px-0 py-0.5 text-[13px] leading-5 font-semibold text-primary-text hover:underline"
                 >
                   + Add key point
                 </button>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[13px] font-semibold text-ink">Red flags</span>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm leading-5 font-semibold text-improve-text">Red flags</span>
                 <BulletListEditor
                   tone="mistake"
                   label="Red flags"
@@ -468,107 +561,119 @@ export function QuestionsScreen({ roleId }: { roleId: string }) {
                   addLabel="+ Add red flag"
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[13px] font-semibold text-ink">Expected structure</span>
+              <div className="flex flex-col items-start gap-2">
+                <span className="text-sm leading-5 font-semibold text-ink">Expected structure</span>
                 <SegmentedControl<ExpectedStructure>
                   label="Expected structure"
                   value={form.rubric.expectedStructure}
                   onChange={(expectedStructure) => setRubric({ expectedStructure })}
                   options={[
                     { value: "star", label: "STAR" },
-                    { value: "problem_solution", label: "Problem-solution" },
+                    { value: "problem_solution", label: "Problem → solution" },
                     { value: "free", label: "Free" },
                   ]}
                 />
               </div>
             </section>
 
-            <section aria-labelledby="tq-h" className="flex flex-col gap-3 border-t border-line pt-5">
-              <div className="flex flex-col">
-                <h3 id="tq-h" className="m-0 text-base leading-6 font-semibold text-ink">Test this question</h3>
-                <span className="text-xs leading-4 text-ink-muted">
-                  Type a sample answer to check the rubric. Test results aren’t saved to any candidate.
+            <section aria-labelledby="tq-h" className="flex flex-col gap-2.5 rounded-card border border-line bg-surface p-[18px]">
+              <div className="flex flex-col gap-[3px]">
+                <h3 id="tq-h" className="m-0 text-[15px] leading-[22px] font-semibold text-ink">Test this question</h3>
+                <span className="text-[13px] leading-5 text-ink-faint">
+                  Type a sample answer to check the rubric. Results aren’t saved to any candidate.
                 </span>
               </div>
-              <label className="flex flex-col gap-1">
-                <span className="text-[13px] font-semibold text-ink">Sample answer</span>
-                <Textarea
-                  rows={5}
-                  value={test.answer}
-                  onChange={(e) => patchTest({ answer: e.target.value })}
-                  className="text-[13px] leading-5"
-                />
-              </label>
-              <Button
-                variant="secondary-teal"
-                className="self-start"
-                onClick={runTest}
-                aria-busy={test.running}
-                disabled={test.running}
-                disabledReason={
-                  isNew ? "Save the question first" : test.answer.trim() === "" ? "Type a sample answer first" : undefined
-                }
-              >
-                {test.running ? "Evaluating…" : "Run AI evaluation"}
-              </Button>
-              <div role="status" aria-live="polite">
-                {test.error ? <p className="m-0 text-xs font-medium text-improve-text">{test.error}</p> : null}
+              <Textarea
+                aria-label="Sample answer"
+                rows={4}
+                value={test.answer}
+                placeholder="Write an answer the way a candidate might…"
+                onChange={(e) => patchTest({ answer: e.target.value })}
+                className="rounded-[9px]!"
+              />
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  size="sm"
+                  variant={testReady ? "secondary-teal" : "outline"}
+                  className={cn("h-[34px]! rounded-[9px]! px-3.5!", !testReady && "text-ink-faint! opacity-100! hover:border-input-line!")}
+                  onClick={runTest}
+                  aria-busy={test.running}
+                  disabled={test.running}
+                  disabledReason={
+                    isNew ? "Save the question first" : test.answer.trim() === "" ? "Type a sample answer first" : undefined
+                  }
+                >
+                  {test.running ? "Evaluating…" : test.result ? "✦ Run AI evaluation again" : "✦ Run AI evaluation"}
+                </Button>
+                {test.result ? (
+                  <span className="text-[13px] leading-5 text-ink-faint">
+                    Sample score {test.result.score} · {BAND_LABEL[test.result.band]}
+                  </span>
+                ) : null}
+              </div>
+              <div role="status" aria-live="polite" className="flex flex-col gap-2.5 empty:-mt-2.5">
+                {test.error ? <p className="m-0 text-[13px] leading-5 font-medium text-improve-text">{test.error}</p> : null}
                 {test.result ? <TestResult ev={test.result} weights={weights} /> : null}
               </div>
             </section>
           </div>
         ) : null}
       </SidePanel>
-      <ConfirmDialog open={deleting} title={openQuestion?.status === "ai_draft" ? "Discard this question draft?" : "Remove this question?"} body="Candidates will no longer be asked this question in new sessions. Past sessions and scores are kept." tone="destructive" confirmLabel={saving ? "Removing…" : "Remove question"} onCancel={()=>setDeleting(false)} onConfirm={removeQuestion} />
+      <ConfirmDialog
+        open={deleting}
+        title={openQuestion?.status === "ai_draft" ? "Discard this question draft?" : "Remove this question?"}
+        body="Candidates will no longer be asked this question in new sessions. Past sessions and scores are kept."
+        tone="destructive"
+        confirmLabel={saving ? "Removing…" : "Remove question"}
+        onCancel={() => setDeleting(false)}
+        onConfirm={removeQuestion}
+      />
     </>
   );
 }
 
+type ResultRow = { key: string; mark: string; tone: "good" | "warn"; label: string; text: string };
+
+/** Sample-answer result: matched points (✓), issues (!), then each dimension's score. */
 function TestResult({ ev, weights }: { ev: TestEvaluation; weights: DimensionWeights }) {
+  const rows: ResultRow[] = [
+    ...ev.matched.map((text, i): ResultRow => ({ key: `m${i}`, mark: "✓", tone: "good", label: "Matched:", text })),
+    ...ev.issues.map((text, i): ResultRow => ({ key: `i${i}`, mark: "!", tone: "warn", label: "Issue:", text })),
+    ...DIMENSION_IDS.map((id): ResultRow => ({
+      key: id,
+      mark: String(ev.subScores[id]),
+      tone: ev.subScores[id] >= SCORE_OK ? "good" : "warn",
+      label: "",
+      text: `${DIMENSION_LABEL[id]} · ${weights[id]}% of the score`,
+    })),
+  ];
   return (
-    <div className="flex flex-col gap-4 rounded-md border border-line p-4">
-      <div className="flex items-center gap-2.5">
-        <span className="text-xl leading-7 font-bold text-ink">{ev.score}</span>
-        <BandChip band={ev.band} />
-        <span className="ml-auto inline-flex h-[22px] items-center rounded-full border border-dashed border-improve bg-improve-soft px-2 text-xs font-semibold text-ai-text">
-          Test result
-        </span>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <SubScoreBars
-          scores={DIMENSION_IDS.map((id) => ({
-            label: DIMENSION_LABEL[id],
-            value: ev.subScores[id],
-            weight: weights[id],
-          }))}
-        />
-        <p className="m-0 text-xs text-ink-muted">
-          Weights: {DIMENSION_IDS.map((id) => `${DIMENSION_LABEL[id]} ${weights[id]}%`).join(", ")}
+    <div className="flex flex-col gap-1.5 border-t border-line pt-2.5">
+      <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+        {rows.map((r) => (
+          <li key={r.key} className="flex gap-2.5 text-[13px] leading-normal">
+            <span
+              aria-hidden={r.label ? true : undefined}
+              className={cn(
+                "min-w-[22px] shrink-0 font-bold tabular-nums",
+                r.tone === "good" ? "text-primary-text" : "text-improve-text",
+              )}
+            >
+              {r.mark}
+            </span>
+            <span className="text-ink-soft">
+              {r.label ? <span className="sr-only">{r.label} </span> : null}
+              {r.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {ev.candidateFeedback ? (
+        <p className="m-0 mt-1 rounded-lg bg-primary-tint px-2.5 py-2 text-[13px] leading-normal text-ink-soft">
+          <span className="font-semibold text-primary-text">Candidate sees: </span>
+          {ev.candidateFeedback}
         </p>
-      </div>
-      <div className="flex flex-col gap-2">
-        <span className="text-[13px] font-semibold text-ink">Evidence</span>
-        <TranscriptHighlights transcript={`“${ev.answer}”`} highlights={highlightsFor(ev)} />
-        <HighlightLegend />
-        <ul className="m-0 flex list-none flex-col gap-1 p-0 text-xs leading-4">
-          {ev.matched.length > 0 ? (
-            <li className="flex gap-1.5 text-primary-text">
-              <span aria-hidden="true">✓</span>
-              <span><span className="font-semibold">Matched:</span> {ev.matched.join(", ")}</span>
-            </li>
-          ) : null}
-          {ev.issues.map((issue) => (
-            <li key={issue} className="flex gap-1.5 text-improve-text">
-              <span aria-hidden="true">!</span>
-              <span><span className="font-semibold">Issue:</span> {issue}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="flex flex-col gap-1.5 rounded-md bg-primary-tint p-3">
-        <span className="text-xs leading-4 font-semibold text-primary-text">Candidate sees this feedback</span>
-        <p className="m-0 text-[13px] leading-5 text-ink">{ev.candidateFeedback}</p>
-      </div>
+      ) : null}
     </div>
   );
 }

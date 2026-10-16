@@ -3,6 +3,7 @@
 import { forwardRef } from "react";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { controlBorder } from "@/components/ui/input";
 
 export const Select = forwardRef<
   HTMLSelectElement,
@@ -15,13 +16,13 @@ export const Select = forwardRef<
         aria-invalid={invalid ? true : undefined}
         {...rest}
         className={cn(
-          "h-9 w-full appearance-none rounded-md border bg-surface pr-9 pl-3 text-sm text-ink disabled:cursor-not-allowed disabled:bg-neutral-soft disabled:text-ink-muted",
-          invalid ? "border-improve" : "border-input-line",
+          "h-[38px] w-full appearance-none rounded-lg border bg-surface-sunken pr-9 pl-3 text-sm text-ink transition-colors duration-100 disabled:cursor-not-allowed disabled:bg-neutral-soft disabled:text-ink-muted",
+          controlBorder(invalid),
         )}
       >
         {children}
       </select>
-      <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-ink-muted">
+      <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-ink-faint">
         <Icon name="chevron-down" size={16} />
       </span>
     </span>

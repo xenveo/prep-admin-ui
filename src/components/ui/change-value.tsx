@@ -4,7 +4,7 @@ export function ChangeValue({ value, since = "baseline" }: { value: number | nul
   if (value == null) {
     return (
       <span>
-        <span aria-hidden="true" className="text-ink-muted">–</span>
+        <span aria-hidden="true" className="text-ink-faint">—</span>
         <span className="sr-only">No change to show yet</span>
       </span>
     );
@@ -20,7 +20,7 @@ export function ChangeValue({ value, since = "baseline" }: { value: number | nul
     <span>
       <span
         aria-hidden="true"
-        className={cn("font-semibold", value > 0 ? "text-primary-text" : value < 0 ? "text-improve-text" : "text-ink-muted")}
+        className={cn("font-semibold", value > 0 ? "text-primary-text" : value < 0 ? "text-improve-text" : "text-ink-faint")}
       >
         {text}
       </span>

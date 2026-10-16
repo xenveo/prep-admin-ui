@@ -1,97 +1,112 @@
 import { BAND_LABEL, BAND_VAR, bandForScore } from "@/lib/bands";
 import { ChartFrame } from "@/components/charts/chart-frame";
 
-const W = 560;
-const H = 160;
-const PAD_L = 8;
-const PLOT_R = 440; // plot area right edge; threshold labels sit to the right
-const TOP = 16;
-const BOTTOM = 134;
+/** Right gutter (px) that holds the threshold labels; the plot area ends here. */
+const GUTTER = 110;
 const THRESHOLDS = [
-  { value: 85, label: "85 Interview ready", band: "ready" as const },
-  { value: 70, label: "70 Nearly ready", band: "nearly" as const },
-  { value: 50, label: "50 Developing", band: "developing" as const },
+  { value: 85, label: "Interview ready", color: "var(--primary-line)" },
+  { value: 70, label: "Nearly ready", color: "var(--primary-line)" },
+  // Dim amber: half-strength developing band, visible on both the light and dark surface.
+  { value: 50, label: "Developing", color: "color-mix(in srgb, var(--band-developing) 45%, transparent)" },
 ];
 
-function y(score: number) {
-  const s = Math.max(40, Math.min(100, score));
-  return BOTTOM - ((s - 40) / 60) * (BOTTOM - TOP);
+function clamp(score: number) {
+  return Math.max(0, Math.min(100, score));
 }
 
-/** Session scores over time with dashed thresholds. Scale is 40-100 so the threshold lines stay legible. */
+/** Session scores over time on a 0-100 scale, with dashed band thresholds labelled in the right gutter. */
 export function ProgressLineChart({
   points,
   caption,
   label,
+  hideTableToggle,
 }: {
   points: { label: string; date: string; score: number }[];
   caption: string;
   /** Names the chart for screen readers, e.g. "Junior Data Analyst progress". */
   label?: string;
+  /** Hide ChartFrame's own table toggle when the consumer provides one. */
+  hideTableToggle?: boolean;
 }) {
   const n = points.length;
-  const xs = points.map((_, i) =>
-    n === 1 ? (PAD_L + PLOT_R) / 2 : PAD_L + 32 + (i * (PLOT_R - PAD_L - 64)) / (n - 1),
-  );
+  // x as a percentage of the plot width: one point sits in the middle, more spread over 8%-92%.
+  const xs = points.map((_, i) => (n === 1 ? 50 : 8 + (i * 84) / (n - 1)));
   const aria = `${label ? `${label}: s` : "S"}ession scores ${points.map((p) => p.score).join(", ")} with thresholds at 50, 70 and 85`;
 
   return (
     <ChartFrame
       caption={caption}
+      hideToggle={hideTableToggle}
       table={{
         caption,
         columns: ["Session", "Date", "Score", "Band"],
         rows: points.map((p) => [p.label, p.date, p.score, BAND_LABEL[bandForScore(p.score)]]),
       }}
     >
-      <div role="img" aria-label={aria} className="max-w-[560px]">
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" aria-hidden="true" className="block h-auto overflow-visible">
+      <div role="img" aria-label={aria} className="flex flex-col gap-2.5 pt-5">
+        <div
+          aria-hidden="true"
+          className="relative h-[170px] border-b border-line"
+          style={{ marginRight: GUTTER }}
+        >
           {THRESHOLDS.map((t) => (
-            <g key={t.value}>
-              <line
-                x1={0}
-                x2={PLOT_R}
-                y1={y(t.value)}
-                y2={y(t.value)}
-                stroke={`var(${BAND_VAR[t.band].color})`}
-                strokeDasharray="4 4"
-              />
-              <text x={PLOT_R + 8} y={y(t.value) + 4} fontSize="12" fill="var(--ink)">
-                {t.label}
-              </text>
-            </g>
+            <div
+              key={t.value}
+              className="absolute left-0 flex translate-y-1/2 items-center gap-2"
+              style={{ bottom: `${t.value}%`, right: -GUTTER }}
+            >
+              <span className="flex-1 border-t border-dashed" style={{ borderColor: t.color }} />
+              <span className="w-[102px] whitespace-nowrap text-[11px] leading-[14px] text-ink-muted">
+                <strong className="font-bold text-ink">{t.value}</strong> {t.label}
+              </span>
+            </div>
           ))}
-          <line x1={0} x2={PLOT_R} y1={BOTTOM} y2={BOTTOM} stroke="var(--line)" />
+
           {n > 1 && (
-            <polyline
-              points={points.map((p, i) => `${xs[i]},${y(p.score)}`).join(" ")}
-              fill="none"
-              stroke="var(--primary)"
-              strokeWidth="2.5"
-              strokeLinejoin="round"
-            />
+            <svg
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              className="absolute inset-0 h-full w-full overflow-visible"
+            >
+              <polyline
+                points={points.map((p, i) => `${xs[i]},${100 - clamp(p.score)}`).join(" ")}
+                fill="none"
+                stroke="var(--primary)"
+                strokeWidth="2"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
           )}
+
           {points.map((p, i) => (
-            <g key={`${p.label}-${i}`}>
-              <circle cx={xs[i]} cy={y(p.score)} r="4.5" fill="var(--surface)" stroke="var(--primary)" strokeWidth="2.5" />
-              <text
-                x={xs[i]}
-                y={y(p.score) - 10}
-                textAnchor="middle"
-                fontSize="12"
-                fontWeight="600"
-                fill="var(--ink)"
-              >
-                {p.score}
-              </text>
-              <text x={xs[i]} y={BOTTOM + 16} textAnchor="middle" fontSize="11" fill="var(--ink-muted)">
-                {p.label}
-              </text>
-            </g>
+            <div
+              key={`${p.label}-${i}`}
+              className="absolute flex -translate-x-1/2 translate-y-1/2 flex-col items-center"
+              style={{ left: `${xs[i]}%`, bottom: `${clamp(p.score)}%` }}
+            >
+              <span className="absolute bottom-3.5 text-[13px] font-bold leading-4 text-ink">{p.score}</span>
+              <span
+                className="block size-3 rounded-full border-[3px] border-surface"
+                style={{ background: `var(${BAND_VAR[bandForScore(p.score)].color})` }}
+              />
+            </div>
           ))}
-        </svg>
+        </div>
+
+        <div aria-hidden="true" className="relative h-3.5 text-[11px] leading-[14px] text-ink-faint" style={{ marginRight: GUTTER }}>
+          {points.map((p, i) => (
+            <span
+              key={`${p.label}-${i}`}
+              className="absolute -translate-x-1/2 whitespace-nowrap"
+              style={{ left: `${xs[i]}%` }}
+            >
+              {p.label}
+            </span>
+          ))}
+        </div>
       </div>
     </ChartFrame>
   );
 }
-

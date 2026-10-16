@@ -50,25 +50,26 @@ export function SidePanel({
         ref={panelRef}
         role="dialog"
         aria-labelledby={titleId}
-        className="fixed bottom-0 right-0 top-0 z-40 flex w-[560px] max-w-full flex-col border-l border-line bg-surface shadow-[var(--shadow-panel)]"
+        style={{ width: "var(--panel-width)" }}
+        className="fixed bottom-0 right-0 top-0 z-40 flex max-w-full flex-col border-l border-line bg-surface-sunken shadow-[var(--shadow-panel)]"
       >
-        <div className="flex shrink-0 items-start gap-3 border-b border-line px-6 py-4">
+        <div className="flex shrink-0 items-center gap-3.5 border-b border-line px-6 py-5">
           <div className="min-w-0 flex-1">{header}</div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-2">
             {headerActions}
             <button
               ref={closeRef}
               type="button"
               aria-label="Close panel"
               onClick={onClose}
-              className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-muted hover:bg-neutral-soft hover:text-ink after:absolute after:-inset-1.5 after:content-['']"
+              className="relative inline-flex size-[34px] items-center justify-center rounded-lg border border-input-line text-ink-muted hover:border-neutral-line hover:text-ink after:absolute after:-inset-1.5 after:content-['']"
             >
-              <Icon name="close" size={16} />
+              <Icon name="close" size={14} />
             </button>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">{children}</div>
-        {footer ? <div className="shrink-0 border-t border-line bg-surface px-6 py-3">{footer}</div> : null}
+        <div className="min-h-0 flex-1 overflow-y-auto p-6">{children}</div>
+        {footer ? <div className="shrink-0 border-t border-line bg-surface-sunken px-6 py-3">{footer}</div> : null}
       </aside>
     </>,
     document.body,

@@ -288,7 +288,7 @@ export function CandidatesScreen() {
       />
 
       {firstUse ? (
-        <section className="rounded-md border border-line bg-surface py-12">
+        <section className="rounded-panel border border-line bg-surface py-12">
           <EmptyState
             icon="mail"
             title="Invite your first candidates"
@@ -302,7 +302,17 @@ export function CandidatesScreen() {
           />
         </section>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-6">
+          {(savedItems.length > 0 || canSaveCurrent) && (
+            <SavedFilterChips
+              items={savedItems}
+              activeId={activeSaved?.id ?? null}
+              activeCount={listQ.data ? count : undefined}
+              onSelect={applySaved}
+              onRemove={(id) => void removeSaved(id)}
+              onSaveCurrent={canSaveCurrent ? () => setSaveOpen(true) : undefined}
+            />
+          )}
           <FilterBar
             search={searchText}
             onSearchChange={setSearchText}
@@ -313,20 +323,11 @@ export function CandidatesScreen() {
             onChange={onFilterChange}
             onClearAll={clearFilters}
           />
-          {(savedItems.length > 0 || canSaveCurrent) && (
-            <SavedFilterChips
-              items={savedItems}
-              activeId={activeSaved?.id ?? null}
-              onSelect={applySaved}
-              onRemove={(id) => void removeSaved(id)}
-              onSaveCurrent={canSaveCurrent ? () => setSaveOpen(true) : undefined}
-            />
-          )}
 
           {listQ.error && (
             <div
               role="alert"
-              className="flex items-center justify-between gap-3 rounded-md border border-error bg-surface px-4 py-2.5 text-sm font-medium text-error"
+              className="flex items-center justify-between gap-3 rounded-[10px] border border-error bg-surface px-3.5 py-2.5 text-sm font-medium text-error"
             >
               Couldn’t load candidates. Try again.
               <Button size="sm" variant="secondary" onClick={listQ.reload}>
@@ -336,48 +337,40 @@ export function CandidatesScreen() {
           )}
 
           {!(listQ.error && !listQ.data) && (
-            <div>
-              {selectedRows.length > 0 ? (
-                <div className="rounded-t-md border border-b-0 border-primary bg-surface">
-                  <BulkActionBar
-                    count={selectedRows.length}
-                    onClear={() => setSelection(new Set())}
-                    actions={[
-                      {
-                        id: "assign",
-                        label: "Assign roles",
-                        onClick: () =>
-                          setAssign({
-                            ids: selectedRows.map((r) => r.id),
-                            subject: pluralize(selectedRows.length, "candidate"),
-                          }),
-                      },
-                      {
-                        id: "resend",
-                        label: "Resend invites",
-                        count: pendingSelected,
-                        onClick: () => resend(selectedRows.filter((r) => r.status === "invite_pending").map((r) => r.id)),
-                      },
-                      { id: "export", label: "Export CSV", onClick: () => exportCsv(selectedRows.map((r) => r.id)) },
-                    ]}
-                    destructive={{
-                      label: "Deactivate",
+            <>
+              {selectedRows.length > 0 && (
+                <BulkActionBar
+                  count={selectedRows.length}
+                  onClear={() => setSelection(new Set())}
+                  actions={[
+                    {
+                      id: "assign",
+                      label: "Assign roles",
                       onClick: () =>
-                        setConfirm({
-                          kind: "bulk-deactivate",
-                          rows: selectedRows.map((r) => ({ id: r.id, name: r.name, status: r.status })),
+                        setAssign({
+                          ids: selectedRows.map((r) => r.id),
+                          subject: pluralize(selectedRows.length, "candidate"),
                         }),
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="flex h-11 items-center justify-between rounded-t-md border border-b-0 border-line bg-surface px-4 text-[13px] text-ink-muted">
-                  <span aria-live="polite">{listQ.data ? pluralize(count, "candidate") : "Loading candidates"}</span>
-                  <span>Sorted by {SORT_LABEL[sort.columnId]}</span>
-                </div>
+                    },
+                    {
+                      id: "resend",
+                      label: "Resend invites",
+                      count: pendingSelected,
+                      onClick: () => resend(selectedRows.filter((r) => r.status === "invite_pending").map((r) => r.id)),
+                    },
+                    { id: "export", label: "Export CSV", onClick: () => exportCsv(selectedRows.map((r) => r.id)) },
+                  ]}
+                  destructive={{
+                    label: "Deactivate",
+                    onClick: () =>
+                      setConfirm({
+                        kind: "bulk-deactivate",
+                        rows: selectedRows.map((r) => ({ id: r.id, name: r.name, status: r.status })),
+                      }),
+                  }}
+                />
               )}
               <DataTable
-                className="rounded-t-none"
                 ariaLabel="Candidates"
                 columns={columns}
                 rows={rows}
@@ -394,11 +387,19 @@ export function CandidatesScreen() {
                 focusRowIdRef={focusRowIdRef}
                 loading={listQ.loading && !listQ.data}
                 emptyState={
-                  <div className="flex flex-col items-center gap-3">
-                    <p className="m-0 text-sm text-ink-muted">No candidates match these filters.</p>
-                    <Button variant="secondary" onClick={clearFilters}>
-                      Clear filters
-                    </Button>
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="m-0 text-[15px] leading-[22px] font-semibold text-ink">No candidates match</p>
+                    <p className="m-0 text-sm text-ink-faint">
+                      Try another filter or{" "}
+                      <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-primary-text hover:underline"
+                      >
+                        clear your search
+                      </button>
+                      .
+                    </p>
                   </div>
                 }
                 rowActions={(r) =>
@@ -413,7 +414,13 @@ export function CandidatesScreen() {
                   })
                 }
               />
-            </div>
+              <span aria-live="polite" className="text-[13px] leading-5 text-ink-faint">
+                {listQ.data
+                  ? `Showing ${count} of ${pluralize(listQ.data.totalUnfiltered, "candidate")}`
+                  : "Loading candidates"}
+                {listQ.data && <span className="sr-only">, sorted by {SORT_LABEL[sort.columnId]}</span>}
+              </span>
+            </>
           )}
         </div>
       )}

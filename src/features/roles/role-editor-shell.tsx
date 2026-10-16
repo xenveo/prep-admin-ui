@@ -19,7 +19,7 @@ import { RoleProvider } from "./role-context";
 
 function editedLabel(iso: string): string {
   const rt = relativeTime(iso);
-  if (rt.startsWith("Today ")) return `today, ${rt.slice(6)}`;
+  if (rt.startsWith("Today ")) return `today ${rt.slice(6)}`;
   if (rt === "Today" || rt === "Yesterday") return rt.toLowerCase();
   return rt;
 }
@@ -27,7 +27,7 @@ function editedLabel(iso: string): string {
 function metaLine(role: JobRole): string {
   const parts = [
     SENIORITY_LABEL[role.seniority],
-    `${role.candidatesAssigned} ${pluralize(role.candidatesAssigned, "candidate")} assigned`,
+    `${pluralize(role.candidatesAssigned, "candidate")} assigned`,
     `edited ${editedLabel(role.updatedAt)}${role.updatedByName ? ` by ${role.updatedByName}` : ""}`,
   ];
   return parts.join(" · ");
@@ -99,7 +99,7 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
       emitRoleChanged(roleId);
       toast.show({
         title: `${r.title} is approved`,
-        detail: approved.notified > 0 ? `${approved.notified} ${pluralize(approved.notified, "candidate")} notified by email.` : undefined,
+        detail: approved.notified > 0 ? `${pluralize(approved.notified, "candidate")} notified by email.` : undefined,
       });
     } catch (e) {
       setApproveOpen(false);
@@ -130,19 +130,26 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
   const questions = req.data?.approvedQuestions ?? r.questionCount - r.aiDraftQuestionCount;
 
   return (
-    <PageContainer>
+    <PageContainer className="flex flex-col gap-5 min-[1025px]:pt-6!">
       <PageHeader
+        className="mb-0! gap-5!"
+        titleSize="md"
+        actionsAlign="start"
         breadcrumb={[{ label: "Job roles", href: "/roles" }, { label: r.title }]}
         title={r.title}
-        statusChip={<StatusChip status={r.status} />}
+        statusChip={<StatusChip status={r.status} appearance="pill" />}
         meta={metaLine(r)}
         secondaryActions={
           <>
-            <ButtonLink href={`${base}/preview`}>Preview as candidate</ButtonLink>
+            <ButtonLink href={`${base}/preview`} variant="outline" className="border-neutral-line! hover:border-ink-faint!">
+              Preview as candidate
+            </ButtonLink>
             {r.status !== "archived" && (
               <Menu
                 label="More actions"
                 align="end"
+                triggerVariant="outline"
+                triggerClassName="h-10! w-10! rounded-[10px]!"
                 items={[{ id: "archive", label: "Archive role", destructive: true, onSelect: () => setArchiveOpen(true) }]}
               />
             )}
@@ -162,7 +169,7 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
           ) : undefined
         }
       />
-      <Tabs items={tabs} activeId={activeId} label="Role sections" className="mb-6" panelId="role-tab-panel" />
+      <Tabs items={tabs} activeId={activeId} label="Role sections" className="overflow-x-auto overflow-y-hidden" panelId="role-tab-panel" />
       <div id="role-tab-panel" role="tabpanel" aria-labelledby={`tab-${activeId}`}>
         <RoleProvider value={r}>{children}</RoleProvider>
       </div>
@@ -172,11 +179,11 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
         title={`Approve ${r.title}?`}
         body={
           toNotify > 0
-            ? `${toNotify} assigned ${pluralize(toNotify, "candidate")} will see it on their dashboard and get an email.`
+            ? `${pluralize(toNotify, "assigned candidate", "assigned candidates")} will see it on their dashboard and get an email.`
             : "Candidates you assign to this role will see it on their dashboard."
         }
         bullets={[
-          `${cards} approved flash ${pluralize(cards, "card")} and ${questions} ${pluralize(questions, "question")} go live.`,
+          `${pluralize(cards, "approved flash card")} and ${pluralize(questions, "question")} go live.`,
           "Content still marked AI draft stays hidden until you approve it.",
           "You can archive the role later; scores are kept.",
         ]}

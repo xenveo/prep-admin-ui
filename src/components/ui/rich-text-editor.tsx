@@ -159,22 +159,16 @@ export function RichTextEditor({
 
   const helperId = `${uid}-helper`;
   const btn =
-    "inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-ink aria-pressed:bg-primary-soft aria-pressed:text-primary-text";
+    "focus-inset inline-flex h-7 w-[30px] cursor-pointer items-center justify-center rounded-md text-ink-muted transition-colors duration-100 hover:bg-row-hover hover:text-ink aria-pressed:bg-primary-soft aria-pressed:text-primary-text";
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <span id={`${uid}-label`} className="text-[13px] leading-5 font-semibold text-ink">
+    <div className="flex flex-col gap-2">
+      <span id={`${uid}-label`} className="text-sm leading-5 font-semibold text-ink">
         {label}
       </span>
-      <div className="rounded-md border border-input-line bg-surface focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
-        <div role="toolbar" aria-label={`${label} formatting`} className="flex items-center gap-1 border-b border-line p-1">
-          {COMMANDS.slice(0, 2).map((c) => (
-            <button key={c.id} type="button" aria-label={c.label} aria-pressed={!!active[c.id]} onMouseDown={(e) => e.preventDefault()} onClick={() => run(c.command)} className={btn}>
-              <Icon name={c.icon} size={16} />
-            </button>
-          ))}
-          <span aria-hidden="true" className="mx-1 h-5 w-px bg-line" />
-          {COMMANDS.slice(2).map((c) => (
+      <div className="overflow-hidden rounded-[9px] border border-input-line bg-surface-sunken transition-colors duration-100 focus-within:border-primary-line focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
+        <div role="toolbar" aria-label={`${label} formatting`} className="flex items-center gap-0.5 border-b border-line p-1.5">
+          {COMMANDS.map((c) => (
             <button key={c.id} type="button" aria-label={c.label} aria-pressed={!!active[c.id]} onMouseDown={(e) => e.preventDefault()} onClick={() => run(c.command)} className={btn}>
               <Icon name={c.icon} size={16} />
             </button>
@@ -210,7 +204,7 @@ export function RichTextEditor({
               }}
               className={cn("h-8 flex-1 rounded-md border bg-surface px-2 text-[13px] text-ink", linkError ? "border-improve" : "border-input-line")}
             />
-            <button type="submit" className="h-8 cursor-pointer rounded-md border border-line bg-surface px-3 text-[13px] font-medium text-ink">
+            <button type="submit" className="h-8 cursor-pointer rounded-md border border-input-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-neutral-line">
               Apply
             </button>
             {linkError && <span role="alert" className="text-xs font-medium text-improve-text">Use an http, https or mailto address.</span>}
@@ -234,11 +228,11 @@ export function RichTextEditor({
             document.execCommand("insertHTML", false, html ? sanitizeHtml(html) : esc(text).replace(/\n/g, "<br>"));
           }}
           style={{ minHeight }}
-          className="px-3 py-2 text-[13px] leading-5 text-ink outline-none [&_a]:text-primary-text [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0 [&_ul]:list-disc [&_ul]:pl-5"
+          className="p-3 text-[15px] leading-[1.6] text-ink outline-none [&_a]:text-primary-text [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0 [&_ul]:list-disc [&_ul]:pl-5"
         />
       </div>
       {helper && (
-        <p id={helperId} className="text-xs leading-4 text-ink-muted">
+        <p id={helperId} className="m-0 text-[13px] leading-[18px] text-ink-faint">
           {helper}
         </p>
       )}

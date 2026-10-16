@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 
 export function ReorderableList<T>({
@@ -49,7 +48,7 @@ export function ReorderableList<T>({
 
   return (
     <div>
-      <ul role="list" aria-label={ariaLabel} className="m-0 flex list-none flex-col gap-2 p-0">
+      <ul role="list" aria-label={ariaLabel} className="m-0 flex list-none flex-col p-0">
         {items.map((item, index) => {
           const id = itemId(item);
           const label = itemLabel(item, index);
@@ -76,9 +75,9 @@ export function ReorderableList<T>({
                   move(index, index + 1, true);
                 }
               }}
-              className="inline-flex size-8 shrink-0 cursor-grab items-center justify-center rounded-md text-ink-muted active:cursor-grabbing"
+              className="relative inline-flex h-5 w-3 shrink-0 cursor-grab items-center justify-center rounded-sm text-xs leading-5 whitespace-nowrap text-ink-faint transition-colors duration-100 after:absolute after:-inset-x-1.5 after:-inset-y-3 after:content-[''] hover:text-ink-muted active:cursor-grabbing"
             >
-              <Icon name="drag" size={16} />
+              <span aria-hidden="true">⋮⋮</span>
             </button>
           );
           return (
@@ -110,9 +109,9 @@ export function ReorderableList<T>({
               }}
               onClick={() => onSelect?.(id)}
               className={cn(
-                "rounded-md",
+                "border-t border-line first:border-t-0",
                 dragId === id && "opacity-50",
-                overIndex === index && dragId !== null && dragId !== id && "outline outline-2 outline-primary",
+                overIndex === index && dragId !== null && dragId !== id && "outline-2 -outline-offset-2 outline-primary",
               )}
             >
               {renderItem(item, { index, selected, handle })}

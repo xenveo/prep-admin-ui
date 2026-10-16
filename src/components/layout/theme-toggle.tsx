@@ -11,7 +11,7 @@ const OPTIONS: { value: Theme; label: string }[] = [
   { value: "dark", label: "Dark" },
 ];
 
-/** System / light / dark. Expanded: a radio group. Collapsed: one button that cycles. */
+/** System / light / dark. Expanded: a segmented radio group. Collapsed: one button that cycles. */
 export function ThemeToggle({ collapsed = false, className }: { collapsed?: boolean; className?: string }) {
   const theme = useTheme();
 
@@ -25,7 +25,7 @@ export function ThemeToggle({ collapsed = false, className }: { collapsed?: bool
           onClick={() => setTheme(next.value)}
           aria-label={`Theme: ${current.label.toLowerCase()}. Switch to ${next.label.toLowerCase()}`}
           className={cn(
-            "inline-flex h-9 w-10 items-center justify-center self-center rounded-md text-ink-muted hover:bg-neutral-soft",
+            "focus-inset inline-flex size-10 items-center justify-center rounded-lg text-ink-muted hover:bg-row-hover hover:text-ink",
             className,
           )}
         >
@@ -39,7 +39,7 @@ export function ThemeToggle({ collapsed = false, className }: { collapsed?: bool
     <div
       role="radiogroup"
       aria-label="Theme"
-      className={cn("flex gap-0.5 rounded-md bg-bg p-0.5", className)}
+      className={cn("flex gap-0.5 rounded-[9px] border border-line bg-bg p-[3px]", className)}
     >
       {OPTIONS.map((o) => {
         const selected = o.value === theme;
@@ -51,10 +51,8 @@ export function ThemeToggle({ collapsed = false, className }: { collapsed?: bool
             aria-checked={selected}
             onClick={() => setTheme(o.value)}
             className={cn(
-              "h-7 flex-1 rounded-sm border text-xs",
-              selected
-                ? "border-line bg-surface font-semibold text-ink"
-                : "border-transparent font-medium text-ink-muted hover:text-ink",
+              "focus-inset flex-1 rounded-sm py-1.5 text-xs font-semibold leading-4",
+              selected ? "bg-selected text-ink" : "text-ink-faint hover:text-ink",
             )}
           >
             {o.label}

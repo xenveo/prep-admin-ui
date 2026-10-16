@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "admin-ui",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5174
+    },
+    {
+      "name": "design-mock",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "C:/Users/nisha/AppData/Local/Temp/claude/D--Atrox-prep-prep-admin-ui/20a16ef0-f9bb-4dee-9d8b-752123f26aad/scratchpad/serve.js",
+        "C:/Users/nisha/AppData/Local/Temp/claude/D--Atrox-prep-prep-admin-ui/20a16ef0-f9bb-4dee-9d8b-752123f26aad/scratchpad/design",
+        "5190"
+      ],
+      "port": 5190
+    }
+  ]
+}

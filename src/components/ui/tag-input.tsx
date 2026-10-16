@@ -8,11 +8,14 @@ export function TagInput({
   onChange,
   label,
   placeholder,
+  inputId,
 }: {
   tags: string[];
   onChange: (tags: string[]) => void;
   label: string;
   placeholder?: string;
+  /** id for the text input, so a visible `<label htmlFor>` outside the component can point at it. */
+  inputId?: string;
 }) {
   const [draft, setDraft] = useState("");
   const [announce, setAnnounce] = useState("");
@@ -39,12 +42,12 @@ export function TagInput({
       role="group"
       aria-label={label}
       onClick={() => ref.current?.focus()}
-      className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border border-input-line bg-surface px-2 py-1.5"
+      className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-[9px] border border-input-line bg-surface-sunken p-1.5 transition-colors duration-100 focus-within:border-primary-line focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
     >
       {tags.map((t) => (
         <span
           key={t}
-          className="inline-flex h-[26px] items-center gap-1 rounded-full bg-neutral-soft pr-1 pl-2.5 text-[13px] text-ink"
+          className="inline-flex items-center gap-1.5 rounded-[7px] bg-neutral-soft py-[5px] pr-1.5 pl-2.5 text-[13px] leading-[18px] font-semibold text-ink"
         >
           {t}
           <button
@@ -54,7 +57,7 @@ export function TagInput({
               e.stopPropagation();
               remove(t);
             }}
-            className="inline-flex size-5 cursor-pointer items-center justify-center rounded-full text-ink-muted"
+            className="relative inline-flex h-[18px] w-5 cursor-pointer items-center justify-center rounded-sm text-ink-faint transition-colors duration-100 after:absolute after:-inset-1 after:content-[''] hover:text-ink"
           >
             <Icon name="close" size={14} />
           </button>
@@ -62,8 +65,8 @@ export function TagInput({
       ))}
       <input
         ref={ref}
-        id={uid}
-        aria-label={label}
+        id={inputId ?? uid}
+        aria-label={inputId ? undefined : label}
         value={draft}
         placeholder={placeholder}
         onChange={(e) => setDraft(e.target.value)}
@@ -78,7 +81,7 @@ export function TagInput({
             setAnnounce(`${last} removed`);
           }
         }}
-        className="min-w-[120px] flex-1 border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-muted focus-visible:outline-none"
+        className="h-[30px] min-w-[180px] flex-1 border-0 bg-transparent px-1.5 text-sm text-ink outline-none placeholder:text-ink-faint focus-visible:outline-none"
       />
       <span role="status" aria-live="polite" className="sr-only">
         {announce}

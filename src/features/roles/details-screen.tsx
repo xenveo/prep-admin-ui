@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Select } from "@/components/ui/select";
 import { TagInput } from "@/components/ui/tag-input";
 import { useToast } from "@/components/ui/toast";
-import { Icon } from "@/components/ui/icon";
+import { cn } from "@/lib/cn";
 import { pluralize } from "@/lib/format";
 import { emitRoleChanged } from "@/lib/role-events";
 import { SENIORITY_LABEL, type Seniority } from "@/lib/types";
@@ -20,11 +20,14 @@ type RoleDraft = { title: string; seniority: Seniority; description: string; ski
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 const SENIORITIES = Object.keys(SENIORITY_LABEL) as Seniority[];
+/** Role editor fields use 14px labels with an 8px gap (the shared Field defaults to 13px / 6px). */
+const FIELD = "gap-2! [&>label]:text-sm";
 
 export function DetailsScreen() {
   const role = useRole();
   const toast = useToast();
   const readOnly = role.status === "archived";
+  const skillsId = useId();
   const [title, setTitle] = useState(role.title);
   const [seniority, setSeniority] = useState<Seniority>(role.seniority);
   const [description, setDescription] = useState(role.description);
@@ -118,23 +121,51 @@ export function DetailsScreen() {
     }
   }
 
+  const dirty = snapshot !== savedSnapshot;
   const saveText =
-    save === "error" ? saveError ?? "Couldn't save changes." : snapshot !== savedSnapshot ? "Unsaved changes…" : save === "saving" ? "Saving…" : save === "saved" ? "Saved" : "";
+    save === "error"
+      ? saveError ?? "Couldn't save changes."
+      : dirty
+        ? "Unsaved changes"
+        : save === "saving"
+          ? "Saving…"
+          : "All changes saved";
+  const saveNow = () => {
+    void persist({ title, seniority, description, skills }).catch(() => {});
+  };
+  const approvedCards = Math.max(0, role.flashCardCount - role.aiDraftCardCount);
+  const approvedQuestions = Math.max(0, role.questionCount - role.aiDraftQuestionCount);
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 min-[1100px]:grid-cols-[minmax(0,1fr)_340px]">
-      <fieldset disabled={readOnly} className="m-0 flex min-w-0 flex-col gap-5 rounded-lg border border-line bg-surface p-6">
+    <div className="flex flex-wrap items-start gap-6">
+      <fieldset
+        disabled={readOnly}
+        className="m-0 flex min-w-0 max-w-[880px] flex-[999_1_560px] flex-col gap-[22px] rounded-panel border border-line bg-surface p-6"
+      >
         <legend className="sr-only">Role details</legend>
-        {readOnly && <p className="m-0 text-sm text-ink-muted">This role is archived, so it can’t be edited.</p>}
+        {readOnly && <p className="m-0 text-sm leading-5 text-ink-muted">This role is archived, so it can’t be edited.</p>}
         <div className="grid grid-cols-1 gap-4 min-[700px]:grid-cols-[minmax(0,1fr)_200px]">
-          <Field label="Role title" error={titleError}>
+          <Field label="Role title" error={titleError} className={FIELD}>
             {({ id, describedBy, invalid }) => (
-              <Input id={id} aria-describedby={describedBy} invalid={invalid} value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                id={id}
+                aria-describedby={describedBy}
+                invalid={invalid}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="h-[42px]! rounded-[9px]! text-[15px]!"
+              />
             )}
           </Field>
-          <Field label="Seniority">
+          <Field label="Seniority" className={FIELD}>
             {({ id, describedBy }) => (
-              <Select id={id} aria-describedby={describedBy} value={seniority} onChange={(e) => setSeniority(e.target.value as Seniority)}>
+              <Select
+                id={id}
+                aria-describedby={describedBy}
+                value={seniority}
+                onChange={(e) => setSeniority(e.target.value as Seniority)}
+                className="[&>select]:h-[42px] [&>select]:rounded-[9px] [&>select]:pl-2.5 [&>select]:text-[15px]"
+              >
                 {SENIORITIES.map((s) => (
                   <option key={s} value={s}>
                     {SENIORITY_LABEL[s]}
@@ -149,47 +180,71 @@ export function DetailsScreen() {
           helper="What the job involves. AI uses this to draft flash cards and questions."
           value={description}
           onChange={setDescription}
-          minHeight={160}
+          minHeight={144}
         />
-        <TagInput label="Key skills" tags={skills} onChange={setSkills} placeholder="Add a skill and press Enter" />
-        <p aria-live="polite" className="m-0 min-h-4 text-xs leading-4 text-ink-muted">
-          {saveText}
-        </p>
-        {save === "error" && <Button className="self-start" disabled={Boolean(titleError)} onClick={() => { void persist({title, seniority, description, skills}).catch(() => {}); }}>Retry save</Button>}
-      </fieldset>
-
-      <aside aria-labelledby="ai-draft-title" className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-[22px] items-center gap-1 rounded-full border border-dashed border-improve bg-improve-soft px-2 text-xs font-semibold text-ai-text">
-            <Icon name="sparkle" size={14} />
-            AI
-          </span>
-          <h2 id="ai-draft-title" className="m-0 text-base font-semibold leading-6 text-ink">
-            Draft content with AI
-          </h2>
+        <div className="flex flex-col gap-2">
+          <label htmlFor={skillsId} className="text-sm leading-5 font-semibold text-ink">
+            Key skills
+          </label>
+          <TagInput inputId={skillsId} label="Key skills" tags={skills} onChange={setSkills} placeholder="Add a skill and press Enter" />
         </div>
-        <p className="m-0 text-sm text-ink-muted">
-          AI will draft flash cards from this description. Nothing is shown to candidates until you approve it.
-        </p>
-        <div>
-          <Button
-            variant="secondary-teal"
-            iconLeft="sparkle"
-            disabled={drafting || readOnly}
-            onClick={draft}
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-[18px]">
+          <p
+            aria-live="polite"
+            className={cn("m-0 text-[13px] leading-[18px]", save === "error" ? "text-improve-text" : "text-ink-faint")}
           >
-            {drafting ? "Drafting…" : "Draft with AI"}
+            {saveText}
+          </p>
+          <Button
+            variant="primary"
+            disabled={save === "saving" || (!dirty && save !== "error")}
+            disabledReason={titleError}
+            onClick={saveNow}
+            className="px-[18px]!"
+          >
+            {save === "error" ? "Retry save" : "Save changes"}
           </Button>
         </div>
-        {lastDraft && <p className="m-0 text-xs leading-4 text-ink-muted">Last draft, {lastDraft}</p>}
+      </fieldset>
+
+      <aside
+        aria-labelledby="ai-draft-title"
+        className="flex min-w-0 max-w-[420px] flex-[1_1_280px] flex-col gap-3 rounded-panel border border-line bg-surface p-5"
+      >
+        <h2 id="ai-draft-title" className="m-0 text-base leading-[22px] font-semibold text-ink">
+          Draft content with AI
+        </h2>
+        <p className="m-0 text-sm leading-[1.55] text-ink-muted">
+          AI drafts flash cards from the description and skills. Nothing is shown to candidates until you approve it.
+        </p>
+        <dl className="m-0 mt-1 flex flex-col border-t border-line text-[13px] leading-[18px]">
+          <div className="flex justify-between gap-3 border-b border-line py-2.5">
+            <dt className="text-ink-faint">Flash cards</dt>
+            <dd className="m-0 text-ink">{approvedCards} approved</dd>
+          </div>
+          <div className="flex justify-between gap-3 border-b border-line py-2.5">
+            <dt className="text-ink-faint">Questions</dt>
+            <dd className="m-0 text-ink">{approvedQuestions} approved</dd>
+          </div>
+        </dl>
         {role.aiDraftCardCount > 0 && (
           <Link
             href={`/roles/${encodeURIComponent(role.id)}/cards`}
-            className="w-fit rounded-sm text-sm font-semibold text-primary-text underline-offset-2 hover:underline"
+            className="w-fit rounded-sm text-[13px] leading-[18px] font-semibold text-primary-text underline-offset-2 hover:underline"
           >
             {role.aiDraftCardCount} flash {pluralize(role.aiDraftCardCount, "card")} waiting for review
           </Link>
         )}
+        <Button
+          variant="secondary-teal"
+          iconLeft="sparkle"
+          disabled={drafting || readOnly}
+          onClick={draft}
+          className="self-start"
+        >
+          {drafting ? "Drafting…" : "Draft with AI"}
+        </Button>
+        {lastDraft && <p className="m-0 text-xs leading-4 text-ink-faint">Last draft, {lastDraft}</p>}
       </aside>
     </div>
   );

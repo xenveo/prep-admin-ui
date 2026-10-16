@@ -6,9 +6,14 @@
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-selected: var(--selected);
   --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
+  --color-primary-line: var(--primary-line);
   --color-input-line: var(--input-line);
   --color-neutral-line: var(--neutral-line);
   --color-primary: var(--primary);
@@ -43,12 +48,17 @@
   --color-band-not-ready: var(--band-not-ready);
   --color-band-not-ready-tint: var(--band-not-ready-tint);
   --color-band-not-ready-on: var(--band-not-ready-on);
+  --color-band-ready-text: var(--band-ready-text);
+  --color-band-nearly-text: var(--band-nearly-text);
+  --color-band-developing-text: var(--band-developing-text);
+  --color-band-not-ready-text: var(--band-not-ready-text);
 
-  /* --font-sans, --shadow-panel and --shadow-menu already exist in tokens.css;
-     use font-[family-name:var(--font-sans)] / shadow-[var(--shadow-panel)] if needed. */
+  /* --font-sans, --font-mono, --shadow-panel and --shadow-menu already exist in tokens.css,
+     so Tailwind's font-sans / font-mono utilities pick them up; use shadow-[var(--shadow-panel)]. */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-card: 12px;
+  --radius-panel: 14px;
   --radius-chip: 999px;
 }
 

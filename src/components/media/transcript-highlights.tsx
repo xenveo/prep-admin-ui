@@ -35,9 +35,10 @@ function split(transcript: string, highlights: Highlight[]): Part[] {
   return parts;
 }
 
-const MARK_BASE = "px-0.5 text-ink";
-const MARK_MATCH = "bg-primary-soft border-b-2 border-solid border-primary";
-const MARK_ISSUE = "bg-improve-soft border-b-2 border-dashed border-improve";
+// text-decoration (not border-bottom) so a highlight that wraps underlines every line.
+const MARK_BASE = "rounded-[3px] box-decoration-clone text-ink underline decoration-2 underline-offset-4";
+const MARK_MATCH = "bg-primary-tint decoration-solid decoration-primary";
+const MARK_ISSUE = "bg-transparent decoration-dashed decoration-improve";
 
 export function TranscriptHighlights({
   transcript,
@@ -50,7 +51,7 @@ export function TranscriptHighlights({
 }) {
   const parts = split(transcript, highlights);
   return (
-    <p className={cn("m-0 text-[13px] leading-[22px] text-ink", className)}>
+    <p className={cn("m-0 text-[15px] leading-[1.75] text-pretty text-ink-soft", className)}>
       {parts.map((p, i) =>
         p.highlight ? (
           <mark
@@ -71,14 +72,14 @@ export function TranscriptHighlights({
 
 export function HighlightLegend({ className }: { className?: string }) {
   return (
-    <p className={cn("m-0 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] leading-4 text-ink-muted", className)}>
+    <p className={cn("m-0 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-4 text-ink-muted", className)}>
       <span className="inline-flex items-center gap-1.5">
-        <mark className={cn(MARK_BASE, MARK_MATCH, "inline-block h-4 w-6 p-0")} aria-hidden="true" />
-        Matched evidence (solid underline)
+        <span aria-hidden="true" className="inline-block h-[3px] w-4 bg-primary" />
+        Matched evidence
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <mark className={cn(MARK_BASE, MARK_ISSUE, "inline-block h-4 w-6 p-0")} aria-hidden="true" />
-        Issue (dashed underline)
+        <span aria-hidden="true" className="inline-block w-4 border-t-2 border-dashed border-improve" />
+        Issue
       </span>
     </p>
   );

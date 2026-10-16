@@ -63,10 +63,10 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={headingId}
         style={{ width }}
-        className="flex max-h-[calc(100vh-32px)] max-w-full flex-col rounded-md border border-line bg-surface shadow-[var(--shadow-panel)]"
+        className="flex max-h-[calc(100vh-32px)] max-w-full flex-col overflow-hidden rounded-panel border border-line bg-surface shadow-[var(--shadow-panel)]"
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 px-6 pt-4 pb-3">
-          <h2 id={headingId} className="m-0 text-base font-semibold leading-6 text-ink">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-6 pt-5 pb-4">
+          <h2 id={headingId} className="m-0 text-lg leading-6 font-semibold tracking-[-0.01em] text-ink">
             {title}
           </h2>
           <button
@@ -74,17 +74,17 @@ export function Modal({
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-muted hover:bg-neutral-soft hover:text-ink after:absolute after:-inset-1.5 after:content-['']"
+            className="relative inline-flex size-[34px] shrink-0 items-center justify-center rounded-lg border border-input-line text-ink-muted transition-colors duration-100 hover:border-neutral-line hover:text-ink after:absolute after:-inset-[5px] after:content-['']"
           >
             <Icon name="close" size={16} />
           </button>
         </div>
         {tabs ? <div className="shrink-0 px-6">{tabs}</div> : <div className="shrink-0 border-b border-line" />}
-        <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+        <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           {children}
         </div>
-        <div className="flex shrink-0 items-center justify-between gap-4 border-t border-line px-6 py-3">
-          <div className="min-w-0 text-xs leading-4 text-ink-muted">{footerNote}</div>
+        <div className="flex shrink-0 items-center justify-between gap-4 border-t border-line px-6 py-4">
+          <div className="min-w-0 text-[13px] leading-5 text-ink-faint">{footerNote}</div>
           <div className="flex shrink-0 items-center gap-2">{footer}</div>
         </div>
       </div>
