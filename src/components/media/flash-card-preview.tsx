@@ -8,6 +8,7 @@ export function FlashCardPreview({
   strong,
   tip,
   mistakes,
+  outline,
   index,
   total,
 }: {
@@ -17,6 +18,8 @@ export function FlashCardPreview({
   strong: string[];
   tip: string;
   mistakes: string[];
+  /** Sample answer outline; shown on the back only when set. */
+  outline?: string | null;
   index?: number;
   total?: number;
 }) {
@@ -46,6 +49,12 @@ export function FlashCardPreview({
               ))}
             </ul>
           </section>
+          {outline && (
+            <section className="flex flex-col gap-1">
+              <h4 className="m-0 text-[13px] font-semibold text-ink">Sample outline</h4>
+              <p className="m-0 whitespace-pre-line text-[13px] leading-5 text-ink">{outline}</p>
+            </section>
+          )}
           <p className="m-0 rounded-md bg-primary-tint p-2.5 text-[13px] leading-5 text-ink">
             <span className="font-semibold">Tip: </span>
             {tip}

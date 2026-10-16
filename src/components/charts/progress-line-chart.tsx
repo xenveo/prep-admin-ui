@@ -22,15 +22,18 @@ function y(score: number) {
 export function ProgressLineChart({
   points,
   caption,
+  label,
 }: {
   points: { label: string; date: string; score: number }[];
   caption: string;
+  /** Names the chart for screen readers, e.g. "Junior Data Analyst progress". */
+  label?: string;
 }) {
   const n = points.length;
   const xs = points.map((_, i) =>
     n === 1 ? (PAD_L + PLOT_R) / 2 : PAD_L + 32 + (i * (PLOT_R - PAD_L - 64)) / (n - 1),
   );
-  const aria = `Session scores ${points.map((p) => p.score).join(", ")} with thresholds at 50, 70 and 85`;
+  const aria = `${label ? `${label}: s` : "S"}ession scores ${points.map((p) => p.score).join(", ")} with thresholds at 50, 70 and 85`;
 
   return (
     <ChartFrame

@@ -26,6 +26,12 @@ export const DIMENSION_LABEL: Record<DimensionId, string> = {
   delivery: "Delivery",
   relevance: "Relevance",
 };
+/** How an answer was given. Typed answers score written clarity in the "delivery" dimension. */
+export type AnswerMode = "voice" | "typed";
+/** Dimension label for one answer: "delivery" reads "Clarity (written)" for typed answers. */
+export function answerDimensionLabel(id: DimensionId, mode: AnswerMode): string {
+  return id === "delivery" && mode === "typed" ? "Clarity (written)" : DIMENSION_LABEL[id];
+}
 
 export type SubScores = Record<DimensionId, number>;
 export type DimensionWeights = Record<DimensionId, number>;
@@ -191,6 +197,8 @@ export type FlashCard = {
   /** <= 90 chars */
   tip: string;
   commonMistakes: string[];
+  /** Up to SAMPLE_OUTLINE_MAX_LENGTH chars; null when not written. */
+  sampleAnswerOutline: string | null;
   status: "ai_draft" | "approved";
   /** "ai" or an admin id */
   createdBy: string;
@@ -199,8 +207,10 @@ export type FlashCard = {
 };
 
 /** Input for saveFlashCard: omit `id` to create; position is assigned on create. */
-export type FlashCardInput = Omit<FlashCard, "id" | "position" | "status" | "createdBy"> &
-  Partial<Pick<FlashCard, "id" | "status">>;
+export type FlashCardInput = Omit<FlashCard, "id" | "position" | "status" | "createdBy" | "sampleAnswerOutline"> &
+  Partial<Pick<FlashCard, "id" | "status" | "sampleAnswerOutline">>;
+/** Empty outlines are sent as null. */
+export const SAMPLE_OUTLINE_MAX_LENGTH = 1000;
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type ExpectedStructure = "star" | "problem_solution" | "free";
@@ -331,7 +341,8 @@ export type SessionSummary = {
 
 export type ActivityItem = { text: string; at: string };
 
-export type ProgressPoint = { label: string; date: string; score: number };
+/** One completed session; labels are numbered per role ("Session 1", "Session 2", ...). */
+export type ProgressPoint = { roleId: string; roleTitle: string; label: string; date: string; score: number };
 
 export type CandidateDetail = {
   id: string;
@@ -349,10 +360,8 @@ export type CandidateDetail = {
   sessions: SessionSummary[];
   /** Newest first. */
   activity: ActivityItem[];
-  /** Oldest first, for ProgressLineChart. Scores for all roles combined. */
+  /** Oldest first, all roles; filter by roleId before charting (ProgressLineChart plots one role). */
   progress: ProgressPoint[];
-  /** latest - first session across all sessions; null with < 2 sessions. */
-  changeSinceFirst: number | null;
   source?: Source;
 };
 
@@ -430,6 +439,7 @@ export type DeliveryMetrics = { wpm: number; paceLabel?: string; fillerWords: nu
 
 export type Try = {
   attempt: 1 | 2;
+  mode: AnswerMode;
   score: number;
   band: Band;
   audioSeconds: number;

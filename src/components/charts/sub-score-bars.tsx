@@ -4,9 +4,12 @@ import { cn } from "@/lib/cn";
 export function SubScoreBars({
   scores,
   className,
+  labelWidth = 76,
 }: {
   scores: { label: string; value: number; weight?: number }[];
   className?: string;
+  /** Label column width in px; widen for longer labels such as "Clarity (written)". */
+  labelWidth?: number;
 }) {
   return (
     <div role="table" aria-label="Sub-scores" className={cn("flex flex-col gap-1.5 text-[13px]", className)}>
@@ -14,7 +17,8 @@ export function SubScoreBars({
         <div
           key={s.label}
           role="row"
-          className="grid grid-cols-[76px_minmax(0,1fr)_28px] items-center gap-2"
+          className="grid items-center gap-2"
+          style={{ gridTemplateColumns: `${labelWidth}px minmax(0,1fr) 28px` }}
         >
           <span role="rowheader" className="text-[12px] text-ink">
             {s.label}

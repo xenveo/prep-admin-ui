@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { useToast } from "@/components/ui/toast";
 import { VOICE_OPTIONS, type FeedbackLength } from "@/lib/types";
+import { AiUsagePanel } from "./ai-usage-panel";
 import { ErrorBanner, LoadingCard } from "./load-state";
 import { settingsErrorMessage } from "./error-copy";
 import { SettingRow, SettingsCard } from "./setting-row";
@@ -89,7 +90,12 @@ export function AiSection({ readOnly }: { readOnly: boolean }) {
           </span>
         </SettingRow>
       </SettingsCard>
-      {!readOnly && <PromptConfiguration />}
+      {!readOnly && (
+        <>
+          <PromptConfiguration />
+          <AiUsagePanel />
+        </>
+      )}
     </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId } from "react";
+import { useId, useState } from "react";
 import { ProgressLineChart } from "@/components/charts/progress-line-chart";
 import { Avatar } from "@/components/ui/avatar";
 import { BandChip } from "@/components/ui/band-chip";
@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Menu } from "@/components/ui/menu";
 import { ScoreCell } from "@/components/ui/score-cell";
+import { Select } from "@/components/ui/select";
 import { SidePanel } from "@/components/ui/side-panel";
 import { StatusChip } from "@/components/ui/status-chip";
 import { cn } from "@/lib/cn";
 import { formatMinutes, formatShortDate, formatShortDateTime, formatSigned, invitedLabel } from "@/lib/format";
-import type { CandidateDetail } from "@/lib/types";
+import type { CandidateDetail, ProgressPoint } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { getCandidate } from "@/services/candidates";
 import { candidateMenuItems, STATUS_CHIP } from "./candidate-columns";
@@ -51,6 +52,18 @@ export function CandidatePanel({
   const { data, error, reload } = useAsync(() => getCandidate(candidateId), [candidateId, version]);
   const d = data && data.id === candidateId ? data : undefined;
   const name = d?.name ?? fallbackName ?? "Candidate";
+
+  // Progress is charted one role at a time. The pick is keyed to the candidate so it resets
+  // when the panel switches candidates, and falls back to the most recent role if it disappears.
+  const [rolePick, setRolePick] = useState<{ candidateId: string; roleId: string } | null>(null);
+  const progressRoles = rolesByRecency(d?.progress ?? []);
+  const progressRole =
+    progressRoles.find((r) => rolePick?.candidateId === candidateId && r.roleId === rolePick.roleId) ??
+    progressRoles[0];
+  const rolePoints = progressRole ? (d?.progress ?? []).filter((p) => p.roleId === progressRole.roleId) : [];
+  const roleChange = progressRole
+    ? (d?.assignments.find((a) => a.roleId === progressRole.roleId)?.changeSinceBaseline ?? null)
+    : null;
 
   const pending = d?.status === "invite_pending";
   const menuItems = d
@@ -177,29 +190,55 @@ export function CandidatePanel({
             </section>
           ) : (
             <>
-              <section aria-labelledby={`${titleId}-progress`} className="flex flex-col gap-3">
-                <div className="flex items-baseline justify-between gap-3">
+              {!progressRole ? (
+                <section aria-labelledby={`${titleId}-progress`} className="flex flex-col gap-2">
                   <SectionTitle id={`${titleId}-progress`}>Progress</SectionTitle>
-                  {d.changeSinceFirst === null ? (
-                    <span className="text-[13px] leading-5 text-ink-muted">
-                      Baseline only. Change shows after the second session.
-                    </span>
-                  ) : (
-                    <span
-                      className={cn(
-                        "text-[13px] leading-5 font-semibold",
-                        d.changeSinceFirst > 0 ? "text-primary-text" : d.changeSinceFirst < 0 ? "text-improve-text" : "text-ink-muted",
+                  <p className="m-0 text-sm text-ink-muted">
+                    No scores yet. The progress chart appears after the first scored mock interview.
+                  </p>
+                </section>
+              ) : (
+                <section aria-labelledby={`${titleId}-progress`} className="flex flex-col gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <SectionTitle id={`${titleId}-progress`}>Progress</SectionTitle>
+                      {progressRoles.length > 1 && (
+                        <Select
+                          aria-label="Role shown in the progress chart"
+                          value={progressRole.roleId}
+                          onChange={(e) => setRolePick({ candidateId, roleId: e.target.value })}
+                          className="max-w-[220px] min-w-0"
+                        >
+                          {progressRoles.map((r) => (
+                            <option key={r.roleId} value={r.roleId}>
+                              {r.roleTitle}
+                            </option>
+                          ))}
+                        </Select>
                       )}
-                    >
-                      {formatSigned(d.changeSinceFirst)} since first session
-                    </span>
-                  )}
-                </div>
-                <ProgressLineChart
-                  points={d.progress}
-                  caption={`${progressRole(d)} · session scores, dashed lines are band thresholds`}
-                />
-              </section>
+                    </div>
+                    {roleChange !== null ? (
+                      <span
+                        className={cn(
+                          "text-[13px] leading-5 font-semibold",
+                          roleChange > 0 ? "text-primary-text" : roleChange < 0 ? "text-improve-text" : "text-ink-muted",
+                        )}
+                      >
+                        {formatSigned(roleChange)} since first session
+                      </span>
+                    ) : rolePoints.length === 1 ? (
+                      <span className="text-[13px] leading-5 text-ink-muted">
+                        Baseline only. Change shows after the second session.
+                      </span>
+                    ) : null}
+                  </div>
+                  <ProgressLineChart
+                    points={rolePoints}
+                    label={`${progressRole.roleTitle} progress`}
+                    caption={`${progressRole.roleTitle} · session scores, dashed lines are band thresholds`}
+                  />
+                </section>
+              )}
 
               <section aria-labelledby={`${titleId}-sessions`} className="flex flex-col gap-3">
                 <SectionTitle id={`${titleId}-sessions`}>Sessions</SectionTitle>
@@ -259,9 +298,18 @@ export function CandidatePanel({
   );
 }
 
-function progressRole(d: CandidateDetail): string {
-  const titles = [...new Set(d.sessions.map((s) => s.roleTitle))];
-  return titles.length === 1 ? titles[0] : "All roles";
+/** Distinct roles in `progress`, the one with the most recent session first. */
+function rolesByRecency(progress: ProgressPoint[]): { roleId: string; roleTitle: string }[] {
+  const latest = new Map<string, { roleId: string; roleTitle: string; time: number; index: number }>();
+  progress.forEach((p, index) => {
+    const time = Date.parse(p.date);
+    const prev = latest.get(p.roleId);
+    // Points are oldest first, so a later index wins ties and unparseable dates.
+    if (!prev || !(time < prev.time)) latest.set(p.roleId, { roleId: p.roleId, roleTitle: p.roleTitle, time, index });
+  });
+  return [...latest.values()]
+    .sort((a, b) => (b.time === a.time || Number.isNaN(a.time) || Number.isNaN(b.time) ? b.index - a.index : b.time - a.time))
+    .map(({ roleId, roleTitle }) => ({ roleId, roleTitle }));
 }
 
 function PanelSkeleton() {
