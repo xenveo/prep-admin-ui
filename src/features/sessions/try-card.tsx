@@ -3,10 +3,17 @@ import { AudioPlayer } from "@/components/media/audio-waveform";
 import { TranscriptHighlights } from "@/components/media/transcript-highlights";
 import { BandChip } from "@/components/ui/band-chip";
 import { cn } from "@/lib/cn";
-import type { AppliedState, Try } from "@/lib/types";
+import { answerDimensionLabel, DIMENSION_IDS, type AnswerMode, type AppliedState, type Try } from "@/lib/types";
 
 const MARK: Record<AppliedState, string> = { done: "✓", partial: "–", missed: "–" };
 const STATE_LABEL: Record<AppliedState, string> = { done: "Done", partial: "Partly", missed: "Not yet" };
+
+/** The try's answer mode; falls back to voice/typed from delivery or audio when the backend omits `mode`. */
+export function tryMode(t: Try): AnswerMode {
+  const mode: unknown = t.mode;
+  if (mode === "voice" || mode === "typed") return mode;
+  return t.delivery || t.audioUrl ? "voice" : "typed";
+}
 
 function Label({ children }: { children: React.ReactNode }) {
   return <div className="mb-1 text-xs font-semibold text-ink-muted">{children}</div>;
@@ -14,6 +21,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 export function TryCard({ label, data }: { label: "First try" | "Second try"; data: Try }) {
   const sub = data.subScores;
+  const mode = tryMode(data);
   return (
     <article aria-label={label} className="flex min-w-0 flex-col gap-4 rounded-lg border border-line bg-surface p-4">
       <div className="flex items-center gap-3">
@@ -27,12 +35,8 @@ export function TryCard({ label, data }: { label: "First try" | "Second try"; da
         <TranscriptHighlights transcript={data.transcript} highlights={data.highlights} />
       </div>
       <SubScoreBars
-        scores={[
-          { label: "Content", value: sub.content },
-          { label: "Structure", value: sub.structure },
-          { label: "Delivery", value: sub.delivery },
-          { label: "Relevance", value: sub.relevance },
-        ]}
+        labelWidth={mode === "typed" ? 112 : undefined}
+        scores={DIMENSION_IDS.map((id) => ({ label: answerDimensionLabel(id, mode), value: sub[id] }))}
       />
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -84,7 +88,7 @@ export function TryCard({ label, data }: { label: "First try" | "Second try"; da
             <td className={cn("text-right", data.delivery.longestPauseSec === null ? "text-ink-muted" : "text-ink")}>{data.delivery.longestPauseSec === null ? "Not measured" : `${data.delivery.longestPauseSec} s`}</td>
           </tr>
         </tbody>
-      </table> : <p className="m-0 text-xs text-ink-muted">Delivery metrics are unavailable for this answer.</p>}
+      </table> : <p className="m-0 text-xs text-ink-muted">{mode === "typed" ? "Typed answer: no voice delivery metrics." : "Delivery metrics are unavailable for this answer."}</p>}
     </article>
   );
 }

@@ -7,8 +7,10 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate, firstName } from "@/lib/format";
 import {
+  answerDimensionLabel,
   FLAG_DIMENSION_LABEL,
   FLAG_ISSUE_LABEL,
+  type AnswerMode,
   type EvaluationFlag,
   type FlagDimension,
   type FlagIssue,
@@ -24,6 +26,21 @@ const DIMENSION_OPTION: Record<FlagDimension, string> = {
 };
 const ISSUES = Object.keys(FLAG_ISSUE_LABEL) as FlagIssue[];
 
+/** How a question was answered: one mode for all its tries, or "mixed" when they differ. */
+export type QuestionMode = AnswerMode | "mixed";
+
+/** "Clarity (written)" for typed answers, "Delivery / clarity" when tries differ, else "Delivery". */
+function deliveryLabel(mode: QuestionMode | undefined): string {
+  return mode === "mixed" ? "Delivery / clarity" : answerDimensionLabel("delivery", mode ?? "voice");
+}
+
+/** Flag titles end in the dimension label ("Session 2 · Q4 · Delivery"); relabel delivery for typed answers. */
+function flagTitle(f: EvaluationFlag, mode: QuestionMode | undefined): string {
+  const suffix = ` · ${FLAG_DIMENSION_LABEL.delivery}`;
+  if (f.dimension !== "delivery" || !f.title.endsWith(suffix)) return f.title;
+  return `${f.title.slice(0, -suffix.length)} · ${deliveryLabel(mode)}`;
+}
+
 export function FlagRail({
   sessionId,
   questionNumber,
@@ -31,6 +48,7 @@ export function FlagRail({
   flags,
   flagsError,
   onSubmitted,
+  questionModes,
 }: {
   sessionId: string;
   questionNumber: number;
@@ -38,7 +56,13 @@ export function FlagRail({
   flags: EvaluationFlag[] | undefined;
   flagsError: boolean;
   onSubmitted: () => void;
+  /** Answer mode per question number, for the delivery label. Questions without tries are omitted. */
+  questionModes?: Partial<Record<number, QuestionMode>>;
 }) {
+  const dimensionOption: Record<FlagDimension, string> = {
+    ...DIMENSION_OPTION,
+    delivery: deliveryLabel(questionModes?.[questionNumber]),
+  };
   const [dimension, setDimension] = useState<FlagDimension>("structure");
   const [issue, setIssue] = useState<FlagIssue>("too_low");
   const [note, setNote] = useState("");
@@ -87,7 +111,7 @@ export function FlagRail({
             <Select id={id} aria-describedby={describedBy} value={dimension} onChange={(e) => setDimension(e.target.value as FlagDimension)}>
               {DIMENSIONS.map((d) => (
                 <option key={d} value={d}>
-                  {DIMENSION_OPTION[d]}
+                  {dimensionOption[d]}
                 </option>
               ))}
             </Select>
@@ -146,7 +170,7 @@ export function FlagRail({
             {flags.map((f) => (
               <li key={f.id} className="flex flex-col gap-1 border-t border-line py-3 first:border-t-0">
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[13px] font-semibold text-ink">{f.title}</span>
+                  <span className="text-[13px] font-semibold text-ink">{flagTitle(f, questionModes?.[f.questionNumber])}</span>
                   <span
                     className={cn(
                       "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold",

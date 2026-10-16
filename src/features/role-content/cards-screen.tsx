@@ -22,10 +22,19 @@ import {
   reorderFlashCards,
   saveFlashCard,
 } from "@/services/roles";
-import { CARD_CATEGORY_LABEL, TIP_MAX_LENGTH, type CardCategory, type FlashCard } from "@/lib/types";
+import {
+  CARD_CATEGORY_LABEL,
+  SAMPLE_OUTLINE_MAX_LENGTH,
+  TIP_MAX_LENGTH,
+  type CardCategory,
+  type FlashCard,
+} from "@/lib/types";
 
 const CATEGORIES = Object.keys(CARD_CATEGORY_LABEL) as CardCategory[];
-type EditableFields = Pick<FlashCard, "category" | "question" | "strongAnswerPoints" | "tip" | "commonMistakes">;
+type EditableFields = Pick<
+  FlashCard,
+  "category" | "question" | "strongAnswerPoints" | "tip" | "commonMistakes" | "sampleAnswerOutline"
+>;
 
 export function CardsScreen({ roleId }: { roleId: string }) {
   const toast = useToast();
@@ -85,6 +94,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
             roleId, id: c.id, category: c.category, question: c.question,
             strongAnswerPoints: c.strongAnswerPoints.filter((s) => s.trim()), tip: c.tip,
             commonMistakes: c.commonMistakes.filter((s) => s.trim()),
+            sampleAnswerOutline: c.sampleAnswerOutline?.trim() || null,
           });
         });
         saves.current.set(id, operation);
@@ -156,6 +166,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
         strongAnswerPoints: [],
         tip: "",
         commonMistakes: [],
+        sampleAnswerOutline: null,
         status: "approved",
       });
       setNewQuestion(null);
@@ -372,6 +383,26 @@ export function CardsScreen({ roleId }: { roleId: string }) {
                 onChange={(strongAnswerPoints) => edit({ strongAnswerPoints })}
               />
             </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="card-outline" className="text-sm font-semibold text-ink">
+                Sample answer outline
+              </label>
+              <Textarea
+                id="card-outline"
+                rows={4}
+                value={selected.sampleAnswerOutline ?? ""}
+                maxLength={SAMPLE_OUTLINE_MAX_LENGTH}
+                aria-describedby="card-outline-help card-outline-count"
+                onChange={(e) => edit({ sampleAnswerOutline: e.target.value })}
+                onBlur={() => { void flush(selected.id).catch(() => {}); }}
+              />
+              <div className="flex items-baseline justify-between gap-3 text-xs text-ink-muted">
+                <span id="card-outline-help">Optional. A short outline of a strong answer, shown to candidates after they practise.</span>
+                <span id="card-outline-count" className="shrink-0">
+                  {(selected.sampleAnswerOutline ?? "").length} / {SAMPLE_OUTLINE_MAX_LENGTH}
+                </span>
+              </div>
+            </div>
             <div className="flex flex-col gap-1.5">
               <span className="text-sm font-semibold text-ink">Common mistakes</span>
               <BulletListEditor
@@ -444,6 +475,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
             strong={selected.strongAnswerPoints.filter(Boolean)}
             tip={selected.tip}
             mistakes={selected.commonMistakes.filter(Boolean)}
+            outline={selected.sampleAnswerOutline?.trim() || null}
             index={index + 1}
             total={cards.length}
           />

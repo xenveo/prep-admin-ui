@@ -21,6 +21,20 @@ export type PromptRoleConfig = {
   versions: { version: number; model: string; temperature: number; thinkingLevel: ThinkingLevel | null; active: boolean; createdBy: string | null; createdAt: string }[];
 };
 export type AiConfig = { roles: PromptRoleConfig[] };
+export type AiUsageKind = "llm" | "stt" | "tts";
+export type AiUsage = {
+  range: { from: string; to: string };
+  budgetUsd: number;
+  totals: {
+    calls: number; costUsd: number; unpricedCalls: number; failedCalls: number;
+    byKind: { kind: AiUsageKind; calls: number; costUsd: number }[];
+    byModel: { model: string | null; calls: number; costUsd: number }[];
+  };
+  /** Covers sessions with at least one priced call; sessions with only unpriced calls are counted in unpricedSessions. */
+  perSession: { completedSessions: number; avgCostUsd: number | null; p90CostUsd: number | null; overBudget: number; unpricedSessions: number };
+  daily: { date: string; calls: number; costUsd: number }[];
+};
+export type AiUsageQuery = { from: string; to: string; roleId?: string };
 
 export const getWorkspaceSettings = (): Promise<WorkspaceSettings> => request("/admin/settings");
 export function saveWorkspaceSettings(patch: Partial<WorkspaceSettings>): Promise<WorkspaceSettings> {
@@ -90,6 +104,8 @@ export const listAuditActions = (): Promise<string[]> => request("/admin/audit/a
 export const listPrivacyRequests = (cursor?: string): Promise<CursorPage<PrivacyRequest>> => request(`/admin/privacy/requests${queryString({ cursor, limit: 50 })}`);
 export const completePrivacyRequest = (id: string): Promise<PrivacyRequest> => request(`/admin/privacy/requests/${encodeURIComponent(id)}/complete`, { method: "POST" });
 export const getAiConfig = (): Promise<AiConfig> => request("/admin/ai-config");
+/** Super admins only; others get the generic 404. */
+export const getAiUsage = (q: AiUsageQuery): Promise<AiUsage> => request(`/admin/ai-usage${queryString(q)}`);
 /** Omitting thinkingLevel keeps the active version's level. */
 export const saveAiConfig = (input: { role: PromptRole; model: string; temperature: number; thinkingLevel?: ThinkingLevel; template?: string }): Promise<PromptRoleConfig> => request("/admin/ai-config", { method: "PUT", body: JSON.stringify(input) });
 export const auditWhenLabel = (e: AuditEvent): string => /T\d\d:\d\d/.test(e.at) ? formatDateTime(e.at).replace(/ \d{4},/, ",") : formatShortDate(e.at);

@@ -115,6 +115,7 @@ function seedTry(t: FxTry): Try {
   const [m, s] = t.audio.split(":").map(Number);
   return {
     attempt: t.attempt,
+    mode: "voice",
     score: t.score,
     band: toBand(t.band),
     audioSeconds: m * 60 + s,
@@ -172,6 +173,7 @@ function build(): Store {
   const cards: FlashCard[] = fx.flashCards_role_sdr.cards.map((c, i) => ({
     id: `card_sdr_${c.id}`,
     roleId: "role_sdr",
+    sampleAnswerOutline: null,
     position: i + 1,
     category: c.category,
     question: c.question,

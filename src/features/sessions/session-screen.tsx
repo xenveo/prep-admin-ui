@@ -15,8 +15,8 @@ import type { SessionQuestion } from "@/lib/types";
 import { useAsync } from "@/lib/use-async";
 import { useUrlState } from "@/lib/use-url-state";
 import { getSessionReview, listFlags } from "@/services/sessions";
-import { FlagRail } from "./flag-rail";
-import { TryCard } from "./try-card";
+import { FlagRail, type QuestionMode } from "./flag-rail";
+import { TryCard, tryMode } from "./try-card";
 
 /** "49 → 52", "49 · retry skipped", or "49 → —" when no second try was recorded. */
 function ScorePair({ q }: { q: SessionQuestion }) {
@@ -42,6 +42,16 @@ function scoresOnlyDescription(q: SessionQuestion): string {
   if (q.retrySkipped) return `${first}; the retry was skipped.`;
   if (q.secondScore === null) return `${first}; no second try was recorded.`;
   return `${first}, ${q.secondScore} on the second.`;
+}
+
+/** Answer mode per question that has tries: shared by all tries, or "mixed". */
+function questionModes(questions: SessionQuestion[]): Partial<Record<number, QuestionMode>> {
+  const out: Partial<Record<number, QuestionMode>> = {};
+  for (const q of questions) {
+    const modes = new Set(q.tries?.map(tryMode));
+    if (modes.size > 0) out[q.n] = modes.size === 1 ? [...modes][0] : "mixed";
+  }
+  return out;
 }
 
 export function SessionScreen({ candidateId, sessionId }: { candidateId: string; sessionId: string }) {
@@ -221,6 +231,7 @@ export function SessionScreen({ candidateId, sessionId }: { candidateId: string;
             flags={flags.data}
             flagsError={Boolean(flags.error)}
             onSubmitted={flags.reload}
+            questionModes={questionModes(r.questions)}
           />
         </div>
       )}

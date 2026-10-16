@@ -8,6 +8,7 @@ export type PreviewAttempt = {
   attemptNo: 1 | 2;
   mode: "voice" | "typed";
   transcript: string;
+  durationSec?: number;
   feedback: { score: number; worked: string[]; improve: string[]; opener: string; focus: string[] };
   audioUrl: string | null;
   feedbackAudioUrl: string | null;
@@ -41,11 +42,12 @@ export type PreviewSession = PreviewInProgress | PreviewReport;
 export const isPreviewInProgress = (session: PreviewSession): session is PreviewInProgress => "status" in session && session.status === "in_progress";
 const id = encodeURIComponent;
 
-export async function startPreview(roleId: string, signal?: AbortSignal): Promise<{ id: string }> {
+/** `mode` is the answer mode the admin picked; individual attempts still declare their own mode. */
+export async function startPreview(roleId: string, mode: "voice" | "typed", signal?: AbortSignal): Promise<{ id: string }> {
   try {
     return await request(`/admin/roles/${id(roleId)}/preview-session`, {
       method: "POST", signal,
-      body: JSON.stringify({ mode: "typed", consent: { recording: true, text: PREVIEW_CONSENT, version: "admin-preview-v1" } }),
+      body: JSON.stringify({ mode, consent: { recording: true, text: PREVIEW_CONSENT, version: "admin-preview-v1" } }),
     });
   } catch (error) {
     if (error instanceof ApiError && error.code === "session_in_progress") {
@@ -56,13 +58,26 @@ export async function startPreview(roleId: string, signal?: AbortSignal): Promis
   }
 }
 export const getPreview = (sessionId: string, signal?: AbortSignal): Promise<PreviewSession> => request(`/sessions/${id(sessionId)}`, { signal });
+const postAttempt = (sessionId: string, questionId: string, body: FormData, key: string, signal?: AbortSignal): Promise<{ attemptId: string }> =>
+  request(`/sessions/${id(sessionId)}/questions/${id(questionId)}/attempts`, { method: "POST", headers: { "Idempotency-Key": key }, body, signal });
 export function submitPreviewAnswer(sessionId: string, questionId: string, attemptNo: 1 | 2, text: string, key: string, signal?: AbortSignal): Promise<{ attemptId: string }> {
   const body = new FormData();
   body.set("attemptNo", String(attemptNo));
   body.set("mode", "typed");
   body.set("text", text);
   body.set("durationSec", "0");
-  return request(`/sessions/${id(sessionId)}/questions/${id(questionId)}/attempts`, { method: "POST", headers: { "Idempotency-Key": key }, body, signal });
+  return postAttempt(sessionId, questionId, body, key, signal);
+}
+const AUDIO_EXTENSION: Record<string, string> = { "audio/webm": "webm", "video/webm": "webm", "audio/mp4": "m4a", "audio/x-m4a": "m4a", "audio/ogg": "ogg", "audio/mpeg": "mp3" };
+/** Voice answer upload. Pause metrics are not measured here, so the admin review shows "Not measured". */
+export function submitPreviewVoiceAnswer(sessionId: string, questionId: string, attemptNo: 1 | 2, audio: Blob, durationSec: number, key: string, signal?: AbortSignal): Promise<{ attemptId: string }> {
+  const body = new FormData();
+  body.set("attemptNo", String(attemptNo));
+  body.set("mode", "voice");
+  // The API rejects a voice answer without a positive duration; it caps answers at 300 s.
+  body.set("durationSec", String(Math.min(300, Math.max(1, Math.ceil(durationSec)))));
+  body.set("audio", audio, `answer.${AUDIO_EXTENSION[audio.type.split(";")[0].trim().toLowerCase()] ?? "webm"}`);
+  return postAttempt(sessionId, questionId, body, key, signal);
 }
 export const skipPreviewRetry = (sessionId: string, questionId: string, signal?: AbortSignal): Promise<void> => request(`/sessions/${id(sessionId)}/questions/${id(questionId)}/skip-retry`, { method: "POST", signal });
 export const completePreview = (sessionId: string, signal?: AbortSignal): Promise<PreviewSession> => request(`/sessions/${id(sessionId)}/complete`, { method: "POST", signal });

@@ -61,6 +61,7 @@ export function PreviewScreen() {
                       strong={c.strongAnswerPoints}
                       tip={c.tip}
                       mistakes={c.commonMistakes}
+                      outline={c.sampleAnswerOutline}
                       index={i + 1}
                       total={approvedCards.length}
                     />
