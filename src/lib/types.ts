@@ -126,6 +126,8 @@ export type RoleSettings = {
   questionOrder: "fixed" | "random";
   answerGuideSeconds: number;
   requireAllCards: boolean;
+  /** AI asks one short probing question after a too-vague first answer; the retry answers it. Off by default. */
+  followUpEnabled: boolean;
   /** null = no limit */
   maxSessionsPerCandidate: number | null;
   sessionWeights: SessionWeights;

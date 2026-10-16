@@ -44,6 +44,7 @@ export function SettingsScreen() {
   const [order, setOrder] = useState(s.questionOrder);
   const [guide, setGuide] = useState(formatDuration(s.answerGuideSeconds));
   const [requireCards, setRequireCards] = useState(s.requireAllCards);
+  const [followUp, setFollowUp] = useState(s.followUpEnabled ?? false);
   const [maxSessions, setMaxSessions] = useState(s.maxSessionsPerCandidate === null ? "" : String(s.maxSessionsPerCandidate));
   const [sessionW, setSessionW] = useState<Record<string, number>>({ ...s.sessionWeights });
   const [dimW, setDimW] = useState<Record<string, number>>({ ...s.dimensionWeights });
@@ -80,6 +81,8 @@ export function SettingsScreen() {
           questionOrder: order,
           answerGuideSeconds: guideSeconds,
           requireAllCards: requireCards,
+          // Always sent: the API treats an omitted value as false.
+          followUpEnabled: followUp,
           maxSessionsPerCandidate: maxSessions.trim() === "" ? null : maxN,
           sessionWeights: sessionW as SessionWeights,
           dimensionWeights: dimW as DimensionWeights,
@@ -172,6 +175,13 @@ export function SettingsScreen() {
             <p className="m-0 text-xs leading-4 text-ink-muted">Candidates go through every card before they start a mock interview.</p>
           </div>
           <Switch label="Require all flash cards first" checked={requireCards} onChange={setRequireCards} />
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="m-0 text-sm font-semibold text-ink">AI follow-up question</p>
+            <p className="m-0 text-xs leading-4 text-ink-muted">If a first answer is too vague to score, the AI asks one short probing question, and the retry answers it.</p>
+          </div>
+          <Switch label="AI follow-up question" checked={followUp} onChange={setFollowUp} />
         </div>
       </Section>
 
