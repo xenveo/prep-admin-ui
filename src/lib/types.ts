@@ -1,18 +1,12 @@
 /**
  * Domain types and view models for the PrepPilot admin console.
- * Shapes follow preppilot-admin-handoff/docs/domain-model.md. Values that come from
- * src/data/sample-data.json keep their `source` flag ("brief" | "illustrative").
+ * Shapes follow preppilot-admin-handoff/docs/domain-model.md.
  */
 import type { Band } from "@/lib/bands";
 
 export type { Band };
 
 export type Source = "brief" | "illustrative";
-
-/** Fixed "today" for deterministic relative times (matches sample-data.json). */
-export const TODAY = "2026-10-15";
-/** Fixed "now" used to timestamp mutations in the mock store. */
-export const NOW_ISO = "2026-10-15T11:45:00+05:30";
 
 // ---------------------------------------------------------------------------
 // Scoring

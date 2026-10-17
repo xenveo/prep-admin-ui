@@ -1,4 +1,4 @@
-/** Readiness bands (docs/domain-model.md). Ids match data/sample-data.json band ids. */
+/** Readiness bands (docs/domain-model.md). */
 export type Band = "ready" | "nearly" | "developing" | "not_ready";
 
 export const BANDS: readonly { id: Band; label: string; min: number; max: number }[] = [
