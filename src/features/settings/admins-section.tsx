@@ -232,7 +232,7 @@ export function AdminsSection({ currentAdminId }: { currentAdminId: string }) {
         body={
           removingPending
             ? "The invite stops working. You can invite them again later."
-            : "They can no longer log in to this console. Their past changes stay in the audit log. You can invite them again later."
+            : "They can no longer log in to this console. If they’re also a candidate, they keep their candidate account. Their past changes stay in the audit log. You can invite them again later."
         }
         confirmLabel={removingPending ? "Cancel invite" : "Remove admin"}
         cancelLabel={removingPending ? "Keep invite" : "Cancel"}
@@ -390,6 +390,9 @@ function InviteAdminForm({
           {busy ? "Sending…" : "Send invite"}
         </Button>
       </div>
+      <p className="basis-full text-xs leading-[1.5] text-ink-faint">
+        A candidate’s email works too: they get admin access and keep their candidate account.
+      </p>
     </form>
   );
 }
