@@ -45,7 +45,7 @@ function subscribeNarrow(cb: () => void) {
 
 function activeKey(pathname: string): NavKey | null {
   const seg = pathname.split("/")[1];
-  return seg === "candidates" || seg === "roles" || seg === "reports" || seg === "settings" ? seg : null;
+  return seg === "candidates" || seg === "roles" || seg === "reports" || seg === "executive" || seg === "settings" ? seg : null;
 }
 
 const SESSION_ROUTE = /^\/candidates\/[^/]+\/sessions\/[^/]+/;

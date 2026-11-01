@@ -9,12 +9,13 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { cn } from "@/lib/cn";
 
-export type NavKey = "candidates" | "roles" | "reports" | "settings";
+export type NavKey = "candidates" | "roles" | "reports" | "executive" | "settings";
 
 const NAV: { id: NavKey; label: string; href: string; icon: IconName }[] = [
   { id: "candidates", label: "Candidates", href: "/candidates", icon: "users" },
   { id: "roles", label: "Job roles", href: "/roles", icon: "briefcase" },
   { id: "reports", label: "Reports", href: "/reports", icon: "chart" },
+  { id: "executive", label: "Executive overview", href: "/executive", icon: "chart" },
   { id: "settings", label: "Settings", href: "/settings/admins", icon: "settings" },
 ];
 

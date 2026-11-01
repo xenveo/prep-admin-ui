@@ -69,7 +69,9 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   turbopack: {
     rules: {
-      "*.css": {
+      // Only the Tailwind entry needs this transform. Rewriting *.module.css as
+      // *.css strips CSS Module exports, leaving component class names undefined.
+      "globals.css": {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },

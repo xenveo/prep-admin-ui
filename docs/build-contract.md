@@ -37,9 +37,10 @@ Files are kebab-case; one component per file; named exports (no default exports 
 /roles/[roleId]  (layout: breadcrumb, header, tabs as links)
    /roles/[roleId]/details | cards | questions | settings | preview     (`/roles/[roleId]` redirects to details)
 /reports                            A9 (?role=&from=&to=)
+/executive                          Executive report layout mock (local demo data only)
 /settings/[section]                 admins | ai | privacy | email | audit   (`/settings` redirects to /settings/admins)
 ```
-Route group `src/app/(admin)/` holds everything under the AppShell. Sidebar active key: `'candidates' | 'roles' | 'reports' | 'settings'`, derived from pathname. Sidebar is collapsed by default below 1280px and on the session review route; user preference persisted in localStorage (guarded).
+Route group `src/app/(admin)/` holds everything under the AppShell. Sidebar active key: `'candidates' | 'roles' | 'reports' | 'executive' | 'settings'`, derived from pathname. Sidebar is collapsed by default below 1280px and on the session review route; user preference persisted in localStorage (guarded).
 
 ## Component contracts
 
