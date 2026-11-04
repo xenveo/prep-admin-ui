@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { CardDraftBanner } from "./card-draft-banner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { BulletListEditor } from "@/components/ui/bullet-list-editor";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -19,7 +20,6 @@ import { useRole } from "@/features/roles/role-context";
 import {
   approveFlashCard,
   discardFlashCard,
-  draftFlashCardsWithAI,
   listFlashCards,
   reorderFlashCards,
   saveFlashCard,
@@ -47,8 +47,6 @@ export function CardsScreen({ roleId }: { roleId: string }) {
   const [error, setError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [drafting, setDrafting] = useState(false);
-  const draftAbort = useRef<AbortController | null>(null);
   const [newQuestion, setNewQuestion] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -77,6 +75,16 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     );
   }, [roleId]);
 
+  const appendDraftedCards = useCallback(() => {
+    const knownIds = new Set(cardsRef.current.map((card) => card.id));
+    void listFlashCards(roleId).then((list) => {
+      const currentIds = new Set(cardsRef.current.map((card) => card.id));
+      const added = list.filter((card) => !knownIds.has(card.id) && !currentIds.has(card.id));
+      commit([...cardsRef.current, ...added].sort((a, b) => a.position - b.position));
+      emitRoleChanged(roleId);
+    }).catch(() => {});
+  }, [roleId, commit]);
+
   const load = useCallback(() => {
     setError(false);
     setCards(null);
@@ -85,7 +93,6 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   useEffect(() => {
     fetchCards();
-    return () => draftAbort.current?.abort();
   }, [fetchCards]);
 
   const persist = useCallback(
@@ -193,27 +200,6 @@ export function CardsScreen({ roleId }: { roleId: string }) {
     }
   }
 
-  async function draftMore() {
-    setDrafting(true);
-    draftAbort.current?.abort();
-    const controller = new AbortController();
-    draftAbort.current = controller;
-    try {
-      const created = await draftFlashCardsWithAI(roleId, controller.signal);
-      commit([...cardsRef.current, ...created]);
-      if (created[0]) select(created[0].id);
-      emitRoleChanged(roleId);
-      toast.show({
-        title: `${created.length} AI drafts added`,
-        detail: "Review and approve them before candidates see them.",
-      });
-    } catch (error) {
-      if (!controller.signal.aborted) toast.show({ title: "Couldn't draft cards", detail: error instanceof Error ? error.message : "Try again." });
-    } finally {
-      if (!controller.signal.aborted) setDrafting(false);
-    }
-  }
-
   async function approve() {
     if (!selected) return;
     setBusy(true);
@@ -283,7 +269,9 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   if (cards.length === 0) {
     return (
-      <div className="rounded-panel border border-line bg-surface">
+      <div className="flex flex-col gap-4">
+        <CardDraftBanner key={roleId} roleId={roleId} onReady={appendDraftedCards} />
+        <div className="rounded-panel border border-line bg-surface">
         {createDialog}
         <EmptyState
           icon="file"
@@ -292,14 +280,14 @@ export function CardsScreen({ roleId }: { roleId: string }) {
           action={
             <div className="flex gap-2">
               <Button onClick={()=>setNewQuestion("")} disabled={adding}>+ Add card</Button>
-              <Button variant="secondary-teal" onClick={draftMore} disabled={drafting} aria-busy={drafting}>
-                <span aria-hidden="true">✦</span>
-                {drafting ? "Drafting…" : "Draft with AI"}
-              </Button>
+              <ButtonLink variant="secondary-teal" href={`/roles/${encodeURIComponent(roleId)}/cards/draft-ai?new=1`} disabled={role.status === "archived"}>
+                <span aria-hidden="true">✦</span>Draft with AI
+              </ButtonLink>
             </div>
           }
           helper="AI drafts are labelled and stay hidden from candidates until you approve them."
         />
+        </div>
       </div>
     );
   }
@@ -319,6 +307,7 @@ export function CardsScreen({ roleId }: { roleId: string }) {
 
   return (
     <div className="flex flex-wrap items-start gap-5">
+      <CardDraftBanner key={roleId} roleId={roleId} onReady={appendDraftedCards} />
       {createDialog}
       <section
         aria-labelledby="cards-h"
@@ -382,10 +371,9 @@ export function CardsScreen({ roleId }: { roleId: string }) {
           <Button size="sm" onClick={() => setNewQuestion("")} disabled={adding} className={cn(LIST_BUTTON, "border-neutral-line!")}>
             + Add card
           </Button>
-          <Button size="sm" variant="secondary-teal" onClick={draftMore} disabled={drafting} aria-busy={drafting} className={LIST_BUTTON}>
-            <span aria-hidden="true">✦</span>
-            {drafting ? "Drafting…" : "Draft more with AI"}
-          </Button>
+          <ButtonLink size="sm" variant="secondary-teal" href={`/roles/${encodeURIComponent(roleId)}/cards/draft-ai?new=1`} disabled={role.status === "archived"} className={LIST_BUTTON}>
+            <span aria-hidden="true">✦</span>Draft with AI
+          </ButtonLink>
         </div>
       </section>
 

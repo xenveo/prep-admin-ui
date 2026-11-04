@@ -129,6 +129,14 @@ export function RoleEditorShell({ roleId, children }: { roleId: string; children
   const cards = req.data?.approvedFlashCards ?? r.flashCardCount - r.aiDraftCardCount;
   const questions = req.data?.approvedQuestions ?? r.questionCount - r.aiDraftQuestionCount;
 
+  if (pathname.endsWith("/cards/draft-ai")) {
+    return (
+      <PageContainer className="min-[1025px]:pt-6!">
+        <RoleProvider value={r}>{children}</RoleProvider>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer className="flex flex-col gap-5 min-[1025px]:pt-6!">
       <PageHeader

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -13,7 +13,7 @@ import { cn } from "@/lib/cn";
 import { pluralize } from "@/lib/format";
 import { emitRoleChanged } from "@/lib/role-events";
 import { SENIORITY_LABEL, type Seniority } from "@/lib/types";
-import { draftFlashCardsWithAI, updateRole } from "@/services/roles";
+import { updateRole } from "@/services/roles";
 import { useRole } from "./role-context";
 
 type RoleDraft = { title: string; seniority: Seniority; description: string; skills: string[] };
@@ -33,11 +33,6 @@ export function DetailsScreen() {
   const [description, setDescription] = useState(role.description);
   const [skills, setSkills] = useState(role.keySkills);
   const [save, setSave] = useState<SaveState>("idle");
-  const draftAbort = useRef<AbortController | null>(null);
-  useEffect(() => () => draftAbort.current?.abort(), []);
-  const [drafting, setDrafting] = useState(false);
-  const [lastDraft, setLastDraft] = useState<string | null>(null);
-
   const snapshot = JSON.stringify({ title, seniority, description, skills });
   const saved = useRef(snapshot);
   const [savedSnapshot, setSavedSnapshot] = useState(snapshot);
@@ -99,27 +94,6 @@ export function DetailsScreen() {
       void persist(current.fields).catch(() => {});
     }
   }, [persist]);
-
-  async function draft() {
-    setDrafting(true);
-    draftAbort.current?.abort();
-    const controller = new AbortController();
-    draftAbort.current = controller;
-    try {
-      const created = await draftFlashCardsWithAI(role.id, controller.signal);
-      setLastDraft("just now");
-      emitRoleChanged(role.id);
-      toast.show({
-        title: `AI drafted ${created.length} flash ${pluralize(created.length, "card")}`,
-        detail: "They stay hidden from candidates until you approve them.",
-        action: { label: "Review cards", href: `/roles/${encodeURIComponent(role.id)}/cards` },
-      });
-    } catch (e) {
-      if (!controller.signal.aborted) toast.show({ title: "Couldn't draft with AI", detail: e instanceof Error ? e.message : undefined });
-    } finally {
-      if (!controller.signal.aborted) setDrafting(false);
-    }
-  }
 
   const dirty = snapshot !== savedSnapshot;
   const saveText =
@@ -235,16 +209,15 @@ export function DetailsScreen() {
             {role.aiDraftCardCount} flash {pluralize(role.aiDraftCardCount, "card")} waiting for review
           </Link>
         )}
-        <Button
+        <ButtonLink
           variant="secondary-teal"
           iconLeft="sparkle"
-          disabled={drafting || readOnly}
-          onClick={draft}
+          disabled={readOnly}
+          href={`/roles/${encodeURIComponent(role.id)}/cards/draft-ai?new=1`}
           className="self-start"
         >
-          {drafting ? "Drafting…" : "Draft with AI"}
-        </Button>
-        {lastDraft && <p className="m-0 text-xs leading-4 text-ink-faint">Last draft, {lastDraft}</p>}
+          Draft with AI
+        </ButtonLink>
       </aside>
     </div>
   );
