@@ -87,3 +87,34 @@ body {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* Live test interview (features/roles/live-call): the candidate call's dark palette, scoped to its full-screen
+   overlay so the admin's light/dark tokens keep working everywhere else. Call-only tokens map onto the closest
+   admin names: --primary-text is the text on primary-soft, --improve-text the text on improve-soft,
+   --neutral-text the secondary ink, --neutral-line the secondary button border, --input-line the field border. */
+.call-dark {
+  --bg: #0D1010;
+  --surface: #161A19;
+  --surface-sunken: #0D1010;
+  --ink: #E7E9E4;
+  --ink-soft: #D1D5DB;
+  --ink-muted: #9CA3AF;
+  --ink-faint: #9CA3AF;
+  --line: #2C3331;
+  --input-line: #6B7280;
+  --neutral-line: #4B5563;
+  --neutral-soft: #252B29;
+  --neutral-text: #D1D5DB;
+  --primary: #5EEAD4;
+  --on-primary: #042F2E;
+  --primary-text: #99F6E4;
+  --primary-soft: #133B37;
+  --primary-tint: #12302D;
+  --primary-line: #1F5C55;
+  --improve: #FBBF24;
+  --improve-text: #FCD34D;
+  --improve-soft: #3A2A0B;
+  --error: #F87171;
+  --focus-ring: 2px solid #5EEAD4;
+  color-scheme: dark;
+}

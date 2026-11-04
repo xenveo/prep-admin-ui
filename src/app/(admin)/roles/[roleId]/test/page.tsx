@@ -6,5 +6,9 @@ import { PreviewInterview } from "@/features/roles/preview-interview";
 export const instant = false;
 
 export default function Page() {
-  return <Suspense fallback={<p aria-busy="true">Loading test interview…</p>}><PreviewInterview /></Suspense>;
+  return (
+    <Suspense fallback={<div aria-busy="true" aria-label="Loading test interview" className="call-dark fixed inset-0 z-[60] bg-[#0D1010]" />}>
+      <PreviewInterview />
+    </Suspense>
+  );
 }
