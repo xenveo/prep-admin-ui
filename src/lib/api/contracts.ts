@@ -13,5 +13,6 @@ export type DraftJobStatus<T = FlashCard | Question> = { status: "queued" | "run
 export type RoleSettingsPatch = { settings: RoleSettings };
 export type RequestAcknowledgement = { requestId: string };
 export type InviteContext = { approvedRoleNames: string[]; draftRoleNames: string[]; existingEmails: string[] };
-export type StartSessionInput = { mode: "voice" | "typed"; consent: { recording: true; text: string; version: string } };
-export type StartedSession = { id: string; number: number; questions: { id: string; index: number; text: string; cardId: number; category: string }[]; intro: { text: string; audioUrl: string | null }; currentQuestion: number };
+/** Live voice interview (gpt-live-1): no answer mode, no recording consent. */
+export type StartSessionInput = { consent: { liveVoice: true; text: string; version: string } };
+export type StartedSession = { id: string; number: number; questions: { id: string; index: number; text: string; cardId: number; category: string }[]; currentQuestion: number };

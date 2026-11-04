@@ -451,6 +451,7 @@ export type Try = {
   worked: string;
   improve: string;
   delivery: DeliveryMetrics | null;
+  /** Null for live (realtime) voice answers, which are never recorded, and for expired recordings. */
   audioUrl: string | null;
   /** Second try only. */
   appliedFromFeedback?: { text: string; state: AppliedState; detail?: string }[];

@@ -57,10 +57,11 @@ export function TryCard({ label, data, className }: { label: "First try" | "Seco
           <span className="text-xs text-ink-faint">
             {mode === "typed"
               ? "Typed answer · no recording or voice delivery metrics"
-              : `Voice answer${data.audioLabel ? ` · ${data.audioLabel}` : ""}`}
+              : `Voice answer${data.audioLabel ? ` · ${data.audioLabel}` : ""}${data.audioUrl ? "" : " · transcript only, no audio stored"}`}
           </span>
         </div>
-        {mode === "voice" && <AudioPlayer label={label} durationSeconds={data.audioSeconds} src={data.audioUrl} />}
+        {/* Live (realtime) answers are never recorded and older recordings expire: audioUrl is then null. */}
+        {mode === "voice" && data.audioUrl && <AudioPlayer label={label} durationSeconds={data.audioSeconds} src={data.audioUrl} />}
         <TranscriptHighlights transcript={data.transcript} highlights={data.highlights} />
       </section>
 

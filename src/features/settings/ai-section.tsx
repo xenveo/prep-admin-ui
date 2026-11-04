@@ -383,7 +383,7 @@ function PromptEditor({ config, onSaved }: { config: PromptRoleConfig; onSaved: 
             onChange={(e) => { setModel(e.target.value); setModelError(null); }}
           />
           <span id={`${id}-model-h`} className={cn("text-xs leading-4", modelError ? "text-improve-text" : "text-ink-faint")}>
-            {modelError ?? "Gemini model id"}
+            {modelError ?? (config.role === "interviewer" ? "GPT-Live model id (e.g. gpt-live-1)" : "Gemini model id")}
           </span>
         </div>
         <div className="flex flex-col gap-2">
