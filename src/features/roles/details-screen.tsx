@@ -111,114 +111,125 @@ export function DetailsScreen() {
   const approvedQuestions = Math.max(0, role.questionCount - role.aiDraftQuestionCount);
 
   return (
-    <div className="flex flex-wrap items-start gap-6">
-      <fieldset
-        disabled={readOnly}
-        className="m-0 flex min-w-0 max-w-[880px] flex-[999_1_560px] flex-col gap-[22px] rounded-panel border border-line bg-surface p-6"
-      >
-        <legend className="sr-only">Role details</legend>
-        {readOnly && <p className="m-0 text-sm leading-5 text-ink-muted">This role is archived, so it can’t be edited.</p>}
-        <div className="grid grid-cols-1 gap-4 min-[700px]:grid-cols-[minmax(0,1fr)_200px]">
-          <Field label="Role title" error={titleError} className={FIELD}>
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                aria-describedby={describedBy}
-                invalid={invalid}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="h-[42px]! rounded-[9px]! text-[15px]!"
-              />
-            )}
-          </Field>
-          <Field label="Seniority" className={FIELD}>
-            {({ id, describedBy }) => (
-              <Select
-                id={id}
-                aria-describedby={describedBy}
-                value={seniority}
-                onChange={(e) => setSeniority(e.target.value as Seniority)}
-                className="[&>select]:h-[42px] [&>select]:rounded-[9px] [&>select]:pl-2.5 [&>select]:text-[15px]"
-              >
-                {SENIORITIES.map((s) => (
-                  <option key={s} value={s}>
-                    {SENIORITY_LABEL[s]}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
-        </div>
-        <RichTextEditor
-          label="Description"
-          helper="What the job involves. AI uses this to draft flash cards and questions."
-          value={description}
-          onChange={setDescription}
-          minHeight={144}
-        />
-        <div className="flex flex-col gap-2">
-          <label htmlFor={skillsId} className="text-sm leading-5 font-semibold text-ink">
-            Key skills
-          </label>
-          <TagInput inputId={skillsId} label="Key skills" tags={skills} onChange={setSkills} placeholder="Add a skill and press Enter" />
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-[18px]">
-          <p
-            aria-live="polite"
-            className={cn("m-0 text-[13px] leading-[18px]", save === "error" ? "text-improve-text" : "text-ink-faint")}
-          >
-            {saveText}
-          </p>
-          <Button
-            variant="primary"
-            disabled={save === "saving" || (!dirty && save !== "error")}
-            disabledReason={titleError}
-            onClick={saveNow}
-            className="px-[18px]!"
-          >
-            {save === "error" ? "Retry save" : "Save changes"}
-          </Button>
-        </div>
-      </fieldset>
-
-      <aside
-        aria-labelledby="ai-draft-title"
-        className="flex min-w-0 max-w-[420px] flex-[1_1_280px] flex-col gap-3 rounded-panel border border-line bg-surface p-5"
-      >
-        <h2 id="ai-draft-title" className="m-0 text-base leading-[22px] font-semibold text-ink">
-          Draft content with AI
-        </h2>
-        <p className="m-0 text-sm leading-[1.55] text-ink-muted">
-          AI drafts flash cards from the description and skills. Nothing is shown to candidates until you approve it.
-        </p>
-        <dl className="m-0 mt-1 flex flex-col border-t border-line text-[13px] leading-[18px]">
-          <div className="flex justify-between gap-3 border-b border-line py-2.5">
-            <dt className="text-ink-faint">Flash cards</dt>
-            <dd className="m-0 text-ink">{approvedCards} approved</dd>
-          </div>
-          <div className="flex justify-between gap-3 border-b border-line py-2.5">
-            <dt className="text-ink-faint">Questions</dt>
-            <dd className="m-0 text-ink">{approvedQuestions} approved</dd>
-          </div>
-        </dl>
-        {role.aiDraftCardCount > 0 && (
-          <Link
-            href={`/roles/${encodeURIComponent(role.id)}/cards`}
-            className="w-fit rounded-sm text-[13px] leading-[18px] font-semibold text-primary-text underline-offset-2 hover:underline"
-          >
-            {role.aiDraftCardCount} flash {pluralize(role.aiDraftCardCount, "card")} waiting for review
-          </Link>
-        )}
-        <ButtonLink
-          variant="secondary-teal"
-          iconLeft="sparkle"
+    // The two-column split follows the panel's own width (a container query), not its content,
+    // so the aside never wraps under the form when the description grows or a scrollbar appears.
+    <div className="@container">
+      <div className="grid grid-cols-1 items-start gap-6 @min-[864px]:grid-cols-[minmax(560px,880px)_minmax(280px,420px)]">
+        <fieldset
           disabled={readOnly}
-          href={`/roles/${encodeURIComponent(role.id)}/cards/draft-ai?new=1`}
-          className="self-start"
+          className="m-0 flex min-w-0 flex-col gap-[22px] rounded-panel border border-line bg-surface p-6"
         >
-          Draft with AI
-        </ButtonLink>
-      </aside>
+          <legend className="sr-only">Role details</legend>
+          {readOnly && <p className="m-0 text-sm leading-5 text-ink-muted">This role is archived, so it can’t be edited.</p>}
+          <div className="grid grid-cols-1 gap-4 min-[700px]:grid-cols-[minmax(0,1fr)_200px]">
+            <Field label="Role title" error={titleError} className={FIELD}>
+              {({ id, describedBy, invalid }) => (
+                <Input
+                  id={id}
+                  aria-describedby={describedBy}
+                  invalid={invalid}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="h-[42px]! rounded-[9px]! text-[15px]!"
+                />
+              )}
+            </Field>
+            <Field label="Seniority" className={FIELD}>
+              {({ id, describedBy }) => (
+                <Select
+                  id={id}
+                  aria-describedby={describedBy}
+                  value={seniority}
+                  onChange={(e) => setSeniority(e.target.value as Seniority)}
+                  className="[&>select]:h-[42px] [&>select]:rounded-[9px] [&>select]:pl-2.5 [&>select]:text-[15px]"
+                >
+                  {SENIORITIES.map((s) => (
+                    <option key={s} value={s}>
+                      {SENIORITY_LABEL[s]}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </Field>
+          </div>
+          <RichTextEditor
+            label="Description"
+            helper="What the job involves. AI uses this to draft flash cards and questions."
+            value={description}
+            onChange={setDescription}
+            minHeight={144}
+            maxHeight={480}
+          />
+          <div className="flex flex-col gap-2">
+            <label htmlFor={skillsId} className="text-sm leading-5 font-semibold text-ink">
+              Key skills
+            </label>
+            <TagInput inputId={skillsId} label="Key skills" tags={skills} onChange={setSkills} placeholder="Add a skill and press Enter" />
+          </div>
+          <div className="flex items-center justify-end gap-3 border-t border-line pt-[18px]">
+            {/* Takes the free space and wraps internally, so a long save error never pushes the button around. */}
+            <p
+              aria-live="polite"
+              className={cn("m-0 min-w-0 flex-1 text-right text-[13px] leading-[18px]", save === "error" ? "text-improve-text" : "text-ink-faint")}
+            >
+              {saveText}
+            </p>
+            <Button
+              variant="primary"
+              disabled={save === "saving" || (!dirty && save !== "error")}
+              disabledReason={titleError}
+              onClick={saveNow}
+              className="min-w-[124px] shrink-0 px-[18px]!"
+            >
+              {save === "error" ? "Retry save" : "Save changes"}
+            </Button>
+          </div>
+        </fieldset>
+
+        <aside
+          aria-labelledby="ai-draft-title"
+          className="flex min-w-0 max-w-[420px] flex-col gap-3 rounded-panel border border-line bg-surface p-5 @min-[864px]:sticky @min-[864px]:top-6"
+        >
+          <h2 id="ai-draft-title" className="m-0 text-base leading-[22px] font-semibold text-ink">
+            Draft content with AI
+          </h2>
+          <p className="m-0 text-sm leading-[1.55] text-ink-muted">
+            AI drafts flash cards from the description and skills. Nothing is shown to candidates until you approve it.
+          </p>
+          <dl className="m-0 mt-1 flex flex-col border-t border-line text-[13px] leading-[18px]">
+            <div className="flex justify-between gap-3 border-b border-line py-2.5">
+              <dt className="text-ink-faint">Flash cards</dt>
+              <dd className="m-0 text-ink">{approvedCards} approved</dd>
+            </div>
+            <div className="flex justify-between gap-3 border-b border-line py-2.5">
+              <dt className="text-ink-faint">Questions</dt>
+              <dd className="m-0 text-ink">{approvedQuestions} approved</dd>
+            </div>
+          </dl>
+          {/* Always one line tall, so the button below doesn't jump when drafts arrive or get reviewed. */}
+          <p className="m-0 min-h-[18px] text-[13px] leading-[18px]">
+            {role.aiDraftCardCount > 0 ? (
+              <Link
+                href={`/roles/${encodeURIComponent(role.id)}/cards`}
+                className="rounded-sm font-semibold text-primary-text underline-offset-2 hover:underline"
+              >
+                {pluralize(role.aiDraftCardCount, "flash card")} waiting for review
+              </Link>
+            ) : (
+              <span className="text-ink-faint">No drafts waiting for review</span>
+            )}
+          </p>
+          <ButtonLink
+            variant="secondary-teal"
+            iconLeft="sparkle"
+            disabled={readOnly}
+            href={`/roles/${encodeURIComponent(role.id)}/cards/draft-ai?new=1`}
+            className="self-start"
+          >
+            Draft with AI
+          </ButtonLink>
+        </aside>
+      </div>
     </div>
   );
 }

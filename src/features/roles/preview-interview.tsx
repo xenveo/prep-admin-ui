@@ -246,8 +246,6 @@ export function PreviewInterview() {
           </p>
           {liveStatus === "live" && <MicLevel stream={muted ? null : mic} />}
         </div>
-        {liveStatus === "dropped" && endReason && <p className="text-sm text-ink-muted">{endedMessage(endReason)}</p>}
-        {liveError && <p role="alert" className="text-sm text-error">{liveError}</p>}
 
         {question ? <div className="flex flex-col gap-2">
           <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
@@ -258,13 +256,18 @@ export function PreviewInterview() {
           {secondTry && result?.followUp && <p className="text-sm"><span className="font-semibold">Follow-up: </span>{result.followUp}</p>}
         </div> : <p className="text-sm">Every question is answered. End the preview to see the results.</p>}
 
-        {active.pending && <p role="status" className="text-sm text-ink-muted">Scoring try {active.pending.attemptNo}…</p>}
-        {active.failed && <p role="alert" className="text-sm text-error">Scoring failed ({active.failed.code}). The interviewer will ask for the answer again.</p>}
-        {notice && !active.pending && <p role="status" className="text-sm text-ink-muted">{notice}</p>}
+        {/* One reserved line for connection and scoring messages, so they don't push the captions and buttons around. */}
+        <div className="flex min-h-5 flex-col gap-1">
+          {liveStatus === "dropped" && endReason && <p className="text-sm text-ink-muted">{endedMessage(endReason)}</p>}
+          {liveError && <p role="alert" className="text-sm text-error">{liveError}</p>}
+          {active.pending && <p role="status" className="text-sm text-ink-muted">Scoring try {active.pending.attemptNo}…</p>}
+          {active.failed && <p role="alert" className="text-sm text-error">Scoring failed ({active.failed.code}). The interviewer will ask for the answer again.</p>}
+          {notice && !active.pending && <p role="status" className="text-sm text-ink-muted">{notice}</p>}
+        </div>
 
         <div className="flex flex-col gap-1">
           <h4 className="text-sm font-semibold">Live captions</h4>
-          <div ref={captionsBox} role="log" aria-live="polite" aria-label="Live captions" className="flex max-h-64 min-h-16 flex-col gap-2 overflow-y-auto rounded-lg border border-line bg-surface-sunken p-3 text-sm">
+          <div ref={captionsBox} role="log" aria-live="polite" aria-label="Live captions" className="flex h-64 flex-col gap-2 overflow-y-auto overscroll-contain rounded-lg border border-line bg-surface-sunken p-3 text-sm">
             {captions.length === 0
               ? <p className="text-ink-faint">{liveRunning ? "Captions appear here as you and the interviewer speak." : "Join the interview to start talking."}</p>
               : captions.map((caption) => <p key={caption.id}><span className={cn("font-semibold", caption.speaker === "interviewer" ? "text-primary-text" : "text-ink")}>{caption.speaker === "interviewer" ? "Interviewer" : "You"}: </span>{caption.text}</p>)}

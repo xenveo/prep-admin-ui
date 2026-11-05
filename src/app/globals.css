@@ -62,6 +62,11 @@
   --radius-chip: 999px;
 }
 
+/* Reserve the scrollbar's width so pages don't jump sideways when content grows past the viewport. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
