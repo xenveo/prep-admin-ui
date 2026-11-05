@@ -50,7 +50,8 @@ export function SelfTile({ level, speaking, muted, active, className }: {
       aria-label={muted ? "You, muted" : speaking ? "You, speaking" : "You"}
       className={cn(
         "z-[2] flex flex-col justify-between rounded-[14px] bg-[#1E2322] px-2.5 py-2 md:px-3.5 md:py-3",
-        speaking && !muted ? "border-2 border-primary" : "border border-line",
+        // A ring, not a thicker border, so the waveform doesn't nudge when speaking starts.
+        "border", speaking && !muted ? "border-primary ring-1 ring-primary" : "border-line",
         className,
       )}
     >

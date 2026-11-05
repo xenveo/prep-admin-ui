@@ -58,7 +58,7 @@ export function Captions(p: {
     <section aria-label="Captions" aria-live="polite" className="flex w-full shrink-0 flex-col items-center gap-3.5 text-center md:max-w-[880px]">
       {p.showQuestion && (
         <div className="flex flex-col items-center gap-2">
-          <span className="inline-flex flex-wrap items-center justify-center gap-2.5 text-[13px] text-ink-muted">
+          <span className="inline-flex min-h-[22px] flex-wrap items-center justify-center gap-2.5 text-[13px] text-ink-muted">
             Question {p.questionNumber}
             {p.secondTry && (
               <span className="inline-flex min-h-[22px] items-center rounded-full bg-primary-soft px-2 text-[12px] font-semibold text-primary-text">Second try</span>

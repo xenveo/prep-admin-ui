@@ -115,7 +115,9 @@ export function CallScreen(p: CallScreenProps) {
             drawerOpen && "md:right-[400px]",
             hasCard
               ? "justify-start px-3 pt-2 max-md:overflow-y-auto md:justify-center md:gap-4 md:overflow-y-hidden md:px-6 md:pt-2 md:pb-4"
-              : "justify-center overflow-y-auto px-4 pt-4 pb-28 md:gap-7 md:px-6 md:pb-10",
+              // Top-anchored, not centred: captions and hints change height constantly, and centring
+              // would move the orb and question every time.
+              : "justify-start overflow-y-auto px-4 pt-[max(1rem,6vh)] pb-28 md:gap-7 md:px-6 md:pt-[max(1.5rem,10vh)] md:pb-10",
           )}
         >
           <div className="flex shrink-0 flex-col items-center gap-2">
