@@ -67,12 +67,15 @@ export function RichTextEditor({
   label,
   helper,
   minHeight = 168,
+  maxHeight,
 }: {
   value: string;
   onChange: (html: string) => void;
   label: string;
   helper?: ReactNodeLike;
   minHeight?: number;
+  /** Past this height the text scrolls inside the editor instead of growing the page. */
+  maxHeight?: number;
 }) {
   const uid = useId();
   const ref = useRef<HTMLDivElement>(null);
@@ -227,8 +230,8 @@ export function RichTextEditor({
             const text = e.clipboardData.getData("text/plain");
             document.execCommand("insertHTML", false, html ? sanitizeHtml(html) : esc(text).replace(/\n/g, "<br>"));
           }}
-          style={{ minHeight }}
-          className="p-3 text-[15px] leading-[1.6] text-ink outline-none [&_a]:text-primary-text [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0 [&_ul]:list-disc [&_ul]:pl-5"
+          style={{ minHeight, maxHeight }}
+          className="overflow-y-auto overscroll-contain p-3 text-[15px] leading-[1.6] text-ink outline-none [&_a]:text-primary-text [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0 [&_ul]:list-disc [&_ul]:pl-5"
         />
       </div>
       {helper && (
