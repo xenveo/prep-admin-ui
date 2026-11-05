@@ -2,6 +2,37 @@
 import { ApiError, request, resolveApiUrl } from "@/lib/api/client";
 
 export const PREVIEW_CONSENT = "I agree that my practice answers are a live AI voice conversation streamed to OpenAI (processed outside India) and transcribed for scoring and feedback. My voice is not recorded. This test interview is excluded from candidate statistics.";
+/** Version stored with PREVIEW_CONSENT; bump whenever the text changes. */
+export const PREVIEW_CONSENT_VERSION = "admin-preview-v2";
+export type SubScoreKey = "content" | "structure" | "delivery" | "relevance";
+/** One delivery measure of a voice answer (same shape as the candidate app's DeliveryMetric). */
+export type DeliveryMetric = {
+  key: "pace" | "fillers" | "pauses";
+  label: string;
+  /** Always words, e.g. "172 wpm · a bit fast". */
+  valueText: string;
+  value: number;
+  scale: { min: number; max: number };
+  target: { min: number; max: number };
+  targetText: string;
+  note: string;
+  inTarget: boolean;
+};
+export type PreviewFeedback = {
+  score: number;
+  subScores: Record<SubScoreKey, number>;
+  worked: string[];
+  improve: string[];
+  opener: string;
+  focus: string[];
+  delivery: DeliveryMetric[];
+  /** Words per minute per equal time slice of the answer (3–10 slices); empty without word timings or under 5 s. */
+  paceSeries?: number[];
+  /** Filler phrases ("um", "you know") with count > 0, most frequent first. */
+  fillers?: { text: string; count: number }[];
+  /** What the interviewer recommends after this try; a second try is always "next". */
+  recommendation?: "retry" | "next";
+};
 export type PreviewQuestion = { id: string; index: number; text: string; cardId: number; category: string };
 export type PreviewAttempt = {
   id: string;
@@ -9,7 +40,7 @@ export type PreviewAttempt = {
   mode: "voice" | "typed";
   transcript: string;
   durationSec?: number;
-  feedback: { score: number; worked: string[]; improve: string[]; opener: string; focus: string[] };
+  feedback: PreviewFeedback;
   /** Null for live answers (never recorded); older sessions may still have audio. */
   audioUrl: string | null;
   feedbackAudioUrl: string | null;
@@ -51,7 +82,7 @@ export async function startPreview(roleId: string, signal?: AbortSignal): Promis
   try {
     return await request(`/admin/roles/${id(roleId)}/preview-session`, {
       method: "POST", signal,
-      body: JSON.stringify({ consent: { liveVoice: true, text: PREVIEW_CONSENT, version: "admin-preview-v2" } }),
+      body: JSON.stringify({ consent: { liveVoice: true, text: PREVIEW_CONSENT, version: PREVIEW_CONSENT_VERSION } }),
     });
   } catch (error) {
     if (error instanceof ApiError && error.code === "session_in_progress") {
@@ -72,18 +103,31 @@ export const skipPreviewRetry = (sessionId: string, questionId: string, signal?:
 export const completePreview = (sessionId: string, signal?: AbortSignal): Promise<PreviewSession> => request(`/sessions/${id(sessionId)}/complete`, { method: "POST", signal });
 export const abandonPreview = (sessionId: string, signal?: AbortSignal): Promise<void> => request(`/sessions/${id(sessionId)}/abandon`, { method: "POST", signal });
 
+/** "Try again": the second try at the current question. 409 unless its first try is scored and nothing is pending. */
+export const choosePreviewRetry = (sessionId: string, signal?: AbortSignal): Promise<void> =>
+  request(`/sessions/${id(sessionId)}/live/retry`, { method: "POST", signal });
+/** Asks the interviewer to repeat the current question. */
+export const repeatPreviewQuestion = (sessionId: string, signal?: AbortSignal): Promise<void> =>
+  request(`/sessions/${id(sessionId)}/live/repeat`, { method: "POST", signal });
+/** Pauses or resumes the interviewer. */
+export const setPreviewPaused = (sessionId: string, paused: boolean, signal?: AbortSignal): Promise<void> =>
+  request(`/sessions/${id(sessionId)}/live/pause`, { method: "POST", body: JSON.stringify({ paused }), signal });
+
+/** Session WebSocket events (LIVE_INTERVIEW_CONTRACT.md). */
+export type PreviewEvent =
+  | { type: "attempt.received"; attemptId: string; questionId: string; attemptNo: 1 | 2; transcript: string }
+  | { type: "attempt.evaluated"; attemptId: string; questionId: string; attemptNo: 1 | 2; attempt: PreviewAttempt; followUp?: string | null }
+  | { type: "attempt.failed"; attemptId: string; code: string; retryable: boolean }
+  | { type: "question.retry_skipped"; questionId: string }
+  | { type: "live.answer_done" }
+  | { type: "live.ended"; reason: string }
+  | { type: "live.retry_chosen"; questionId: string }
+  | { type: "live.paused"; paused: boolean }
+  | { type: "live.repeat" };
+
 /** Session event socket (`attempt.*`, `live.ended`, ...); authenticated by the admin login cookie. */
 export function previewEventsUrl(sessionId: string): string {
   const url = new URL(resolveApiUrl(`/api/ws/sessions/${id(sessionId)}`));
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   return url.toString();
-}
-
-/** Cancellable delay shared by the bounded session polling loop. */
-export function previewPollDelay(signal: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const abort = () => { clearTimeout(timer); reject(new DOMException("Cancelled", "AbortError")); };
-    const timer = setTimeout(() => { signal.removeEventListener("abort", abort); resolve(); }, 2000);
-    if (signal.aborted) abort(); else signal.addEventListener("abort", abort, { once: true });
-  });
 }

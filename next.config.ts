@@ -56,7 +56,7 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  // The test interview records answers with the microphone.
+  // The test interview streams the microphone to the live AI interviewer (never recorded).
   { key: "Permissions-Policy", value: "microphone=(self), camera=(), geolocation=()" },
   ...(process.env.NODE_ENV === "production"
     ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]
